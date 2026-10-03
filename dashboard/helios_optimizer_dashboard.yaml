@@ -17,12 +17,13 @@ views:
           - condition: user
             users:
               - aeb5f377cffb469180f9b97c7136f6ae
+              - aeb5f377cffb469180f9b97c7136f6ae
     sections:
       - type: grid
         cards:
           - type: picture
             image:
-              media_content_id: https://www.raaijmakers.be/media/HeliosOptimizerBanner.jpeg
+              media_content_id: /local/HeliosOptimizerBanner.jpeg
               media_content_type: ''
               metadata:
                 navigateIds:
@@ -31,6 +32,11 @@ views:
                     media_content_id: __MANUAL_ENTRY__
             grid_options:
               columns: full
+            alt_text: Helios Optimizer
+            double_tap_action:
+              action: perform-action
+              perform_action: pyscript.helios_optimizer_automation
+              target: {}
         column_span: 3
       - type: grid
         background:
@@ -96,8 +102,8 @@ views:
             show_entity_picture: true
             hide_state: false
             state_content:
-              - start_step
-              - start_time
+              - base_step
+              - base_time
             vertical: false
             features_position: bottom
           - type: tile
@@ -165,15 +171,21 @@ views:
               columns: 12
               rows: auto
             entity: input_number.helios_optimizer_energy_plan
-            name: Helios & SciPy Version
+            name: Helios, Python & SciPy Version
             icon: mdi:program
             show_entity_picture: false
             hide_state: false
             state_content:
               - version
+              - python
               - scipy
             vertical: false
             features_position: bottom
+            visibility:
+              - condition: user
+                users:
+                  - e3660168261a4344a4c14e358c2ba336
+                  - 6f5834a212c040e290a60b1b550dbdda
       - type: grid
         column_span: 3
         cards:
@@ -191,20 +203,19 @@ views:
                 https://docs.homebatterycontrol.com/xx-helios-strategy.html#input_params
           - type: markdown
             content: >-
-              <font color="grey"><i>The sections below contain the input
-              parameters for the Helios Optimizer. The Helios Optimizer will
-              typically run every hour or every quarter of an hour (using an
-              automation with a schedule) but can also be manually started with
-              the button below.
+              <font color="grey">
 
-              A short <b>overview</b> of the optimizer results is displayed
-              <b>above</b> and more <b>detailed results</b> of the calculated
-              Optimized Energy Plan are displayed <b>below</b> (e.g. as a Graph
-              and a Table).
+              <i>The <b>Helios Optimizer Service</b> will typically run every
+              <b>quarter</b> of an hour and can be <b>manually</b> started with
+              the <b>Start Helios</b> button.<br>
 
-              <b>Remark:</b> The above link will <b>IN THE FUTURE</b> contain
-              more detailed information about Input parameters and Output
-              Results of the Helios Optimizer Strategy.
+              A short <b>Overview</b> of the Optimizer Results is displayed
+              <b>above</b> and the <b>Input Parameters</b> and more <b>Detailed
+              Results</b> of the calculated Optimized Energy Plan are displayed
+              <b>below</b> (e.g. Status Blocks, Graph and Table).<br>
+
+              <b>Remark:</b>IN THE FUTURE more detailed information via the link
+              above.
 
               </i></font>
             grid_options:
@@ -259,12 +270,9 @@ views:
               minutes for a typical run with a horizon of <b>2 days</b>. 
 
 
-              The default value for the <b>start step</b> is <b>0</b>
-              (=automatically start the optimization at the current time of the
-              day). 
-
-              <b>Important Remark</b>: Change the start step only to a specific
-              step value for simulation runs!
+              <b>Important Remark</b>: Use an <b>automatic</b> start step
+              (<b>zero</b>). Only use a specific start step for
+              <b>Simulation</b> runs!
 
               </i></font>
           - type: entities
@@ -272,9 +280,44 @@ views:
               - entity: input_number.helios_optimizer_steps
                 name: Steps
               - entity: input_select.helios_optimizer_step_size
-                name: Step Size
+                name: Step Size (Minutes)
               - entity: input_number.helios_optimizer_start_step
-                name: Start Step
+                name: Start Step (Zero is Automatic)
+              - entity: input_number.helios_optimizer_house_daily_usage
+                name: House Daily Usage (Average)
+              - entity: input_text.helios_optimizer_house_daily_distr
+                name: House Daily Usage Distribution (24 Hours)
+              - entity: input_select.helios_optimizer_solar_mode
+                name: Solar Mode
+              - entity: input_number.helios_optimizer_max_grid_import
+                name: Max Grid Import
+              - entity: input_number.helios_optimizer_max_grid_export
+                name: Max Grid Export
+              - entity: input_select.helios_optimizer_forecast_solar_sensor
+                name: Sensor with the Forecast Solar Hours
+      - type: grid
+        column_span: 1
+        background:
+          color: yellow
+          opacity: 16
+        cards:
+          - type: heading
+            icon: mdi:weather-sunny
+            heading: Battery Parameters
+            heading_style: subtitle
+            grid_options:
+              columns: 12
+              rows: auto
+          - type: markdown
+            content: >-
+              <font color="grey"><i>The <b>settings</b> below tune how the
+              Helios Optimizer uses the battery. 
+
+              </i></font>
+          - type: entities
+            entities:
+              - entity: input_boolean.helios_optimizer_battery_enabled
+                name: Battery Enabled
               - entity: input_number.helios_optimizer_soc_target_pct
                 name: Battery SOC Target
               - entity: input_number.helios_optimizer_soc_min_pct
@@ -289,10 +332,6 @@ views:
                 name: Battery Charge Efficiency
               - entity: input_number.helios_optimizer_discharge_efficiency
                 name: Battery Discharge Efficiency
-              - entity: input_number.helios_optimizer_max_grid_import
-                name: Max Grid Import
-              - entity: input_number.helios_optimizer_max_grid_export
-                name: Max Grid Export
       - type: grid
         column_span: 1
         background:
@@ -301,23 +340,28 @@ views:
         cards:
           - type: heading
             icon: mdi:battery-charging-80
-            heading: Helios Templates for HBC Batteries
             heading_style: subtitle
             grid_options:
               columns: 12
               rows: auto
+            heading: Derived Parameters
           - type: markdown
             content: >-
-              <font color="grey"><i>These parameters are retrieved from HBC and
-              are only displayed for validation purposes. They should represent
-              the <b>total</b> values for <u>all of your batteries</u> and are
-              calculate from the HBC Marstek Entities. They will be (partly)
-              used by the Helios Optimization Model as input parameters in the
-              calculation of an Optimized Energy Plan.
+              <font color="grey"><i>The read-only <b>settings</b> below are
+              retrieved from or generated for <b>HBC</b> and are only displayed
+              for validation purposes. They should represent the (total) values
+              for <u>all of your batteries</u> and are calculate from the <b>HBC
+              Marstek</b> Entities using Helios templates or are generated by
+              the Helios Optimizer.
 
               </i></font>
           - type: entities
             entities:
+              - entity: input_text.helios_optimizer_version
+                name: Helios Version
+                card_mod:
+                  style: |
+                    :host{pointer-events: none; opacity: 0.6} 
               - entity: sensor.helios_template_hbc_maximum_energy
                 name: Maximum Energy (All Batteries)
                 card_mod:
@@ -350,6 +394,16 @@ views:
                     :host{pointer-events: none; opacity: 0.6} 
               - entity: input_number.house_battery_strategy_charge_target_soc
                 name: HBC Charge Target SOC %
+                card_mod:
+                  style: |
+                    :host{pointer-events: none; opacity: 0.6} 
+              - entity: input_select.helios_optimizer_hbc_sub_strategy
+                name: Helios HBC Sub Strategy
+                card_mod:
+                  style: |
+                    :host{pointer-events: none; opacity: 0.6} 
+              - entity: input_number.helios_optimizer_hbc_net_power
+                name: Helios Net Battery Power for HBC
                 card_mod:
                   style: |
                     :host{pointer-events: none; opacity: 0.6} 
@@ -437,7 +491,7 @@ views:
               rows: 8
             header:
               show: true
-              title: Optimal Energy Plan
+              title: Optimized Energy Plan
               show_states: false
               colorize_states: true
             apex_config:
@@ -454,13 +508,6 @@ views:
                 style:
                   color: '#888888'
                   fontSize: 14px
-            graph_span: 48h
-            span:
-              start: day
-            now:
-              show: true
-              label: Nu
-              color: black
             yaxis:
               - id: power
                 decimals: 1
@@ -477,6 +524,13 @@ views:
                   tickAmount: 5
                   title:
                     text: Battery SOC (%)
+            graph_span: 48h
+            span:
+              start: day
+            now:
+              show: true
+              label: Nu
+              color: black
             series:
               - entity: input_number.helios_optimizer_energy_plan
                 name: Battery SoC
@@ -497,11 +551,8 @@ views:
                 show:
                   legend_value: false
                 color: '#000FFB'
-                type: column
-                stroke_width: 4
-                group_by:
-                  func: raw
-                  duration: 1h
+                type: area
+                stroke_width: 2
                 data_generator: |
                   return entity.attributes.plan.timestamp.map((time, index) => {
                     return [new Date(time).getTime(), entity.attributes.plan.battery_discharge_kw[index] - entity.attributes.plan.battery_charge_kw[index]];
@@ -510,21 +561,6 @@ views:
                   const cha_array = entity.attributes.plan.battery_charge_kw;
                   return entity.attributes.plan.timestamp.map((time, i) => [
                     new Date(time).getTime(), dis_array?.[i] != null ? dis_array[i] - cha_array[i] : null
-                  ]);
-              - entity: input_number.helios_optimizer_energy_plan
-                name: Grid (Import-Export)
-                yaxis_id: power
-                show:
-                  legend_value: false
-                color: '#008FFB'
-                type: area
-                opacity: 0.3
-                stroke_width: 2
-                data_generator: |
-                  const imp_array = entity.attributes.plan.grid_import_kw;
-                  const exp_array = entity.attributes.plan.grid_export_kw;
-                  return entity.attributes.plan.timestamp.map((time, i) => [
-                    new Date(time).getTime(), imp_array?.[i] != null ? imp_array[i] - exp_array[i] : null
                   ]);
               - entity: input_number.helios_optimizer_energy_plan
                 name: Solar Forecast
@@ -536,7 +572,7 @@ views:
                 opacity: 0.1
                 stroke_width: 2
                 data_generator: |
-                  const for_array = entity.attributes.plan.sol_for_kw;
+                  const for_array = entity.attributes.plan.solar_forecast_kw;
                   return entity.attributes.plan.timestamp.map((time, i) => [
                     new Date(time).getTime(), for_array?.[i] != null ? for_array[i] : null
                   ]);
@@ -550,7 +586,7 @@ views:
                 opacity: 0.3
                 stroke_width: 2
                 data_generator: |
-                  const prod_array = entity.attributes.plan.sol_prod_kw;
+                  const prod_array = entity.attributes.plan.solar_production_kw;
                   return entity.attributes.plan.timestamp.map((time, i) => [
                     new Date(time).getTime(), prod_array?.[i] != null ? prod_array[i] : null
                   ]);
@@ -563,9 +599,26 @@ views:
                 type: line
                 stroke_width: 3
                 data_generator: |
-                  const house_array = entity.attributes.plan.house_kw;
+                  const house_array = entity.attributes.plan.house_usage_kw;
                   return entity.attributes.plan.timestamp.map((time, i) => [
                     new Date(time).getTime(), house_array?.[i] != null ? -house_array[i] : null
+                  ]);
+              - entity: input_number.helios_optimizer_energy_plan
+                name: Grid (Import-Export)
+                yaxis_id: power
+                show:
+                  legend_value: false
+                color: '#008FFB'
+                type: column
+                opacity: 0.3
+                stroke_width: 2
+                data_generator: |
+                  const colours = { sell: '#ff9800', buy: '#4caf50' };
+                  const imp_array   = entity.attributes.plan.grid_import_kw;
+                  const exp_array   = entity.attributes.plan.grid_export_kw;
+                  const strat_array = entity.attributes.plan.strategy;
+                  return entity.attributes.plan.timestamp.map((time, i) => [
+                    new Date(time).getTime(), imp_array?.[i] != null ? imp_array[i] - exp_array[i] : null
                   ]);
               - entity: input_number.helios_optimizer_energy_plan
                 name: EV Charging
@@ -575,9 +628,6 @@ views:
                 color: '#775DD0'
                 type: line
                 stroke_width: 3
-                group_by:
-                  func: raw
-                  duration: 1h
                 data_generator: |
                   const ev_array = entity.attributes.plan.ev_charge_kw;
                   return entity.attributes.plan.timestamp.map((time, i) => [
@@ -602,15 +652,17 @@ views:
                 | :---                  | :---                   |
                 | **Success**           | {{ a.get('success') }} | 
                 | **Result**            | {{ a.get('calc_result') }} | 
-                | **Fun Cost**          | € {{ a.get('total_fun_cost'  ) }} |
-                | **Total Step Cost**   | € {{ a.get('total_step_cost' ) }} |
-                | **Total Delta Cost**  | € {{ a.get('total_delta_cost') }} |
-                | **Total Grid Cost**   | € {{ a.get('total_grid_cost' ) }} |
+                | **Optimize Time**     | {{ a.get('optimize_time'     ) }} |
+                | **Fun Cost**          | � {{ a.get('total_fun_cost'  ) }} |
+                | **Total Step Cost**   | � {{ a.get('total_step_cost' ) }} |
+                | **Total Delta Cost**  | � {{ a.get('total_delta_cost') }} |
+                | **Total Grid Cost**   | � {{ a.get('total_grid_cost' ) }} |
                 | **Steps**             | {{ a.get('steps'             ) }} |
                 | **Step Size**         | {{ a.get('step_size'         ) }} min |
-                | **Start Step**        | {{ a.get('start_step'        ) }} |
+                | **Base Step**         | {{ a.get('base_step'         ) }} |
+                | **Active Step**       | {{ a.get('active_step'       ) }} |
                 | **End Step**          | {{ a.get('end_step'          ) }} |
-                | **Period Start**      | {{ a.get('start_time'        ) }} |
+                | **Period Base**       | {{ a.get('base_time'         ) }} |
                 | **Period Active**     | {{ a.get('active_time'       ) }} |
                 | **Period End**        | {{ a.get('end_time'          ) }} |
               {%- else -%}
@@ -629,24 +681,24 @@ views:
               {%- if c is defined and c is not none -%}
                 {%- set step  = state_attr('input_number.helios_optimizer_energy_plan', 'active_step') | default(None) -%}
                 {%- set start = state_attr('input_number.helios_optimizer_energy_plan', 'active_time') | default('')  -%}
-              🐾 **Active Step:** {{ step }}
+              ?? **Active Step:** {{ step }}
 
-              🕰️ **Step Start Time:** {{ start }}
+              ??? **Step Start Time:** {{ start }}
                 | Component | State | Power |
                 | :--- | :---: | :---: |
-                | 🧠 **Battery Strategy**  | **{{ c.battery_strategy }}**                                         | {{ c.grid_power_w        }} W |
-                | 📊 **Net Battery Power** | {{ '🔻 Discharge' if c.battery_net_power_w < 0 else ('🔺 Charge' if c.battery_net_power_w > 0 else '⚪ Standby') }} | {{ c.battery_net_power_w }} W |
-                | 🔋 **Battery Power**     |                                                                      | {{ c.battery_power_w     }} W |
-                | ⚡ **Charge Power**      | {{ '🟢 Active'   if c.battery_charge_w     > 0 else '⚪ Standby' }} | {{ c.battery_charge_w    }} W |
-                | 🔻 **Discharge Power**   | {{ '🔴 Active'   if c.battery_discharge_w  > 0 else '⚪ Standby' }} | {{ c.battery_discharge_w }} W |
-                | ⚡ **Charge Limit**      | {{ '🟢 Active'   if c.max_charge_w         > 0 else '⚪ Disabled'}} | {{ c.max_charge_w        }} W |
-                | 🔻 **Discharge Limit**   | {{ '🔴 Active'   if c.max_discharge_w      > 0 else '⚪ Disabled'}} | {{ c.max_discharge_w     }} W |
-                | ⚡ **Max Grid Import**   | {{ '🔵 Active'   if c.max_grid_import_w    > 0 else '⚪ Off-Grid'}} | {{ c.max_grid_import_w   }} W |
-                | 🔻 **Max Grid Export**   | {{ '🟡 Active'   if c.max_grid_export_w    > 0 else '⚪ Disabled'}} | {{ c.max_grid_export_w   }} W |
+                | ?? **Battery Strategy**  | **{{ c.battery_strategy }}**                                         | {{ c.grid_power_w        }} W |
+                | ?? **Net Battery Power** | {{ '?? Discharge' if c.battery_net_power_w < 0 else ('?? Charge' if c.battery_net_power_w > 0 else '? Standby') }} | {{ c.battery_net_power_w }} W |
+                | ?? **Battery Power**     |                                                                      | {{ c.battery_power_w     }} W |
+                | ? **Charge Power**      | {{ '?? Active'   if c.battery_charge_w     > 0 else '? Standby' }} | {{ c.battery_charge_w    }} W |
+                | ?? **Discharge Power**   | {{ '?? Active'   if c.battery_discharge_w  > 0 else '? Standby' }} | {{ c.battery_discharge_w }} W |
+                | ? **Charge Limit**      | {{ '?? Active'   if c.max_charge_w         > 0 else '? Disabled'}} | {{ c.max_charge_w        }} W |
+                | ?? **Discharge Limit**   | {{ '?? Active'   if c.max_discharge_w      > 0 else '? Disabled'}} | {{ c.max_discharge_w     }} W |
+                | ? **Max Grid Import**   | {{ '?? Active'   if c.max_grid_import_w    > 0 else '? Off-Grid'}} | {{ c.max_grid_import_w   }} W |
+                | ?? **Max Grid Export**   | {{ '?? Active'   if c.max_grid_export_w    > 0 else '? Disabled'}} | {{ c.max_grid_export_w   }} W |
               {%- elif false -%}  
-                | 🚗 **EV Laadpaal**       | {{ '⚡ Charge'   if c.ev_power_w           > 0 else '⚪ Off'     }} | {{ c.ev_power_w          }} W |
-                | ♨️ **Heatpump**          | {{ '🔥 Heat'     if c.hp_power_w           > 0 else '⚪ Off'     }} | {{ c.hp_power_w          }} W |
-                | 🚿 **Boiler**            | {{ '💧 Heat Up'  if c.boiler_power_w       > 0 else '⚪ Off'     }} | {{ c.boiler_power_w      }} W |
+                | ?? **EV Laadpaal**       | {{ '? Charge'   if c.ev_power_w           > 0 else '? Off'     }} | {{ c.ev_power_w          }} W |
+                | ?? **Heatpump**          | {{ '?? Heat'     if c.hp_power_w           > 0 else '? Off'     }} | {{ c.hp_power_w          }} W |
+                | ?? **Boiler**            | {{ '?? Heat Up'  if c.boiler_power_w       > 0 else '? Off'     }} | {{ c.boiler_power_w      }} W |
               {%- else -%}
 
               *No Current Strategy and Power available.*
@@ -683,6 +735,76 @@ views:
               {%- endif -%}
                 
             title: Solar & Battery
+        column_span: 3
+      - type: grid
+        cards:
+          - type: markdown
+            title: Optimized Energy Plan
+            content: >
+              {%- set hdr1 = "| Time | Import (�) | Export (�) | FunCost (�) |
+              House-For (kW) | House-Usg (kW) | Sun-For (kW) | Sun-Prod (kW) |
+              Strategy | SoC (%) | SoC (kWh) | Grid-Net (kW) | Discharge (kW) |
+              Charge (kW) |" -%}
+
+              {%- set hdr2 = "| :--- |   ---: |   ---: | ---:    |  
+              :---:        |   :---:        |  :---:       |  :---:        |
+              :---:    | :---:   | :---:     | :---:    | :---:          |
+              :---:       |" -%}
+
+              {%- set p =
+              state_attr('input_number.helios_optimizer_energy_plan', 'plan')
+              -%}
+
+              {%- if p and p.timestamp is defined and  p.timestamp | length > 0
+              -%}
+                {%- if p.ev_charge_kw != None -%}
+                  {%- set hdr1 = hdr1 ~ " EV Charging (kW) |" -%} 
+                  {%- set hdr2 = hdr2 ~ " :---:            |" -%} 
+                {%- endif -%}
+                {{ hdr1 }} 
+                {{ hdr2 }}
+                {%- for i in range(p.timestamp | length) -%}
+                  {%- set t = p.timestamp[i].split(' ')[1][:5] -%}
+                  {%- set imp_pr       = "%5.3f"| format(p.import_prices[i]) -%}
+                  {%- set exp_pr       = "%5.3f"| format(p.export_prices[i]) -%}
+                  {%- set step_cost    = "%5.3f"| format(p.step_costs[i]) -%}
+                  {%- set house_for_kw = "%5.2f"  | format(p.house_forecast_kw[i]) -%}
+                  {%- set house_usg_kw = "%5.2f"  | format(p.house_usage_kw[i]) -%}
+                  {%- set sol_for_kw   = "%5.2f"  | format(p.solar_forecast_kw[i]) -%}     
+                  {%- set sol_prod_kw  = "%5.2f"  | format(p.solar_production_kw[i]) -%}     
+                  {%- set soc_pct      = "%4.1f"  | format(p.soc_pct[i]) -%}
+                  {%- set soc_kwh      = "%5.2f"  | format(p.soc_kwh[i]) -%}
+                  {%- set grid_net_kw  = "%5.2f"  | format(p.grid_import_kw[i] - p.grid_export_kw[i]) -%}
+
+                  {%- set discharge_kw = "%5.2f"  | format(p.battery_discharge_kw[i] if p.battery_discharge_kw != None else 0) -%}
+                  {%- set charge_kw    = "%5.2f"  | format(p.battery_charge_kw[i] if p.battery_charge_kw != None else 0) -%}
+                  
+                  {%- set ev_kw        = "%5.2f"  | format(p.ev_charge_kw[i] if p.ev_charge_kw != None else 0) -%}
+                  {%- set hp_kw        = "%5.2f"  | format(p.heat_pump_kw[i] if p.heat_pump_kw != None else 0) -%}
+                  {%- set boiler_kw    = "%5.2f"  | format(p.boiler_kw[i] if p.boiler_kw != None else 0) -%}
+                  
+                  {%- set row = "\n|" ~ t -%}
+                  {%- set row = row ~ "|" ~ imp_pr ~ "|" ~ exp_pr -%} 
+                  {%- set row = row ~ "|" ~ step_cost -%} 
+                  {%- set row = row ~ "|" ~ house_for_kw -%} 
+                  {%- set row = row ~ "|" ~ house_usg_kw -%} 
+                  {%- set row = row ~ "|" ~ sol_for_kw -%}
+                  {%- set row = row ~ "|" ~ sol_prod_kw -%}
+                  {%- set row = row ~ "|" ~ p.strategy[i] -%}
+                  {%- set row = row ~ "|" ~ soc_pct  ~ "|" ~  soc_kwh ~ "|" ~ grid_net_kw -%}
+                  {%  set row = row ~ "|" ~ discharge_kw ~ "|" ~ charge_kw -%}
+                  {%- set row = row ~ "|" ~ (ev_kw if p.ev_charge_kw != None else "n/a") -%}
+                  {%- set row = row ~ "|" -%}
+                  {{- row -}}  
+                {%- endfor -%}
+              {%- else -%}
+                {{ "\n\n**No Energy Plan Data Available.**" }}
+              {%- endif -%}
+            grid_options:
+              columns: full
+        column_span: 3
+      - type: grid
+        cards:
           - type: markdown
             title: Optimalization Run
             grid_options:
@@ -722,67 +844,53 @@ views:
 
               {% endif %}
                 
-        column_span: 3
+            visibility:
+              - condition: user
+                users:
+                  - e3660168261a4344a4c14e358c2ba336
+                  - 6f5834a212c040e290a60b1b550dbdda
+        visibility:
+          - condition: user
+            users:
+              - e3660168261a4344a4c14e358c2ba336
+              - e3660168261a4344a4c14e358c2ba336
+              - 6f5834a212c040e290a60b1b550dbdda
       - type: grid
         cards:
           - type: markdown
-            title: Optimal Energy Plan
-            content: >
-              {%- set hdr1 = "| Time | Import | Export | FunCost | House (kW) |
-              Sun-For (kW) | Sun-Prod (kW) | Strategy | SoC (%) | SoC (kWh) |
-              Net (kW) | Discharge (kW) | Charge (kW) |" -%}
-
-              {%- set hdr2 = "| :--- |   ---: |   ---: | ---:    |   :---:    | 
-              :---:       |  :---:        | :---:    | :---:   | :---:     |
-              :---:    | :---:          | :---:       |" -%}
-
-              {%- set p =
-              state_attr('input_number.helios_optimizer_energy_plan', 'plan')
-              -%}
-
-              {%- if p and p.timestamp is defined and  p.timestamp | length > 0
-              -%}
-                {%- if p.ev_charge_kw != None -%}
-                  {%- set hdr1 = hdr1 ~ " EV Charging (kW) |" -%} 
-                  {%- set hdr2 = hdr2 ~ " :---:            |" -%} 
-                {%- endif -%}
-                {{ hdr1 }} 
-                {{ hdr2 }}
-                {%- for i in range(p.timestamp | length) -%}
-                  {%- set t = p.timestamp[i].split(' ')[1][:5] -%}
-                  {%- set imp_pr       = "€ %4.2f"| format(p.import_prices[i]) -%}
-                  {%- set exp_pr       = "€ %4.2f"| format(p.export_prices[i]) -%}
-                  {%- set step_cost    = "€ %4.2f"| format(p.step_costs[i]) -%}
-                  {%- set house_kw     = "%5.2f"  | format(p.house_kw[i]) -%}
-                  {%- set sol_for_kw   = "%5.2f"  | format(p.sol_for_kw[i]) -%}     
-                  {%- set sol_prod_kw  = "%5.2f"  | format(p.sol_prod_kw[i]) -%}     
-                  {%- set soc_pct      = "%4.1f"  | format(p.soc_pct[i]) -%}
-                  {%- set soc_kwh      = "%5.2f"  | format(p.soc_kwh[i]) -%}
-                  {%- set grid_kw      = "%5.2f"  | format(p.grid_import_kw[i] - p.grid_export_kw[i]) -%}
-
-                  {%- set discharge_kw = "%5.2f"  | format(p.battery_discharge_kw[i] if p.battery_discharge_kw != None else 0) -%}
-                  {%- set charge_kw    = "%5.2f"  | format(p.battery_charge_kw[i] if p.battery_charge_kw != None else 0) -%}
-                  
-                  {%- set ev_kw        = "%5.2f"  | format(p.ev_charge_kw[i] if p.ev_charge_kw != None else 0) -%}
-                  {%- set hp_kw        = "%5.2f"  | format(p.heat_pump_kw[i] if p.heat_pump_kw != None else 0) -%}
-                  {%- set boiler_kw    = "%5.2f"  | format(p.boiler_kw[i] if p.boiler_kw != None else 0) -%}
-                  
-                  {%- set row = "\n|" ~ t -%}
-                  {%- set row = row ~ "|" ~ imp_pr ~ "|" ~ exp_pr -%} 
-                  {%- set row = row ~ "|" ~ step_cost -%} 
-                  {%- set row = row ~ "|" ~ house_kw -%} 
-                  {%- set row = row ~ "|" ~ sol_for_kw -%}
-                  {%- set row = row ~ "|" ~ sol_prod_kw -%}
-                  {%- set row = row ~ "|" ~ p.strategy[i] -%}
-                  {%- set row = row ~ "|" ~ soc_pct  ~ "|" ~  soc_kwh ~ "|" ~ grid_kw -%}
-                  {%  set row = row ~ "|" ~ discharge_kw ~ "|" ~ charge_kw -%}
-                  {%- set row = row ~ "|" ~ (ev_kw if p.ev_charge_kw != None else "n/a") -%}
-                  {%- set row = row ~ "|" -%}
-                  {{- row -}}  
-                {%- endfor -%}
-              {%- else -%}
-                {{ "\n\n**No Energy Plan Data Available.**" }}
-              {%- endif -%}
             grid_options:
-              columns: full
-        column_span: 3
+              rows: auto
+            content: >
+              {%- set t =
+              state_attr('input_number.helios_optimizer_energy_plan', 'totals')
+              -%}
+
+              {%- if t is defined and t is not none -%}
+                | Total for Period        | Sum in kWh                                                      |
+                | :---                    | :---                                                            |
+                | **Input House Forecast**| {{ '%5.2f' | format(t.get('house_input_kwh'      ) or 0) }} kWh |
+                | **Input Solar Forecast**| {{ '%5.2f' | format(t.get('solar_input_kwh'      ) or 0) }} kWh |
+                | **House Forecast**      | {{ '%5.2f' | format(t.get('house_forecast_kwh'   ) or 0) }} kWh |
+                | **House Usage**         | {{ '%5.2f' | format(t.get('house_usage_kwh'      ) or 0) }} kWh |
+                | **Solar Forecast**      | {{ '%5.2f' | format(t.get('solar_forecast_kwh'   ) or 0) }} kWh |
+                | **Solar Production**    | {{ '%5.2f' | format(t.get('solar_production_kwh' ) or 0) }} kWh |
+                | **Battery Discharge**   | {{ '%5.2f' | format(t.get('battery_discharge_kwh') or 0) }} kWh |
+                | **Battery Charge**      | {{ '%5.2f' | format(t.get('battery_charge_kwh'   ) or 0) }} kWh |
+                | **Grid Import**         | {{ '%5.2f' | format(t.get('grid_import_kwh'      ) or 0) }} kWh |
+                | **Grid Export**         | {{ '%5.2f' | format(t.get('grid_export_kwh'      ) or 0) }} kWh |
+                | **Overall (near zero)** | {{ '%5.2f' | format(t.get('overall_kwh'          ) or 0) }} kWh |
+                | **Solar Skipped**       | {{ '%5.2f' | format(t.get('solar_skipped_kwh'    ) or 0) }} kWh |
+                | **House Skipped**       | {{ '%5.2f' | format(t.get('house_skipped_kwh'    ) or 0) }} kWh |
+              {%- else -%}
+
+              *No Totals available.*
+
+              {%- endif -%}
+                
+            title: Energy Plan Totals
+        visibility:
+          - condition: user
+            users:
+              - e3660168261a4344a4c14e358c2ba336
+              - e3660168261a4344a4c14e358c2ba336
+              - 6f5834a212c040e290a60b1b550dbdda

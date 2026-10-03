@@ -14,21 +14,21 @@ In the future the Helios Service will be migrated to a Home Assistant Custom Com
 
 ## Features
 - **LP/MILP Optimization:** Uses SciPy linear programming to maximize profit and minimize energy costs.
-- **HA PyScript Application:** Runs within PyScript and native Python and does not require an external engine.
+- **HBC Ready:** Retrieves Parameters and Prices from HBC and creates output for HBC (Sub Strategy and Power)
+- **HA PyScript/Python Application:** Runs within PyScript and native Python and does not require an external engine.
 - **Fast:** Lightweight execution that optimizes 192 steps of 15 minutes (for 2 days) within 500ms per run
+- **Asynchronous & Fast:** Lightweight execution built directly into the HA core asynchronous loop.
 - **Zero-Config Setup:** Out-of-the-box defaults let you run a test optimization immediately without configuration.
 - **Independent:** Open design compatible with any dynamic priced, solar, battery and house usage forecast.
 - **Flexible Horizon & Intervals:** Calculates the energy plan for one or two day(s) with 15-minute or 60-minute intervals (step size).
 - **Dynamic Recalculation:** Runs automatically from the current timestamp or from a user-defined step.
-- **HBC Integration:** Retrieves Parameters from HBC and from the Helios Dashboard
 - **Clean Data Structure:** Simple full-day input and output arrays (00:00-24:00/48:00).
 
 ## Roadmap
+- **HBC Integration:** Helios Strategy as a native HBC strategy using the Helios Output 
 - **Native HA Integration:** Pure Python custom component (HACS-ready), runs without PyScript or external engines.
-- **Asynchronous & Fast:** Lightweight execution built directly into the HA core asynchronous loop.
 - **Device Support:** EV, Heat Pump, and Boiler integration (deferrable devices).
 - **Modular Connectors:** Dedicated modules for energy providers, solar forecasts, battery integrations and solar inverter integrations.
-- **HBC Ready:** Designed for seamless integration with the HBC Marstek Battery Interface ???????????????????????????????????
 
 ## Description
 Helios calculates an optimized energy plan for a specified horizon (typically 1 to 2 days)

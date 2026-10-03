@@ -1,29 +1,33 @@
 alias: HELIOS Optimizer Automation Task
 description: >-
-  Home Assistant Task that Configures and Starts the Helios Optimizer Service
+  A Home Assistant Automatioin Task that Configures and Starts the Helios
+  Optimizer Service
 
-  This Task runs (every hour and at HA startup) the Helios Optimizer Service 
-  which uses the SciPy (LP/MILP) HiGHS Solver to optimize the Energy Plan. 
-  Inputs are the import and export price arrays, the house energy usage and the
-  solar forecast arrays.
+  This Task runs (every quarter of an hour and at HA startup) the Helios
+  Optimizer Service  which uses the SciPy (LP/MILP) HiGHS Solver to Optimize the
+  Energy Plan.  Inputs are the Import and Export Price arrays, the House Energy
+  Usage and the Solar Forecast arrays.
 
-  Every hour a new Optimalized Energy Plan is calculated for the House.
+  Every quarter of an hour a new Optimalized Energy Plan is calculated for the
+  House.
 
   Set the start step at 0 to start the optimalization at the current hour. Use a
   start step of 1 or higher to start at a fixed step (to get a more predictable
-  result).
+  result for simulation runs).
 
-  The results are visible in the in de trace of this automatiion and are also
-  stored in the HA Entity: input_number.helios_optimizer_energy_plan.   A HA
-  Notification will be sent when the optimization is infeasible or fails (with
-  an error or an exception).
+  The results (payload) are visible in the trace of this automation and are also
+  stored in the HA Entity: input_number.helios_optimizer_energy_plan. A HA
+  Notification will be sent when the optimization is Infeasible or Fails (with
+  an Error or an Exception). The automation also contains a notification for
+  successful optimizations but it is advised to disable these notification
+  during normal operation.
 triggers:
   - trigger: time_pattern
-    alias: Triggers the automation at the hour
-    hours: /1
+    alias: Triggers the Automation at the Quarter of an Hour
     id: HA-Hourly
+    minutes: /15
   - trigger: homeassistant
-    alias: Triggers the automation at startup of Home Assistant
+    alias: Triggers the Automation at Startup of Home Assistant
     event: start
     id: HA-Start
 conditions: []
@@ -64,14 +68,16 @@ actions:
       default_discharge_eff: 0.95
       default_charge_cost: 0
       default_discharge_cost: 0.01
+      default_house_daily_usage: 12
+      default_house_daily_distr_str: '[1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8,3, 1]'
       default_import_prices_str: >-
         [0.25,0.2,0.18,0.15,0.14,0.18,0.28,0.35,0.3,0.22,0.15,0.1,0.05,0.08,0.12,0.2,0.32,0.4,0.35,0.28,0.25,0.22,0.2,0.18]
       default_export_prices_str: >-
         [0.01,0.05,0.03,0.01,0,0.02,0.1,0.15,0.12,0.05,0,-0.02,-0.05,-0.02,0.01,0.05,0.12,0.18,0.15,0.1,0.08,0.06,0.05,0.04]
-      default_house_forecast_str: >-
+      default_house_energy_forecast_str: >-
         [0.4,0.3,0.3,0.4,0.5,0.8,1.2,1,0.8,0.6,0.5,0.5,0.4,0.4,0.5,0.6,0.9,1.5,1.2,1,0.8,0.6,0.5,0.4]
-      default_solar_forecast_str: '[0,0,0,0,0,0.1,0.8,2,3.5,4.8,5.5,5.8,5.6,4.9,3.8,2.2,1,0.2,0,0,0,0,0,0]'
-      default_output_files: true
+      default_solar_energy_forecast_str: '[0,0,0,0,0,0.1,0.8,2,3.5,4.8,5.5,5.8,5.6,4.9,3.8,2.2,1,0.2,0,0,0,0,0,0]'
+      default_write_files: true
       default_output_folder: null
   - alias: HBC and Helios Template (from HBC) Sensor Names
     variables:
@@ -81,6 +87,8 @@ actions:
       helios_sensor_solar_mode: input_select.helios_optimizer_solar_mode
       helios_sensor_battery_enabled: input_boolean.helios_optimizer_battery_enabled
       helios_sensor_start_step: input_number.helios_optimizer_start_step
+      helios_sensor_house_daily_usage: input_number.helios_optimizer_house_daily_usage
+      helios_sensor_house_daily_distr: input_text.helios_optimizer_house_daily_distr
       helios_sensor_soc_target_pct: input_number.helios_optimizer_soc_target_pct
       helios_sensor_soc_min_pct: input_number.helios_optimizer_soc_min_pct
       helios_sensor_soc_max_pct: input_number.helios_optimizer_soc_max_pct
@@ -96,9 +104,11 @@ actions:
       hbc_sensor_soc_min: input_number.house_battery_strategy_sell_target_soc
       hbc_sensor_soc_max: input_number.house_battery_strategy_charge_target_soc
       hbc_sensor_prices: sensor.hbc_energy_prices_data
+      hbc_prices_attr_marks: marks
       hbc_prices_attr_prices: prices
       hbc_prices_attr_start: start
       hbc_prices_attr_dp_ph: datapoints_per_hour
+      hbc_prices_all_attr: null
       hbc_price_factor: 0.01
       helios_template_hbc_maximum_energy: sensor.helios_template_hbc_maximum_energy
       helios_template_hbc_remaining_energy: sensor.helios_template_hbc_remaining_energy
@@ -124,6 +134,13 @@ actions:
       helios_start_step: >-
         {{ states(helios_sensor_start_step) | default(default_start_step, true)
         | int(default_start_step) }}
+      helios_house_daily_usage: >-
+        {{ states(helios_sensor_house_daily_usage) |
+        default(default_house_daily_usage, true) |
+        int(default_house_daily_usage) }}
+      helios_house_daily_distr: >-
+        {{ states(helios_sensor_house_daily_distr) |
+        default(default_house_daily_distr_str, true) }}
       helios_solar_mode: >-
         {{ states(helios_sensor_solar_mode) | default(default_solar_mode, true)
         }}
@@ -165,8 +182,10 @@ actions:
       helios_solar_forecast_result: >-
         {{ state_attr(helios_template_solar_forecast, helios_solar_result) |
         default({}, true) }}
-      helios_solar_forecast_hours: '{{ helios_solar_forecast_result.get(helios_solar_hours, []) }}'
-      helios_solar_forecast_hours_default: '{{ default_house_forecast_str | from_json }}'
+      helios_solar_energy_forecast_rest: '{{ helios_solar_forecast_result.get(helios_solar_hours, []) }}'
+      helios_solar_energy_forecast_default: '{{ default_solar_energy_forecast_str | from_json }}'
+      helios_house_energie_forecast_default: '{{ default_house_energy_forecast_str | from_json }}'
+      helios_house_energy_forecast_null: null
   - alias: Retrieve the HBC Optimizer Parameters
     variables:
       hbc_battery_count: '{{ states(hbc_sensor_battery_count) | default(0, true) }}'
@@ -181,9 +200,14 @@ actions:
       hbc_soc_max_pct: >-
         {{ states(hbc_sensor_soc_max) | default(default_soc_max, true) |
         float(default_soc_max) }}
+      hbc_prices_all: '{{ state_attr(hbc_sensor_prices, null) | default([], true) }}'
+      hbc_marks: >-
+        {{ state_attr(hbc_sensor_prices, hbc_prices_attr_marks) | default([],
+        true) }}
       hbc_prices: >-
         {{ state_attr(hbc_sensor_prices, hbc_prices_attr_prices) | default([],
         true) }}
+      hbc_prices_null: null
       hbc_prices_start: >-
         {{ state_attr(hbc_sensor_prices, hbc_prices_attr_start) | default(none,
         true) }}
@@ -192,6 +216,7 @@ actions:
         true) | int(1) }}
       hbc_prices_length: '{{ hbc_prices | length }}'
       hbc_prices_interval: '{{ (60 / hbc_prices_dp_ph) | int(0) }}'
+      hbc_price_data: '{{ dict(states[hbc_sensor_prices].attributes) }}'
   - alias: >-
       Retrieve the Helios Optimizer Parameters based (via Templates) on HBC
       Sensors. It turned out that HBC sensors are not always available or are
@@ -220,9 +245,6 @@ actions:
       house_size: '{{ default_input_size }}'
       solar_size: '{{ default_input_size }}'
       price_factor: '{{ hbc_price_factor }}'
-      insight: 9
-      output_files: '{{ default_output_files }}'
-      output_folder: '{{ default_output_folder }}'
       max_grid_import_kw: '{{ helios_max_grid_import_kw }}'
       max_grid_export_kw: '{{ helios_max_grid_export_kw }}'
       battery:
@@ -241,10 +263,19 @@ actions:
       solar:
         enabled: '{{ helios_solar_enabled }}'
         mode: '{{ helios_solar_mode }}'
-        forecast: '{{ helios_solar_forecast_hours }}'
-      import_prices: '{{ hbc_prices }}'
-      export_prices: '{{ hbc_prices }}'
-      house_forecast: '{{ default_house_forecast_str | from_json }}'
+        energy_forecast: '{{ helios_solar_energy_forecast_rest }}'
+      house_energy_forecast: '{{ helios_house_energy_forecast_null }}'
+      house_daily_usage: '{{ helios_house_daily_usage }}'
+      house_daily_distr: '{{ helios_house_daily_distr }}'
+      import_prices: '{{ hbc_prices_null }}'
+      export_prices: '{{ hbc_prices_null }}'
+      source_price_data: '{{ hbc_price_null }}'
+      source_price_id: '{{ hbc_sensor_prices }}'
+      source_type: import
+      source_provider: frank_energie
+      insight: 9
+      write_files: '{{ default_write_files }}'
+      output_folder: '{{ default_output_folder }}'
     enabled: true
   - alias: >-
       Determine the results of the Helios Optimalization for the Battery (e.g.
@@ -283,13 +314,13 @@ actions:
         data:
           title: HELIOS Optimizer Succeeded
           message: >-
-            Helios Optimization succeeded: Total costs: â‚¬{{
+            Helios Optimization succeeded: Total costs: €{{
             optimization_total_fun_cost }}
         alias: >-
           Send a notification when the Optimalization is successful (A new
           notification is added for each execution round; enable this step only
           for testing purposes)
-        enabled: true
+        enabled: false
     else:
       - action: persistent_notification.create
         data:
