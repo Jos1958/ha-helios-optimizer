@@ -1,0 +1,472 @@
+###########################################################################################################
+# HOME ASSISTANT RECORDER: EXCLUDES
+###########################################################################################################
+recorder:
+  exclude:
+    entities:
+      # Exclude the Helios Energy Plan from the Home Assistant Recorder since it contains high volume attributes
+      - input_number.helios_optimizer_energy_plan
+
+      # Exclude the forecast solar raw data (Wh) and hours data (kWh) from the Home Assistant Recorder since they contain high volume attributes
+      - sensor.helios_optimizer_forecast_solar_raw
+      - sensor.helios_optimizer_forecast_solar_hours
+
+      # Exclude the forecast solar and house history data the Home Assistant Recorder since it contains high volume attributes
+      - pyscript.helios_optimizer_history
+
+###########################################################################################################
+# INPUT_NUMBER
+###########################################################################################################
+input_number:
+  # Helios Optimizer Output and Input Entities:
+  helios_optimizer_energy_plan:
+    # Output Entity for the Helios Optimizer with the calculated Energy Plan
+    # The Total (Fun) Cost will be in the state value
+    # The Plan Arrays and Other output parameters are in the attributes.
+    # IMPORTANT: Exclude this entity from the recorder since the attribute size can be VERY large!
+    name: "Helios Optimizer Energy Plan"
+    icon: mdi:currency-eur
+    min: -1000
+    max: +1000
+    step: 0.01    
+    initial: 0.00
+    unit_of_measurement: "€"
+    mode: box
+ 
+  helios_optimizer_steps:
+    # Input Entity for the Number of Steps of the Helios Optimizer when calculating the Energy Plan
+    # 24, 48, 96 or 192 (other values are supported but less valuable)
+    # Advised values: steps x step_size =  1 or 2 days
+    name: "Helios Optimizer Steps"
+    icon: mdi:shoe-print
+    min: 24
+    max: 192
+    step: 24    
+    #initial: 0
+    unit_of_measurement: ""
+    mode: box
+
+  helios_optimizer_start_step:
+    # Input Entity for the Start Step of the Helios Optimizer when calculating the Energy Plan
+    # 0 = Start automatically at the beginning of current hour or quarter,
+    # Must be an integer value below or equal to the number of steps in the optimization period
+    name: "Helios Optimizer Start Step"
+    icon: mdi:foot-print
+    min: 0
+    max: 192
+    step: 1    
+    #initial: 0
+    unit_of_measurement: ""
+    mode: box
+
+  helios_optimizer_soc_target_pct:
+    # Input Entity for the Target State of Charge (SOC) of the Battery for the Helios Optimizer when calculating the Energy Plan
+    # Note: Currently Helios Optimizer only supports a single (total) battery 
+    # Remark: This is the target SOC for the end of the optimization period (e.g. end of day/24h or end of 2 days/48h)
+    name: "Helios Optimizer Target SOC"
+    icon: mdi:battery-40    
+    min: 0
+    max: 100
+    step: 1    
+    #initial: 45
+    unit_of_measurement: "%"
+    mode: box
+
+  helios_optimizer_soc_min_pct:
+    # Input Entity for the Minimum State of Charge (SOC) of the Battery for the Helios Optimizer when calculating the Energy Plan
+    # Note: Currently Helios Optimizer only supports a single (total) battery 
+    # Warning: Only used when the HBC entity (input_number.house_battery_strategy_sell_target_soc) is not applicable
+    name: "Helios Optimizer Minimum SOC"
+    icon: mdi:battery-10    
+    min: 0
+    max: 100
+    step: 1    
+    #initial: 10
+    unit_of_measurement: "%"
+    mode: box
+
+  helios_optimizer_soc_max_pct:
+    # Input Entity for the Maximum State of Charge (SOC) of the Battery for the Helios Optimizer when calculating the Energy Plan
+    # Note: Currently Helios Optimizer only supports a single (total) battery 
+    # Warning: Only used when the HBC entity (input_number.house_battery_strategy_charge_target_soc) is not applicable
+    name: "Helios Optimizer Maximum SOC"
+    icon: mdi:battery-90    
+    min: 0
+    max: 100
+    step: 1    
+    #initial: 90
+    unit_of_measurement: "%"
+    mode: box
+
+  helios_optimizer_max_grid_import:
+    # Input Entity for the Maximum Grid Import for the Helios Optimizer when calculating the Energy Plan
+    name: "Helios Optimizer Max Grid Import"
+    unit_of_measurement: "kW"
+    icon: mdi:flash  
+    min: 0.0
+    max: 25.0
+    step: 0.1    
+    #initial: 9.0
+    mode: box
+
+  helios_optimizer_max_grid_export:
+    # Input Entity for the Maximum Grid Export for the Helios Optimizer when calculating the Energy Plan
+    name: "Helios Optimizer Max Grid Export"
+    unit_of_measurement: "kW"
+    icon: mdi:flash  
+    min: 0.0
+    max: 25.0
+    step: 0.1    
+    #initial: 9.0
+    mode: box
+
+  helios_optimizer_charge_limit:
+    # Input Entity for the Charge Limit of the Battery for the Helios Optimizer when calculating the Energy Plan
+    # Note: Currently Helios Optimizer only supports a single (total) battery 
+    name: "Helios Optimizer Charge Limit"
+    unit_of_measurement: "kW"
+    icon: mdi:flash  
+    min: 0.0
+    max: 20.0
+    step: 0.1    
+    #initial: 1.2
+    mode: box
+
+  helios_optimizer_discharge_limit:
+    # Input Entity for the Discharge Limit of the Battery for the Helios Optimizer when calculating the Energy Plan
+    # Note: Currently Helios Optimizer only supports a single (total) battery 
+    name: "Helios Optimizer Discharge Limit"
+    unit_of_measurement: "kW"
+    icon: mdi:flash  
+    min: 0.0
+    max: 20.0
+    step: 0.1    
+    #initial: 0.8
+    mode: box
+
+  helios_optimizer_charge_efficiency:
+    # Input Entity for the Charge Efficiency of the Battery for the Helios Optimizer when calculating the Energy Plan
+    # Remark: Return Time Efficiency (RTE) is Charge-Efficiency * Discharge-Efficiency
+    # Note: Currently Helios Optimizer only supports a single (total) battery 
+    name: "Helios Optimizer Charge Efficiency"
+    icon: mdi:gauge    
+    min: 0.700
+    max: 1
+    step: 0.001    
+    #initial: 0.950
+    unit_of_measurement: ""
+    mode: box
+
+  helios_optimizer_discharge_efficiency:
+    # Input Entity for the Discharge Efficiency of the Battery for the Helios Optimizer when calculating the Energy Plan
+    # Remark: Return Time Efficiency (RTE) is Charge-Efficiency * Discharge-Efficiency
+    # Note: Currently Helios Optimizer only supports a single (total) battery 
+    name: "Helios Optimizer Discharge Efficiency"
+    icon: mdi:gauge    
+    min: 0.700
+    max: 1
+    step: 0.001    
+    #initial: 0.950
+    unit_of_measurement: ""
+    mode: box
+
+# helios_optimizer_step_size:
+#   # Input Entity for the Step Size in minutes of the Helios Optimizer when calculating the Energy Plan
+#   # 15, 30 or 60 (other values (e.g. 45 are supported but less valuable)
+#   # Advised values: steps x step_size =  1 or 2 days
+#   name: "Helios Optimizer Step Size"
+#   icon: mdi:clock-fast
+#   min: 15
+#   max: 60
+#   step: 15
+#   #initial: 60
+#   unit_of_measurement: "min"
+#   mode: box
+
+###########################################################################################################
+# INPUT_SELECT
+###########################################################################################################
+input_select:
+  helios_optimizer_step_size:
+    name: "Helios Optimizer Step Size"
+    icon: mdi:clock-fast
+    options:
+      - "60"
+      - "15"
+    #initial: 60
+
+  helios_optimizer_forecast_solar_sensor:
+  # Select a sensor that contains the Forecast Solar Results (Warning: a specific format is required)
+  # The options are filled  using an automation (id=helios_optimizer_forecast_fill_sensor)
+    name: "Helios Optimizer Forecast Solar Sensor"
+    icon: mdi:lightning-bolt
+    options:
+      - "No-Options-Yet"
+      
+###########################################################################################################
+# INPUT_BOOLEAN
+###########################################################################################################
+input_boolean:
+  helios_optimizer_running:
+    name: "Helios Optimizer Running"      
+    icon: mdi:run
+    initial: false  
+      
+###########################################################################################################
+# TEMPLATE SENSORS
+###########################################################################################################
+template:
+  - sensor:
+      # Convert the Helios Optimizer Forecast Solar Raw (REST API) to the Helios Optimizer Forecast Solar Hours 
+      # The Raw version has values in in Wh (Watt Hours) per Period, the Hours version has values in kWh per Period
+      # WARNING: For 1 hour periods the Solar Power (kW) is the same as Solar Forecast (kWh) for the period
+      #  However for 15 min periods the Solar Power (kW) will be 4x the Solar Forecast (kWh) for the period
+      # The Raw version only has hours with sun and uses sunrise and sunset in the arrays
+      # The Hours version includes all 24 hours of the day starting with 01 uptil 24 (with 0 before sunrise and after sunset)
+      # Sunrise and Sunset values are set from the first and last (partial) hour in the raw version
+      # See helios_optimizer_config.yaml for the configuration specific version of the raw version
+      - name: Helios Optimizer Forecast Solar Hours with Result Attributes
+        unique_id: helios_optimizer_forecast_solar_hours
+        default_entity_id: sensor.helios_optimizer_forecast_solar_hours
+        unit_of_measurement: "kWh"
+        device_class: energy
+        state: >
+          {{ states('sensor.helios_optimizer_forecast_solar_raw') | default(0) }}
+
+        attributes:
+          result: >
+            {% set raw_sensor = 'sensor.helios_optimizer_forecast_solar_raw' %} 
+            {% set ns = namespace(hours=[], days=[], sunrise=[], sunset=[]) %}
+            {% set forecast_periods = state_attr(raw_sensor ,'result')['watt_hours_period'] | default({}) %}
+            {% for i in range(48) %} {# Initialize forecast array for 48 hours (2 days) #}
+              {% set ns.hours = ns.hours + [0] %}
+            {% endfor %}
+              
+            {% set ns.days = state_attr(raw_sensor ,'result')['watt_hours_day'] | default({}) %}
+            {% set day_list = ns.days | list %}    
+
+            {% set today = day_list[0] if (day_list | count > 0) else now().strftime('%Y-%m-%d') %} {# first key and first 10 characters is the first date #}
+            {% set tomorrow = (as_datetime(today) + timedelta(days=1)).strftime('%Y-%m-%d') %} {# Next day is first date plus 1 day #}
+            {% set ns.start = today %}
+            {% set ns.end   = tomorrow %}
+
+            {% set today_total = (((ns.days[today] | int(0)) / 1000) | round(1)) if ns.days.get(today) else 0 %}
+            {% set tomorrow_total = (((ns.days[tomorrow] | int(0)) / 1000) | round(1)) if ns.days.get(tomorrow) else 0 %}
+            {% set ns.totals = {today: today_total, tomorrow: tomorrow_total} %}
+              
+            {% for ts, value in forecast_periods.items() %} {# for each hour in the forecast hours #}
+              {% set dt = as_datetime(ts) %}
+ 
+              {# Determine sunrise and sunset (does not work when sunrise/sunset is exactly on the hour!) #}
+              {% set sunrise = false %}
+              {% set sunset  = false %}
+              {% set idx = dt.hour %}  {# Index is hour of timestamp #}
+              {% if ((dt.minute > 0) and (dt.second > 0)) %} {# Not on the hour #}
+                {% if (dt.hour < 12) %}			
+                  {% set sunrise = true %}
+                {% else %}
+                  {% set idx = idx + 1 %}  {# Add an additional hour for sunset #}
+                  {% set sunset = true %}
+                {% endif %}
+              {% endif %}
+                     
+              {% if dt.strftime('%Y-%m-%d') == today %}
+                {% set idx = idx %} {# hours for today are already ok #}
+                {% set ns.sunrise = ns.sunrise + [ts] if sunrise else ns.sunrise %} {# Add sunrise for today to the sunrise array #}
+                {% set ns.sunset  = ns.sunset  + [ts] if sunset  else ns.sunset  %} {# Add sunset  for today to the sunset  array #}
+              {% elif dt.strftime('%Y-%m-%d') == tomorrow %}
+                {% set idx = idx + 24 %} {# add 24 hours (1 day) for tomorrow  #}
+                {% set ns.sunrise = ns.sunrise + [ts] if sunrise else ns.sunrise %} {# Add sunrise for tomorrow to the sunrise array #}
+                {% set ns.sunset  = ns.sunset  + [ts] if sunset  else ns.sunset  %} {# Add sunset  for tomorrow to the sunset  array #}
+              {% else %}
+                {% set idx = 0 %} {# Invalid day #}
+              {% endif %}
+ 
+              {% if idx > 0 %}
+                {# Remove for the index in the array the existing 0 value and replace by the actual hour value in Wh #}
+                {# A complex way in jinja for ns.hours[idx] = ((value | int(0)) / 1000) | round(1) #}
+                {% set ns.hours = ns.hours[:idx-1] + [((value | int(0) ) / 1000) | round(1)] + ns.hours[idx:] %} 
+              {% endif %}
+            {% endfor %}
+            {{ {'hours_kwh': ns.hours, 'start': ns.start, 'end': ns.end, 'interval': 60, 'days_kw': ns.totals, 'days_w': ns.days, 'sunrise': ns.sunrise, 'sunset': ns.sunset} }}      
+        availability: >
+          {{ has_value('sensor.helios_optimizer_forecast_solar_raw') }} 
+
+  - sensor:
+      - name: "Helios Template HBC Maximum Energy"
+        default_entity_id: sensor.helios_template_hbc_maximum_energy
+        unique_id: helios_template_hbc_maximum_energy
+        unit_of_measurement: "kWh"
+        device_class: energy_storage
+        state_class: measurement
+        state: >
+          {% set battery_count = states('input_number.house_battery_count') | default(0,true) | int(0) %}
+          {% if battery_count > 0 %}
+            {% set prefix = 'sensor.marstek_m' %}
+            {% set ns = namespace(max=0) %}
+            {% for i in range(1, battery_count + 1) %}
+              {% set max_entity  = prefix ~ i ~ '_battery_total_energy'       %}
+              {% set max  = states(max_entity ) | default(0,true) | float(0) %}
+              {% set ns.max  = ns.max  + max  %}
+            {% endfor %}           
+            {{ ns.max }}
+          {% else %}
+            0
+          {% endif %}
+        availability: >
+          {% set count = states('input_number.house_battery_count') | int(0) %}
+          {% if count > 0 %}
+            {% set prefix = 'sensor.marstek_m' %}
+            {% set ns = namespace(all_available=true) %}
+            {% for i in range(1, count + 1) %}
+              {% set entity = prefix ~ i ~ '_battery_total_energy' %}
+              {% if states(entity) in ['unavailable', 'unknown', None] %}
+                {% set ns.all_available = false %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.all_available }}
+          {% else %}
+            false
+          {% endif %}      
+      
+      - name: "Helios Template HBC Remaining Energy"
+        default_entity_id: sensor.helios_template_hbc_remaining_energy
+        unique_id: helios_template_hbc_remaining_energy
+        unit_of_measurement: "kWh"
+        device_class: energy_storage
+        state_class: measurement
+        state: >
+          {% set battery_count = states('input_number.house_battery_count') | default(0,true) | int(0) %}
+          {% if battery_count > 0 %}
+            {% set prefix = 'sensor.marstek_m' %}
+            {% set ns = namespace(rest=0) %}
+            {% for i in range(1, battery_count + 1) %}
+              {% set rest_entity  = prefix ~ i ~ '_battery_remaining_capacity' %}
+              {% set rest  = states(rest_entity ) | default(0,true) | float(0) %}
+              {% set ns.rest  = ns.rest  + rest  %}
+            {% endfor %}           
+            {{ ns.rest }}
+          {% else %}
+            0
+          {% endif %}
+        availability: >
+          {% set count = states('input_number.house_battery_count') | int(0) %}
+          {% if count > 0 %}
+            {% set prefix = 'sensor.marstek_m' %}
+            {% set ns = namespace(all_available=true) %}
+            {% for i in range(1, count + 1) %}
+              {% set entity = prefix ~ i ~ '_battery_remaining_capacity' %}
+              {% if states(entity) in ['unavailable', 'unknown', None] %}
+                {% set ns.all_available = false %}
+              {% endif %}
+            {% endfor %}
+            {{ ns.all_available }}
+          {% else %}
+            false
+          {% endif %}      
+          
+      - name: "Helios Template HBC Total SOC"
+        default_entity_id: sensor.helios_template_hbc_total_soc
+        unique_id: helios_template_hbc_total_soc
+        unit_of_measurement: "%"
+        device_class: battery
+        state_class: measurement
+        state: >
+          {% set battery_count = states('input_number.house_battery_count') | default(0,true) | int(0) %}
+          {% if battery_count > 0 %}
+            {% set rest = states('sensor.helios_template_hbc_remaining_energy') | default(0,true) | float(0) %}
+            {% set max  = states('sensor.helios_template_hbc_maximum_energy'  ) | default(0,true) | float(0) %}
+            {% if max > 0 %}
+              {{ ((rest / max) * 100) | round(1) }}
+            {% else %}
+              0
+            {% endif %}
+          {% else %}
+            0
+          {% endif %}
+        availability: >
+          {{ has_value('sensor.helios_template_hbc_remaining_energy') and 
+             has_value('sensor.helios_template_hbc_maximum_energy') and 
+             states('sensor.helios_template_hbc_maximum_energy') | float(0) > 0 }}            
+             
+      - name: "Helios Template HBC Max Charge Power"
+        default_entity_id: sensor.helios_template_hbc_max_charge_power
+        unique_id: helios_template_hbc_max_charge_power
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: >
+          {% set battery_count = states('input_number.house_battery_count') | default(0,true) | int(0) %}
+          {% if battery_count > 0 %}
+            {% set prefix = 'number.marstek_m' %}
+            {% set ns = namespace(max=0) %}
+            {% for i in range(1, battery_count + 1) %}
+              {% set max_charge_entity  = prefix ~ i ~ '_max_charge_power' %}
+              {% set max_charge  = states(max_charge_entity ) | default(0,true) | float(0) %}
+              {% set ns.max  = ns.max  + max_charge %}
+            {% endfor %}           
+            {{ ns.max }}
+          {% else %}
+            0
+          {% endif %}
+        availability: >
+          {{ states('input_number.house_battery_count') is defined and 
+             states('input_number.house_battery_count') | default(0,true) | int(0) > 0 }}  
+      
+      - name: "Helios Template HBC Max Discharge Power"
+        default_entity_id: sensor.helios_template_hbc_max_discharge_power
+        unique_id: helios_template_hbc_max_discharge_power
+        unit_of_measurement: "W"
+        device_class: power
+        state_class: measurement
+        state: >
+          {% set battery_count = states('input_number.house_battery_count') | default(0,true) | int(0) %}
+          {% if battery_count > 0 %}
+            {% set prefix = 'number.marstek_m' %}
+            {% set ns = namespace(max=0) %}
+            {% for i in range(1, battery_count + 1) %}
+              {% set max_discharge_entity  = prefix ~ i ~ '_max_discharge_power' %}
+              {% set max_discharge  = states(max_discharge_entity ) | default(0,true) | float(0) %}
+              {% set ns.max  = ns.max  + max_discharge %}
+            {% endfor %}           
+            {{ ns.max }}
+          {% else %}
+            0
+          {% endif %}
+        availability: >
+          {{ states('input_number.house_battery_count') is defined and 
+             states('input_number.house_battery_count') | default(0,true) | int(0) > 0 }}  
+
+###########################################################################################################
+# AUTOMATIONS
+###########################################################################################################
+automation:
+  # Automation to fill the sensor.helios_optimizer_forecast_solar_sensor
+  - alias: "Helios Optimizer: Fill the Energy Sensor Dropdown"
+    id: helios_optimizer_forecast_fill_sensor
+    description: "Fills the input_select automatically with all kWh energy sensors. Triggered by HA restart or reload of all YAML Configuratons"
+    trigger:
+      - platform: homeassistant
+        event: start
+      - platform: event
+        event_type: call_service
+        event_data:
+          domain: template
+          service: reload
+    condition: []
+    action:
+      - service: input_select.set_options
+        target:
+          entity_id: input_select.helios_optimizer_forecast_solar_sensor
+        data:
+          options: >
+            {{ states.sensor 
+              | selectattr('attributes.result', 'defined')
+              | selectattr('attributes.device_class', 'defined')
+              | selectattr('attributes.device_class', 'eq', 'energy')
+              | selectattr('attributes.unit_of_measurement', 'defined')
+              | selectattr('attributes.unit_of_measurement', 'eq', 'kWh')
+              | map(attribute='entity_id') 
+              | list }}
+    mode: single             
+             

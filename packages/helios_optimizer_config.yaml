@@ -1,0 +1,32 @@
+###########################################################################################################
+# HELIOS SOLAR FORECAST API
+###########################################################################################################
+
+# Forecast Solar Raw data wordt gebruikt vertaald in een template in helios_optimizer.yaml
+#   helios_optimizer_forecast_solar_raw (Wh) ==> sensor.helios_optimizer_forecast_solar_hours (kWh)
+# Om je eigen forecast te configureren heb je het volgende nodig: 
+# - Peak Vermogen in kW   : b.v. 20 panelen x 395 Watt Peak = 8.0 kW (Geen rekening gehouden met clipping van de omvormer)
+# - De richting van je dak: b.v. 175 gr (Dak op het Oost=90gr, Zuid=180gr, West=270gr, in mijn geval bijna Zuid: 175gr)
+#   LET OP: In de REST API trekken we 180 graden af: Dus bijna Zuid: 175gr->-5, Oost: 90->-90, Zuid: 180->0, West: 270gr->90 !!!!! 
+# - Dak hoek              : 48gr (Gebruikelijk ergens tussen 40-60gr)
+# - Locatie van je huis   : b.v. Latitude: 52.370, Longitude: 4.895 (voor Amsterdam Centrum)
+#     Zie: https://doc.forecast.solar/doku.php?id=find_your_azimuth voor details
+#     In Home Assistant kun je de Locatie waardes vinden: Instellingen - Ruimtes, Labels & Zones - Zones - Thuis - <Wijzig>  -> Latitude en Longitude
+#     Google Maps https://www.google.com/maps?q=52.370216%2C4.895168   \
+#     Let op: Google gebruik standaard een locatie in graden maar kan ook de latitude en longitude weergeven (staat onder de graden)
+# - Scan Interval         : 3600 (minimaal ieder uur of zet hem op 86400 voor iedere dag en maak een automation die hem op een schema aanroept)
+#
+# De result attributen bevatten Vermogen (Power) in W en Energie in Wh (NIET in kWh), daarom is het template nodig 
+#
+# Pas hieronder in de RESOURCE de waardes aan voor je eigen situatie:
+#  "https://api.forecast.solar/estimate/52.370/4.895/48/-5/8.0"                                        <== voorbeeld voor Adam
+#  "https://api.forecast.solar/estimate/latitude/longitude/dak-hoek/dak-richting-180/peak-vermogen"    <== wat invullen
+rest:
+  - resource: "https://api.forecast.solar/estimate/52.370/4.895/48/-5/8.0"
+    scan_interval: 3600
+    sensor:
+      - name: Helios Optimizer Forecast Solar Raw
+        unique_id: helios_optimizer_forecast_solar_raw
+        value_template: "{{ value_json.message.code }}"
+        json_attributes:
+          - result
