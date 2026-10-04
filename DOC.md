@@ -2,7 +2,13 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## Intro and Features
-For an Introductioin and Feature List of the Helios Optimizer: see [Helios Optimizer - README](README.md).
+For an Introduction and Feature List of the Helios Optimizer: see [Helios Optimizer - README](README.md).
+
+## Helios Dashboard
+At the top of the dashboard a short <b>Overview</b> of the Optimizer Results is displayed. 
+Below that are the <b>Input Parameters</b> and more <b>Detailed Results</b> of the calculated Optimized Energy Plan (e.g. Status Blocks, Graph and Table).
+<i>The <b>Helios Optimizer Service</b> will typically run every <b>quarter</b> of an hour 
+and can be <b>manually</b> started with the green <b>Start Helios</b> button.<br>
 
 ## Input Parameters
 ### Optimization Parameters
@@ -57,6 +63,17 @@ These parameters are retrieved from HBC or Helios and cannot be changed by the u
 ** TODO **
 
 ## Output Results
+### Results Overview
+- **Result:** Successful or Not (True or False), Total Cost, Grid Cost (Total Cost without Battery Cost)
+- **Calculation:** Calculation Result (e.g.: Optimized, Infeasible, Exception, Balance Error, ...), Solver Iterations
+- **Last Optimization Run:** Date and Time of the Last Run, Excecution Time, Lineair Programming Time (SciPy LP) 
+- **Optimization Period Start:** Start Step, Date and Time for the Optimization Start 
+- **Optimization Period Active Step:** Active Step (for Current Time), Date and Time for the Current/Active Step
+- **Optimization Period End:** End Step, Date and Time for the Optimization End
+- **Battery:** Battery Capacity, Start and End State of Charge (SOC), all in kWh 
+- **Solver Status:** Solver (SciPy LP) Message or other Error Message
+- **Versions:** Helios, Python and SciPy Software Levels (e.g. 1.0.0 - 3.14.6 - 1.18.1) 
+
 ### Optimized Energy Plan (Graph)
 This is the most important output of the Helios Optimizer and represents for a two day window the resulting SOC Percentages for the battery 
 (or for the sum of all batteries) and the Power values for the Battery (Discharge-Charge,) Solar Forecast and Production, House Usage and Grid (Import-Export).
