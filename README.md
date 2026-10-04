@@ -39,6 +39,8 @@ For example: 24 steps of 60 minutes optimizes a 1-day period.
  
 Grid import/export prices and house load forecasts must be provided as input arrays,
 containing values for every step in the period.
+HBC Price Data can be used as an alternative source for the import and export price arrays.
+
  
 Total Energy Cost is the sum of energy costs per step (calculated from grid import and export power).
 The optimizer aims to MINIMIZE the Total Energy Cost over the entire horizon.
@@ -58,9 +60,9 @@ to steer the battery and (TODO) deferrable loads.
  
 ## Required inputs
 - Configuration (steps, step size, start step, solver time/iteration limits, grid limits)
-- Grid import prices array (import price per step)
-- Grid export prices array (export price per step)
-- House consumption forecast (without deferrable loads) array 
+- Grid import prices array (import price per step) or Source Price Data or Sensor
+- Grid export prices array (export price per step) or Source Price Data or Sensor
+- House consumption forecast (without deferrable loads) array or House Dialy Usage and Distribution
  
 ## Optional inputs
 - Solar production forecast array
@@ -71,75 +73,12 @@ to steer the battery and (TODO) deferrable loads.
 - Heat Pump (HP) operation parameters
 - Boiler operation parameters
 
-## Installation
-- **Prerequisites:**
-  - HACS installation on your Home Assistant System
-  - File Editor (or Samba) via HACS: to create folders and upload files
-  - PyScript installation via HACS 
-    - Integrations: Pyscript Python scripting - pyscript - <Configurate>
-      V Allow All Imports?
-      V Access hass as a global variable?
-      _ Use legacy decorators? (Not required)
-  - For the Helios Dashboard (UI-components)
-    - ApexCharts Card (via HACS)
-    - card-mod (via HACS)
-    - Markdown Card (built-in)
-    - Picture (built-in) for /local/HeliosOptimizerBanner.jpeg in www-folder
-    
-- **Installation of Helios Optimizer:**
-  - Download and Unpack the HeliosOptimizer.zip file
-  - Use the File Editor or Samba to copy the following files to Home Assistant
-    Create the packages, pyscrip, modules (sub-folder), export and www folder when they do not yet exist
-  - File Structure 
-    [HomeAssistant] also called [config] folder
-       [packages]
-  V       helios_optimizer.yaml        - Helios Templates, Input Numbers and Selects
-  V       helios_optimizer_config.yaml - forecast.solar REST API <== configure with your location and solar panels
-       [pyscript]
-  V       helios_services.py         - Helios Services file which defines the Helios Services for Home Assistant using PyScript
-          [modules]
-  V          helios_optimizer.py     - Optimizer with the Calculation of the Energy Plan (Pure Python functions)
-  V          helios_common.py        - Common Python functions
-  V          helios_prices.py        - Energy Price Parser Class (for HBC Price and Provider Price Data)
-       [export]
-  -       helios_optimizer_output.json (optional output file for debugging) 
-       [www]
-  V       HeliosOptimizerBanner.jpeg - banner picture for the Dashboard
-       automation.yaml               - contains the automation.helios_optimizer_task 
-       configuration.yaml
-       
-  - configuration.yaml
-    - 
-    
-- **HACS:** 
-  * On the HACS Dashboard: **Search** for "Helios Optimizer"
-  * Click the **"Helios Calculator"** to open the Helios README page with the <Download> button
-  * Press the **"Download"** button to download the Helios Calculator (to /config/custom_components/helios_calculator)
-  * **Herstart** Home Assistant
-
-- **Integration:**
-  * Open the Integration Page (**Settings** -> **Devices and Services** - **[Integrations]**)
-  * Press the **+ Add Integration** button
-  * Search for "Helios Calculator"
-  * Click the "Helios Calculator"
-  * A Popup appears for the Helios Calculator with a "Send" button
-  * Press **Send** to add the integration 
-  * A popup appears: "Configuration created for Helios Calculator" with a "Complete" button
-  * Press **Complete** to close the popup
-  * **Note:** All further configuration is done in the call to Helios Calculator Service  
-
-- **Automation:**
-  * todo
-
-- **Dashboard:**
-  * todo   
-
 ## What's New:
-?? **[Release Notes](RELEASE_NOTES.md)**
+?? **[Helios Optimizer Release Notes](RELEASE_NOTES.md)**
 -- **Proof of Concept**:
 
 ## Documentation
-?? **[Helios Calculator Documentation](DOC.md)**
+?? **[Helios Optimizer Documentation](DOC.md)**
 
 ## Advanced
 
@@ -154,7 +93,8 @@ Only small bug fixes will be accepted.
 Please raise an issue to report a bug or to request for new functionality.
 
 # License
+?? **[Helios Optimizer License](LICENSE.)**
 
 # Help
 
-**Keywords:** Solar Panels, Battery, Home Automation, Home Assistant, Optimize your Energy Plan
+**Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home Automation, Home Assistant
