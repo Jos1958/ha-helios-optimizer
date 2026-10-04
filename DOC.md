@@ -1,27 +1,43 @@
-# ha-helios-optimizer  Documentation 
+# Helios Optimizer - Documentation 
 
-?? **[README](README.md)**
-?? **[Documentation](DOC.md)**
-?? **[Installation](INSTALL.md)**
-?? **[Release Notes](RELEASE_NOTES.md)**
-?? **[License](LICENSE.)**
+[README](README.md) -
+**Documentation** -
+[Installation](INSTALL.md) -
+[Release Notes](RELEASE_NOTES.md) -
+[License](LICENSE "GitHub Docs")
 
 ## Intro and Features
-?? **[Helios Optimizer - README](README.md)**
+[Helios Optimizer - README](README.md)
 
 ## Input Parameters
-# 
+- **Steps:** Optimization Steps (24-192)
+- **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
+- Remark: Advised Optimization Period is 2 Days (48 steps of 60 minutes or 192 steps of 15 minutes)
+- **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
+  In the future this will be retrieved from history data but at the moment you need to make an estimate for the average usage in the house.
+  House Daily Energie Usage (kWh) = Grid Import - Grid Export + Battery Daily Discharge - Battery Charge + Solar Production (all in kWh per Day)
+- **House Daily Usage Distribution (24 Hours):** 
+  How is the energy usage spread over the day (an array of 24 values, 1 value for each hour of the day).
+  Each value represents only the relative energy usage for a specific hour during the day and not the exact energy usage.
+  If you specify 1 for the first hour (00:00-01:00) and 3 for the 7th hour (06:00-07:00) this only means that you are using 3x times more energy in the 7th hour.
+  Remark: The sum of the 24 numbers does not have to be the same as the daily usage.
+  **Warning:** This is NOT the Grid Import or Export!
+- **Solar Mode:** 
+  - All: Solar Production in a step is equal to the Solar Forecast Energy for the step
+  - Modulating: Solar Production can be from Zero (0kWh) to the Solar Forecast Energy for the step
+  - Binary: Solar Production can be ON (=Solar Forecast Energy) or OFF (0kWh) for the step
+  - Disabled: Solar Production Disabled (0kWh) in each step
+
 
 ## Documentation
-?? **[Helios Optimizer - Documentation](DOC.md)**
+[Helios Optimizer - Documentation](DOC.md)
 
 ## Installation
-?? **[Helios Optimizer - Installation](INSTALL.md)**
+[Helios Optimizer - Installation](INSTALL.md)
 
 ## Release Notes
-?? **[Helios Optimizer - Release Notes](RELEASE_NOTES.md)**
+[Helios Optimizer - Release Notes](RELEASE_NOTES.md)
 
 ## License
-?? **[Helios Optimizer - License](LICENSE.)**
-?? **[Licentie](LICENSE "GitHub Docs")**
+[Helios Optimizer - License](LICENSE "GitHub Docs")
 
