@@ -1,7 +1,8 @@
-# Helios Optimizer - Documentation 
+# Helios Optimizer - Documentation with Input and Output
+![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## Intro and Features
-[Helios Optimizer - README](README.md)
+See [Helios Optimizer - README](README.md)
 
 ## Input Parameters
 ### Optimization Parameters

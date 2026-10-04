@@ -1,5 +1,4 @@
-# HA Helios Optimizer - Release Notes
-![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
+# Release Notes
 
 ## 0.8.x (2026-08-15) Custom Component and HACS support (Proof of Concept)
 - Proof of concept for a version that runs as a Home Assistant Custom Component (simple model but using LP) (__init__.py)
