@@ -35,6 +35,9 @@ In the future the Helios Service will be migrated to a Home Assistant Custom Com
 ## Description
 Helios calculates an optimized energy plan for a specified horizon (typically 2 days)
 by finding the optimal power setpoints (for battery charge/discharge, grid import/export and solar production) for each step in the optimization period.
+The most important optimization rule defines that the incoming power (Discharge, Import and Solar Production) and the outgoing power (Charge, Export and House Usage) must always be equal. 
+In addition the model will keep the Charge/Discharging Power below the Battery Charge/Discharge Limit values and the Import/Export Power below the Maximum Grid Import/Export values.
+Solar Production will be equal to the Solar Forecast unless the Solar Inverter can be modulated (dimmed) or turned on and off.
  
 The planning horizon is defined by the number of steps and the step duration in minutes.
 For example: 48 steps of 60 minutes or 192 steps of 15 minutes both optimize a 2-day period.
@@ -45,6 +48,7 @@ House Daily Usage and Distribution can be provided as an alternative source for 
  
 Total Energy Cost is the sum of energy costs per step (calculated for Grid Import and Export Power).
 To compensate for battery depreciation cost a discharge (default 0.01 euro) and charge cost (default 0.00) is included in the Total Energy Cost.
+A cost for charging or discharging will also prevent the model from charging and discharging at the same time.
 The optimizer aims to MINIMIZE the Total Energy Cost over the entire horizon.
 Note: Negative costs may occur when exporting energy to the grid or during negative import prices.
  
@@ -79,8 +83,9 @@ to steer the Battery Charge/Discharge, the Solar Production and (in the future) 
 ## What's New:
 See [Helios Optimizer Release Notes](RELEASE_NOTES.md)
 
-## Documentation with Input Parameters and Output Results (Optimized Energy Plan)
-[Helios Optimizer Documentation](DOC.md)
+## Documentation with Input and Output
+For a detailed specification of the Input Parameters and the Output Results (Optimized Energy Plan)
+see [Helios Optimizer Documentation](DOC.md).
 
 ## Advanced
 
