@@ -21,7 +21,7 @@
   - Use the File Editor or Samba to copy the following files to Home Assistant
     Create the packages, pyscrip, modules (sub-folder), export and www folder when they do not yet exist
   - File Structure
-<pre>
+```
     [HomeAssistant] also called [config] folder
        [packages]
   V       helios_optimizer.yaml        - Helios Templates, Input Numbers and Selects
@@ -36,7 +36,7 @@
   -       helios_optimizer_output.json (optional output file for debugging) 
        [www]
   V       HeliosOptimizerBanner.jpeg - banner picture for the Dashboard 
-</pre>
+```
   - helios_automation.yaml           - contains the automation.helios_optimizer_task 
   - configuration.yaml               - required already for HBC, not sure if /config/export as external dir is required
 ```
