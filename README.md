@@ -5,6 +5,8 @@
 The **HELIOS Optimizer** Service is a Home Assistant PyScript Application designed to calculate mathematically an optimal energy plan.
 The calculation uses **SciPy Linear/MILP Programming** to optimize the Energy Plan 
 for **Dynamic** Prices, **Solar** Production, **Battery** Charging/Discharging and **House** Energy Usage.
+<br><br>
+The Optimizer calculates for each step in the optimization period the optimal value of power variables
 
 ?? **[Helios Optimizer - Readme](README.md)**
 ?? **[Helios Optimizer - Documentation](DOC.md)**

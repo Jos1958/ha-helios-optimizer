@@ -1,33 +1,70 @@
 # Helios Optimizer - Documentation 
 
-[README](README.md) -
-**Documentation** -
-[Installation](INSTALL.md) -
-[Release Notes](RELEASE_NOTES.md) -
-[License](LICENSE "GitHub Docs")
-
 ## Intro and Features
 [Helios Optimizer - README](README.md)
 
 ## Input Parameters
+### Optimization Parameters
 - **Steps:** Optimization Steps (24-192)
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
-- Remark: Advised Optimization Period is 2 Days (48 steps of 60 minutes or 192 steps of 15 minutes)
+  <br>Remark: Advised Optimization Period is 2 Days (48 steps of 60 minutes or 192 steps of 15 minutes)
 - **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
-  <br>In the future this will be retrieved from history data but at the moment you need to make an estimate for the average usage in the house.
-  <br>House Daily Energie Usage (kWh) = Grid Import - Grid Export + Battery Daily Discharge - Battery Charge + Solar Production (all in kWh per Day)
+  <br>In the future the House Energy Usage will be retrieved from history data but at the moment you need to make an estimate for the average energy usage in the house. 
+  <br>Large energy users (EV, WP and Boiler) will be optimized separately in the future and will have to be excluded from the house usage but for now you may want to **include** them in the house usage. 
+  <br>**House Usage** (kWh) = Grid Import - Grid Export + Battery Daily Discharge - Battery Charge + Solar Production (all in kWh per Day)
   <br>**Warning:** This is NOT the energy retrieved from the Grid!
 - **House Daily Usage Distribution (24 Hours):** 
   <br>How is the energy usage spread over the day (an array of 24 values, 1 value for each hour of the day).
   <br>Each value represents only the relative energy usage for a specific hour during the day and not the exact energy usage.
   <br>If you specify 1 for the first hour (00:00-01:00) and 3 for the 7th hour (06:00-07:00) this only means that you are using 3x times more energy in the 7th hour.
   <br>Remark: The sum of the 24 numbers does not have to be the same as the daily usage.
-- **Solar Mode:** 
-  - All: Solar Production in a step is equal to the Solar Forecast Energy for the step
+- **Solar Mode:** Solar Panel Inverter Mode 
+  - All: Solar Production Energy in a step is equal to the Solar Forecast Energy for the step
   - Modulating: Solar Production can be from Zero (0kWh) to the Solar Forecast Energy for the step
   - Binary: Solar Production can be ON (=Solar Forecast Energy) or OFF (0kWh) for the step
   - Disabled: Solar Production Disabled (0kWh) in each step
+- **Max Grid Import:** Maximum Grid Import Power in kW
+- **Max Grid Export:** Maximum Grid Export Power in kW
+- **Sensor with the Forecast Solar Hours:** HA Entity with the Solar Forecast Energy Production (kWh) per hour
+  <br>This information is retrieved using a rest api from forecast.solar but you will need to adapt this to your own situation (location, angle, direction and peak-power):
+  <br>"https://api.forecast.solar/estimate/latitude/longitude/dak-hoek/dak-richting-180/peak-vermogen"
+  <br>Configure the solar panel information in helios_optimizer_config.yaml
+  <br>Current Limitation: Only forecast.solar is supported and only for a single roof.
 
+### Battery Parameters
+- **Battery Enabled:** Enabled or Disabled Batteries
+- **Battery SOC Target:** Target Battery State of Charge Level at the END of the optimization period.
+  <br>Pick a reasonable target percentage (40%-50%) that is needed at the end of a two day optimization period.
+  <br>This value is only valid for the end of the optimization period (not for the end of the first day) and will 
+  make sure that the optimizer does not empty your battery to maximize the profit.
+- **Battery SOC Min:** Minimum Battery State of Charge Level which is valid at EACH step  
+- **Battery SOC Max:** Maximum Battery State of Charge Level which is valid at EACH step  
+- **Battery Charge Limit:** Maximum Charge Limit for **all** of the batteries together
+- **Battery Discharge Limit:** Maximum Discharge Limit for **all** of the batteries together
+- **Battery Charge Efficiency:** Efficiency Factor for Charging the Battery
+  <br>This factor 0.70-1.00) determines how much energy is lost while charging the battery.
+  <br>For example: 4kWh is sent to the battery, charge factor of 0.9, SOC is increased with 3.60kWh (=0.9 x 4kWh).
+- **Battery Discharge Efficiency:** Efficiency Factor for Discharging the Battery
+  <br>This factor 0.70-1.00) determines how much energy is lost while discharging the battery.
+  <br>For example: 4kWh is retrieved from the battery, discharge factor of 0.9, SOC is decreased with 4.44kWh (=4kWh / 0.9).
+  <br>Remark: Round Trip Efficiency (RTE) is Charge Efficiency * Discharge Efficiency (e.g. 0.81 = 0.9 x 0.9)
+  
+
+### Derived Parameters
+These parameters are retrieved from HBC or Helios and cannot be changed by the user.
+
+### Optimized Energy Plan (Graph)
+This is the most important output of the Helios Optimizer and represents for a two day window the resulting SOC Percentage for the battery 
+(or for the sum of all batteries) and the Power values for the Battery (Discharge-Charge,) Solar Forecast and Production, House Usage and Grid (Import-Export).
+Positive power values indicate that power is made available to the House (Battery Discharged, Solar Production or Imported) and negative values indicate that power is
+used (Used in the House, Battery Charged or Exported).
+
+### Optimization State
+### Actuals for the Current Step
+### Solar and Battery Information
+### Optimized Energy Plan (Table)
+### Optimization Run
+### Energy Plan Totals
 
 ## Documentation
 [Helios Optimizer - Documentation](DOC.md)
@@ -41,3 +78,4 @@
 ## License
 [Helios Optimizer - License](LICENSE "GitHub Docs")
 
+[README](README.md) - **Documentation** - [Installation](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
