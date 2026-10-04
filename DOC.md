@@ -1,14 +1,27 @@
 # ha-helios-optimizer  Documentation 
 
-## Intro and Features
-?? **[Helios Optimizer - Readme](README.md)**
-?? **[Helios Optimizer - Documentation](DOC.md)**
-?? **[Helios Optimizer - Installation](INSTALL.md)**
-?? **[Helios Optimizer - Release Notes](RELEASE_NOTES.md)**
-?? **[Helios Optimizer - License](LICENSE.)**
-
-?? **[Readme](README.md)**
+?? **[README](README.md)**
 ?? **[Documentation](DOC.md)**
 ?? **[Installation](INSTALL.md)**
 ?? **[Release Notes](RELEASE_NOTES.md)**
 ?? **[License](LICENSE.)**
+
+## Intro and Features
+?? **[Helios Optimizer - README](README.md)**
+
+## Input Parameters
+# 
+
+## Documentation
+?? **[Helios Optimizer - Documentation](DOC.md)**
+
+## Installation
+?? **[Helios Optimizer - Installation](INSTALL.md)**
+
+## Release Notes
+?? **[Helios Optimizer - Release Notes](RELEASE_NOTES.md)**
+
+## License
+?? **[Helios Optimizer - License](LICENSE.)**
+?? **[Licentie](LICENSE "GitHub Docs")**
+
