@@ -5,9 +5,9 @@ English Version
 Finding the cheapest way to control a battery might seem simple, but with 24 to 48 hours of fluctuating electricity prices, unpredictable solar production, battery loss, and changing household demand, the number of possible decisions is massive.
 Trying to figure this out with basic "if/then" rules or by testing every possible scenario takes a lot of computing power and often misses the best setup.
 Linear Programming (LP) solves this instantly by using smart mathematics:
- * Guaranteed **Best** (Global Optimum): LP doesn't guess or use trial-and-error. Mathematically, it guarantees the absolute cheapest plan for your complete 48-hour timeline based on your limits and prices.
- * Lightning Fast: Instead of taking minutes or hours to test all combinations, LP solves the entire 48-hour plan in less than 1 second on lightweight hardware (like a Raspberry Pi or NUC).
- * Handles Multi-Variable Rules Effortlessly: LP easily balances multiple rules at the same time — such as "never discharge below 10%", "minimize export to the grid during negative prices", and "charge the battery before peak prices hit" — without getting confused.
+ * Guaranteed **Best Result** (Global Optimum): LP doesn't guess or use trial-and-error. Mathematically, it guarantees the absolute cheapest plan for your complete 48-hour timeline based on your limits and prices.
+ * **Lightning Fast**: Instead of taking minutes or hours to test all combinations, LP solves the entire 48-hour plan in less than 1 second on lightweight hardware (like a Raspberry Pi or NUC).
+ * Handles **Multi-Variable Rules** Effortlessly: LP easily balances multiple rules at the same time — such as "never discharge below 10%", "minimize export to the grid during negative prices", and "charge the battery before peak prices hit" — without getting confused.
 In short: LP turns a complex puzzle with thousands of choices into a split-second math calculation, ensuring you always save or earn the maximum amount of money possible.
 
 ## LP vs. Traditional Rule-Based Automation
