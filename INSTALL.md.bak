@@ -20,7 +20,7 @@
   - Download and Unpack the HeliosOptimizer.zip file
   - Use the File Editor or Samba to copy the following files to Home Assistant installation.
   - Create the packages, pyscript, helios_python (sub-folder), export and www folders when they do not yet exist!
-  - The Dashboard and Automation files are only templates for your HA dashboard and automation.
+  - The Dashboard and Automation files are only templates for your HA dashboard and automation and do not need to be copied!
 
   - File Structure on GitHub
 ```
@@ -59,10 +59,9 @@
 - **Dashboard:** **New** Dashboard or **Add to** the **HBC** Dashboard
   - Create a **New** Dashboard:
     - Home Assistant - Settings (Instellingen) - Dashboards - [Add Dashboard] empty dashboard
-```
-      Specify a Title (e.g. Helios Optimizer, Icon (e.g. mid:shield-sun-outline) and URL (e.g. helios-dashboard), 
-      Select: Add to Home Assistant Sidebar 
-      <Create>
+      <br>Specify a Title (e.g. Helios Optimizer, Icon (e.g. mid:shield-sun-outline) and URL (e.g. helios-dashboard), 
+      <br>Select: Add to Home Assistant Sidebar 
+      <br>[Create]
 ```
   - Select the **New** Dashboard or the **HBC** Dashboard in the HA Sidebar
   - Edit the Dashboard in YAML mode
