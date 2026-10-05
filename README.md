@@ -8,14 +8,15 @@ The calculation uses **SciPy Linear/Mixed-Integer Linear Programming (LP/MILP)**
 ### How It Works: The Energy Model
 At the core of the optimizer is a physical and financial Energy Model. For each discrete time step in the optimization period (e.g., 15-minute or 1-hour intervals over 24–48 hours), the model solves a system of linear equations and constraints:
 - **Energy Balance:** Ensures that at every time step, Total Power Supply (Grid Import + PV Production + Battery Discharge) equals Total Power Demand (House Load + Grid Export + Battery Charge), accounting for round-trip efficiency (RTE) of the battery.
-- **Objective Function:** Minimizes net **Energy Costs** (or maximizes financial return) over the entire horizon, taking into account Dynamic Import and Export Prices, Battery Capacity and Power limits.
+- **Objective Function:** Minimizes net **Energy Costs** (or maximizes financial return) over the entire horizon, taking into account Dynamic Import and Export Prices, Battery Capacity and Grid and Battery Power limits.
 - **Optimal Variables:** Output values are generated for Target Battery Strategy with Charge/Discharge Power and an optional PV Strategy (Modulating/Dimming or On/Off) Strategy for each step.
 
 ### Execution & Architecture
-The current version runs as a PyScript service installed in your pyscript/ folder. 
-For maximum performance, the calculation runs asynchronously in a native Python thread, 
+The current version runs as a PyScript Service installed in your pyscript/ folder. Pure Python modules are in the pyscript/helios_python folder.
+For maximum performance, the calculation (including LinProg) runs asynchronously in a native Python thread, 
 computing a full 48-hour plan in under 500ms without blocking Home Assistant.
-Testing is done on a Home Assistant Operating System (HAOS) Mini-PC (with NUC: Intel Celeron J4105 CPU @ 1.50Ghz, 8Gb, SSD: 512Gb)
+Testing is done on a Home Assistant Operating System (HAOS) Mini-PC (with NUC: Intel Celeron J4105 CPU @ 1.50Ghz, 8Gb, SSD: 512Gb).
+Feedback on the performance on other Home Assistant Environments is welcome.
 
 **Important Note on Hardware Control**:
 HELIOS Optimizer acts purely as the **Planning and Decision Engine**. 
@@ -45,11 +46,15 @@ which receives the total target power from Helios and distributes it across the 
 - **Dynamic Recalculation:** Runs automatically from the current timestamp or from a user-defined step.
 - **Clean Data Structure:** Simple full-day input and output arrays (00:00-24:00/48:00).
 
-## Roadmap
+## Roadmap (2026-2027)
+- **Energy Providers:** Add additional Providers with their related Markup (Opslag)
 - **HBC Integration:** Helios Strategy as a native HBC strategy using the Helios Output 
-- **Native HA Integration:** Pure Python custom component (HACS-ready), runs without PyScript or external engines.
+- **House Usage History:" Determine House Usage Forecast from House Usage History
+- **Solar Forecast:** Support for Solcast
+- **Additional Models:** Profit Optimization is implemented, Additional models are Cost Optimization and Self Consumption
 - **Device Support:** EV, Heat Pump, and Boiler integration (deferrable devices).
-- **Modular Connectors:** Dedicated modules for energy providers, solar forecasts, battery integrations and solar inverter integrations.
+- **Native HA Integration:** Pure Python custom component (HACS-ready), runs without PyScript or external engines.
+- **Modular Connectors:** Dedicated modules for Energy Providers, Solar Forecasts, Battery Integrations and Solar Inverter Integrations.
 
 ## Overview
 ![Helios Calculator](images/HeliosOverview.jpeg)

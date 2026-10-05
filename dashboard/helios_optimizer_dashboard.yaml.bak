@@ -44,14 +44,6 @@ views:
           opacity: 16
         column_span: 3
         cards:
-          - type: heading
-            icon: mdi:information
-            heading: 'Helios Optimizer: Results Overview'
-            heading_style: subtitle
-            tap_action:
-              action: url
-              url_path: >-
-                https://jos1958.github.io/ha-helios-optimizer/DOC#results-overview
           - type: tile
             entity: input_number.helios_optimizer_energy_plan
             name: Result
@@ -203,11 +195,12 @@ views:
             icon: mdi:medication
           - type: heading
             icon: mdi:information
-            heading: 'Helios Optimizer Documentation '
+            heading: Optimization Input Parameters and Results
             heading_style: subtitle
             tap_action:
               action: url
-              url_path: https://jos1958.github.io/ha-helios-optimizer/DOC
+              url_path: >-
+                https://docs.homebatterycontrol.com/xx-helios-strategy.html#input_params
           - type: markdown
             content: >-
               <font color="grey">
@@ -216,8 +209,13 @@ views:
               <b>quarter</b> of an hour and can be <b>manually</b> started with
               the <b>Start Helios</b> button.<br>
 
-              <b>Remark:</b> See the link above for detailed documentation of
-              the Optimizer and Input Parameters and Output Results.
+              A short <b>Overview</b> of the Optimizer Results is displayed
+              <b>above</b> and the <b>Input Parameters</b> and more <b>Detailed
+              Results</b> of the calculated Optimized Energy Plan are displayed
+              <b>below</b> (e.g. Status Blocks, Graph and Table).<br>
+
+              <b>Remark:</b>IN THE FUTURE more detailed information via the link
+              above.
 
               </i></font>
             grid_options:
@@ -249,10 +247,6 @@ views:
                 - color: '#ffffff'
                 - font-weight: bold
                 - transition: background-color 0.2s ease
-          - type: heading
-            heading: 'Helios Optimizer: Energy Plan Calculator'
-            heading_style: title
-            icon: mdi:medication
         background:
           color: yellow
           opacity: 16
@@ -269,10 +263,6 @@ views:
             grid_options:
               columns: 12
               rows: auto
-            tap_action:
-              action: url
-              url_path: >-
-                https://jos1958.github.io/ha-helios-optimizer/DOC#optimization-parameters
           - type: markdown
             content: >-
               <font color="grey"><i>The <b>settings</b> below tune how the
@@ -312,16 +302,12 @@ views:
           opacity: 16
         cards:
           - type: heading
-            icon: mdi:battery-charging-80
+            icon: mdi:weather-sunny
             heading: Battery Parameters
             heading_style: subtitle
             grid_options:
               columns: 12
               rows: auto
-            tap_action:
-              action: url
-              url_path: >-
-                https://jos1958.github.io/ha-helios-optimizer/DOC#battery-parameters
           - type: markdown
             content: >-
               <font color="grey"><i>The <b>settings</b> below tune how the
@@ -353,16 +339,12 @@ views:
           opacity: 16
         cards:
           - type: heading
-            icon: mdi:battery-charging-high
+            icon: mdi:battery-charging-80
             heading_style: subtitle
             grid_options:
               columns: 12
               rows: auto
             heading: Derived Parameters
-            tap_action:
-              action: url
-              url_path: >-
-                https://jos1958.github.io/ha-helios-optimizer/DOC#derived-parameters
           - type: markdown
             content: >-
               <font color="grey"><i>The read-only <b>settings</b> below are

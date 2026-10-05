@@ -46,17 +46,45 @@
           helios_automation.yaml        - contains the automation.helios_optimizer_task 
 ```
 ```
-  - configuration.yaml               - required already for HBC, not sure if /config/export as external dir is required
-    homeassistant:
-      packages: !include_dir_named packages
-      allowlist_external_dirs:
-        - /config/export    
-```
-- **Automation:**
-  * todo
 
-- **Dashboard:**
-  * todo   
+- **configuration.yaml **
+  Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
+  Helios will write output files (for debugging and testing purposes) to this folder (not sure if this configuration is needed for pyscript).
+  homeassistant:
+    packages: !include_dir_named packages
+    allowlist_external_dirs:
+      - /config/export    
+```
+
+- **Dashboard:** **New** Dashboard or **Add to** the **HBC** Dashboard
+  - Create a **New** Dashboard:
+    - Home Assistant - Settings (Instellingen) - Dashboards - [Add Dashboard] empty dashboard
+```
+      Specify a Title (e.g. Helios Optimizer, Icon (e.g. mid:shield-sun-outline) and URL (e.g. helios-dashboard), 
+      Select: Add to Home Assistant Sidebar 
+      <Create>
+```
+  - Select the **New** Dashboard or the **HBC** Dashboard in the HA Sidebar
+  - Edit the Dashboard in YAML mode
+  - Open dashboard/helios_dashboard.yaml in your local Editor 
+  - Select all content of the helios_dashboard.yaml file 
+  - For a **New** Dashboard: Copy/Paste all of the content to the Yaml editor (**replace all existing** lines of the new dashboard including the 'views:' line)
+  - Alternative for adding to the **HBC** Dashboard: Copy/Paste the content **at the bottom** of the HBC Dashboard yaml 
+    but **exclude** the 'views:' line since it is already at the top of the HBC dashboard!
+  - <Save> the Dashboard yaml
+  
+- **Automation:**
+  - Home Assistant - Settings (Instellingen) - Automations - [Add Automation] from scratch
+  - Edit the automation in YAML mode
+  - Open automation/helios_automation.yaml in your local Editor 
+  - Select all content of the helios_automation.yaml file
+  - Copy/Paste all of the content to the Yaml editor (replace all existing lines of the automation)
+  - <Save> the Automation yaml
+  - Check in the settings of the new Automation the Entity-ID of the automation:
+    automation.helios_optimizer_automation_task
+  - Make sure your entity id is exactly the same and if not rename the entity id and press <Update>
+    Warning: The Start Button on the Helios Dashboard will NOT work when the entity id is not correct!
+  - This automation will now run every 15 minutes and we notify you when an error occurs (see Notificaton menu item)
 
 - **HACS:** 
   * Not supported yet (see Helios Calculator)

@@ -269,11 +269,10 @@ actions:
       house_daily_distr: '{{ helios_house_daily_distr }}'
       import_prices: '{{ hbc_prices_null }}'
       export_prices: '{{ hbc_prices_null }}'
-      provider_key: hbc_marks
-      source_price_sensor: '{{ hbc_sensor_prices }}'
-      source_price_data: '{{ hbc_prices_null }}'
+      source_price_data: '{{ hbc_price_null }}'
+      source_price_id: '{{ hbc_sensor_prices }}'
       source_type: import
-      original_provider: frank_energie
+      source_provider: frank_energie
       insight: 9
       write_files: '{{ default_write_files }}'
       output_folder: '{{ default_output_folder }}'
