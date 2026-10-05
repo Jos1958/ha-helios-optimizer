@@ -46,8 +46,8 @@
   -       helios_automation.yaml        - contains the automation.helios_optimizer_task 
 ```
 
-- **configuration.yaml **
-  Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
+- **configuration.yaml:**
+<br>Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
   <br>Helios will write output files (for debugging and testing purposes) to this folder (not sure if this configuration is needed for pyscript).
 ```
   homeassistant:
@@ -55,6 +55,7 @@
     allowlist_external_dirs:
       - /config/export    
 ```
+
 - **Dashboard:** **New** Dashboard or **Add to** the **HBC** Dashboard
   - Create a **New** Dashboard:
     - Home Assistant - Settings (Instellingen) - Dashboards - [Add Dashboard] empty dashboard
