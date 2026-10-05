@@ -45,7 +45,6 @@
   -    [automation]                     - this is NOT a Home Assistant Folder (see below what to do with it)
   -       helios_automation.yaml        - contains the automation.helios_optimizer_task 
 ```
-```
 
 - **configuration.yaml **
   Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
@@ -54,7 +53,6 @@
     packages: !include_dir_named packages
     allowlist_external_dirs:
       - /config/export    
-```
 
 - **Dashboard:** **New** Dashboard or **Add to** the **HBC** Dashboard
   - Create a **New** Dashboard:
