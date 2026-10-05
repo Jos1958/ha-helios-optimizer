@@ -2,15 +2,34 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## Intro
-The **HELIOS Optimizer** Service is a Home Assistant PyScript Application designed to calculate mathematically an optimal energy plan.
-The calculation uses **SciPy Linear/MILP Programming** to optimize the Energy Plan 
-for **Dynamic** Prices, **Solar** Production, **Battery** Charging/Discharging and **House** Energy Usage.
-<br><br>
-The Helios Optimizer calculates for each step in the optimization period the optimal value of power variables
+The **HELIOS Optimizer Service** is a Home Assistant PyScript application designed to calculate a mathematically optimal energy plan. 
+The calculation uses **SciPy Linear/Mixed-Integer Linear Programming (LP/MILP)** to find the financially optimal charging, discharging, and energy management strategy based on dynamic electricity prices, solar production forecasts, battery storage, and expected household energy usage.
 
-**Remark:** The Current Version is PyScript Service that is installed in the pyscript folder.
-For optimal performance the PyScript Service calls the Helios Optimizer Calculate Plan function which runs in an asynchronous native python thread.
-In the future the Helios Service will be migrated to a Home Assistant Custom Component.
+### How It Works: The Energy Model
+At the core of the optimizer is a physical and financial Energy Model. For each discrete time step in the optimization period (e.g., 15-minute or 1-hour intervals over 24–48 hours), the model solves a system of linear equations and constraints:
+- **Energy Balance:** Ensures that at every time step, Total Power Supply (Grid Import + PV Production + Battery Discharge) equals Total Power Demand (House Load + Grid Export + Battery Charge), accounting for round-trip efficiency (RTE) of the battery.
+- **Objective Function:** Minimizes net **Energy Costs** (or maximizes financial return) over the entire horizon, taking into account Dynamic Import and Export Prices, Battery Capacity and Power limits.
+- **Optimal Variables:** Output values are generated for Target Battery Strategy with Charge/Discharge Power and an optional PV Strategy (Modulating/Dimming or On/Off) Strategy for each step.
+
+### Execution & Architecture
+The current version runs as a PyScript service installed in your pyscript/ folder. 
+For maximum performance, the calculation runs asynchronously in a native Python thread, 
+computing a full 48-hour plan in under 500ms without blocking Home Assistant.
+Testing is done on a Home Assistant Operating System (HAOS) Mini-PC (with NUC: Intel Celeron J4105 CPU @ 1.50Ghz, 8Gb, SSD: 512Gb)
+
+**Important Note on Hardware Control**:
+HELIOS Optimizer acts purely as the **Planning and Decision Engine**. 
+It does **not** communicate **directly** with your Inverters, Batteries, or Smart Meters. 
+Instead, it exposes Target State and Power Values back to Home Assistant. 
+Physical control of hardware—such as setting charge/discharge rates or managing safety limits—is handled 
+by external automation frameworks like **House Battery Control (HBC)**, **Node-RED** flows or other Home Assistant integrations.
+To maintain high performance the model aggregates all available battery storage 
+into a single virtual battery with combined total capacity (kWh), maximum charge/discharge rates (kW), and average round-trip efficiency.
+Individual battery management—such as balancing states of charge (SoC) or routing power between multiple physical batteries 
+(e.g., dual Marstek Venus units)—is offloaded to the execution layer (HBC or custom automations), 
+which receives the total target power from Helios and distributes it across the physical units.
+
+**Future releases** will migrate the PyScript architecture into a standalone Home Assistant Custom Component.
 
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Integration-3DDC84?logo=home-assistant&logoColor=#03A9F4)](https://www.home-assistant.io/) 
 
@@ -32,12 +51,16 @@ In the future the Helios Service will be migrated to a Home Assistant Custom Com
 - **Device Support:** EV, Heat Pump, and Boiler integration (deferrable devices).
 - **Modular Connectors:** Dedicated modules for energy providers, solar forecasts, battery integrations and solar inverter integrations.
 
+## Overview
+![Helios Calculator](images/HeliosOverview.jpeg)
+
 ## Description
 Helios calculates an optimized energy plan for a specified horizon (typically 2 days)
 by finding the optimal power setpoints (for battery charge/discharge, grid import/export and solar production) for each step in the optimization period.
-The most important optimization rule defines that the incoming power (Discharge, Import and Solar Production) and the outgoing power (Charge, Export and House Usage) must always be equal. 
+The most important optimization rule defines that the Total Power Supply (Discharge, Import and Solar Production) and the Total Power Demand (Charge, Export and House Usage) must be equal in each step.
+The Battery State of Charge (SOC) will be kept between the Minimum and the Maximum SOC Percentages in each step and at the end of the optimization period above the Target SOC.
 In addition the model will keep the Charge/Discharging Power below the Battery Charge/Discharge Limit values and the Import/Export Power below the Maximum Grid Import/Export values.
-Solar Production will be equal to the Solar Forecast unless the Solar Inverter can be modulated (dimmed) or turned on and off.
+Solar Production will be equal to the Solar Forecast unless the Solar Inverter can be Modulated (Dimmed) or Turned On and Off.
  
 The planning horizon is defined by the number of steps and the step duration in minutes.
 For example: 48 steps of 60 minutes or 192 steps of 15 minutes both optimize a 2-day period.
