@@ -1,12 +1,12 @@
 # HA Helios Optimizer - Readme
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
-## Intro
+## Intro 
 The **HELIOS Optimizer Service** is a Home Assistant PyScript application designed to calculate a mathematically optimal energy plan. 
 The calculation uses **SciPy Linear/Mixed-Integer Linear Programming (LP/MILP)** to find the financially optimal charging, discharging, and energy management strategy based on dynamic electricity prices, solar production forecasts, battery storage, and expected household energy usage.
 
 ### How It Works: The Energy Model
-At the core of the optimizer is a physical and financial Energy Model. For each discrete time step in the optimization period (e.g., 15-minute or 1-hour intervals over 24–48 hours), the model solves a system of linear equations and constraints:
+At the core of the optimizer is a physical and financial Energy Model. For each discrete time step in the optimization period (e.g., 15-minute or 1-hour intervals over 24â€“48 hours), the model solves a system of linear equations and constraints:
 - **Energy Balance:** Ensures that at every time step, Total Power Supply (Grid Import + PV Production + Battery Discharge) equals Total Power Demand (House Load + Grid Export + Battery Charge), accounting for round-trip efficiency (RTE) of the battery.
 - **Objective Function:** Minimizes net **Energy Costs** (or maximizes financial return) over the entire horizon, taking into account Dynamic Import and Export Prices, Battery Capacity and Grid and Battery Power limits.
 - **Optimal Variables:** Output values are generated for Target Battery Strategy with Charge/Discharge Power and an optional PV Strategy (Modulating/Dimming or On/Off) Strategy for each step.
@@ -22,12 +22,12 @@ Feedback on the performance on other Home Assistant Environments is welcome.
 HELIOS Optimizer acts purely as the **Planning and Decision Engine**. 
 It does **not** communicate **directly** with your Inverters, Batteries, or Smart Meters. 
 Instead, it exposes Target State and Power Values back to Home Assistant. 
-Physical control of hardware—such as setting charge/discharge rates or managing safety limits—is handled 
+Physical control of hardwareâ€”such as setting charge/discharge rates or managing safety limitsâ€”is handled 
 by external automation frameworks like **House Battery Control (HBC)**, **Node-RED** flows or other Home Assistant integrations.
 To maintain high performance the model aggregates all available battery storage 
 into a single virtual battery with combined total capacity (kWh), maximum charge/discharge rates (kW), and average round-trip efficiency.
-Individual battery management—such as balancing states of charge (SoC) or routing power between multiple physical batteries 
-(e.g., dual Marstek Venus units)—is offloaded to the execution layer (HBC or custom automations), 
+Individual battery managementâ€”such as balancing states of charge (SoC) or routing power between multiple physical batteries 
+(e.g., dual Marstek Venus units)â€”is offloaded to the execution layer (HBC or custom automations), 
 which receives the total target power from Helios and distributes it across the physical units.
 
 **Future releases** will migrate the PyScript architecture into a standalone Home Assistant Custom Component.
