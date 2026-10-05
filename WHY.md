@@ -7,7 +7,7 @@ Trying to figure this out with basic "if/then" rules or by testing every possibl
 Linear Programming (LP) solves this instantly by using smart mathematics:
  * Guaranteed Best Result (Global Optimum): LP doesn't guess or use trial-and-error. Mathematically, it guarantees the absolute cheapest plan for your complete 48-hour timeline based on your limits and prices.
  * Lightning Fast: Instead of taking minutes or hours to test all combinations, LP solves the entire 48-hour plan in less than 1 second on lightweight hardware (like a Raspberry Pi or NUC).
- * Handles Multi-Variable Rules Effortlessly: LP easily balances multiple rules at the same time—such as "never discharge below 10%", "don't export to the grid during negative prices", and "charge the battery before peak prices hit"—without getting confused.
+ * Handles Multi-Variable Rules Effortlessly: LP easily balances multiple rules at the same time—such as "never discharge below 10%", "minimize export to the grid during negative prices", and "charge the battery before peak prices hit"—without getting confused.
 In short: LP turns a complex puzzle with thousands of choices into a split-second math calculation, ensuring you always save or earn the maximum amount of money possible.
 
 ## LP vs. Traditional Rule-Based Automation
@@ -36,7 +36,7 @@ Dit proberen op te lossen met simpele "als/dan"-regels of door elke mogelijke si
 Lineair Programmeren (LP) lost dit direct op met slimme wiskunde:
 1. Gegarandeerd het beste resultaat (Globaal Optimum): LP gokt niet en werkt niet via 'trial-and-error'. Wiskundig gezien garandeert het het allergoedkoopste plan voor je volledige 48-uurs planning, rekening houdend met al jouw limieten en prijzen.
 2. Redsnel: In plaats van minuten of uren nodig te hebben om alle combinaties door te rekenen, lost LP het complete 48-uurs plan op in minder dan 1 seconde op lichte hardware (zoals een Raspberry Pi of Mini-PC).
-3. Verwerkt moeiteloos meerdere regels tegelijk: LP balanceert eenvoudig diverse randvoorwaarden tegelijkertijd—zoals "ontlaad nooit onder de 10%", "lever niet terug aan het net bij negatieve prijzen" en "laad de batterij op vóór de avondpiek"—zonder ooit vast te lopen.
+3. Verwerkt moeiteloos meerdere regels tegelijk: LP balanceert eenvoudig diverse randvoorwaarden tegelijkertijd—zoals "ontlaad nooit onder de 10%", "minimaliseer teruglevering aan het net bij negatieve prijzen" en "laad de batterij op vóór de avondpiek"—zonder ooit vast te lopen.
 Kortom: LP verandert een ingewikkelde puzzel met duizenden keuzes in een bliksemsnelle wiskundige berekening, zodat je altijd het maximale bedrag bespaart of verdient.
 
 ## LP vs. Traditionele Regelgebaseerde Automatisering
