@@ -19,8 +19,8 @@
 - **Installation of Helios Optimizer:**
   - Download and Unpack the HeliosOptimizer.zip file
   - Use the File Editor or Samba to copy the following files to Home Assistant installation.
-  - Create the packages, pyscript, helios_python (sub-folder), export and www folder when they do not yet exist
-  - The Dashboard and Automation files are only templates for your HA dashboard and automation.
+  - Create the packages, pyscript, helios_python (sub-folder), export and www folders when they do not yet exist!
+  - The Dashboard and Automation files are only templates for your HA dashboard and automation and do not need to be copied!
 
   - File Structure on GitHub
 ```
