@@ -7,9 +7,9 @@
   - File Editor (or Samba) via HACS: to create folders and upload files
   - PyScript installation via HACS 
     - Integrations: Pyscript Python scripting - pyscript - <Configurate>
-      V Allow All Imports?
-      V Access hass as a global variable?
-      _ Use legacy decorators? (Not required)
+      - V Allow All Imports?
+      - V Access hass as a global variable?
+      - _ Use legacy decorators? (Not required)
   - For the Helios Dashboard (UI-components)
     - ApexCharts Card (via HACS)
     - card-mod (via HACS)
