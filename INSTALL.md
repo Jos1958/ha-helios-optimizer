@@ -48,19 +48,20 @@
 
 - **configuration.yaml **
   Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
-  Helios will write output files (for debugging and testing purposes) to this folder (not sure if this configuration is needed for pyscript).
+  <br>Helios will write output files (for debugging and testing purposes) to this folder (not sure if this configuration is needed for pyscript).
+```
   homeassistant:
     packages: !include_dir_named packages
     allowlist_external_dirs:
       - /config/export    
-
+```
 - **Dashboard:** **New** Dashboard or **Add to** the **HBC** Dashboard
   - Create a **New** Dashboard:
     - Home Assistant - Settings (Instellingen) - Dashboards - [Add Dashboard] empty dashboard
       <br>Specify a Title (e.g. Helios Optimizer, Icon (e.g. mid:shield-sun-outline) and URL (e.g. helios-dashboard), 
       <br>Select: Add to Home Assistant Sidebar 
       <br>[Create]
-```
+
   - Select the **New** Dashboard or the **HBC** Dashboard in the HA Sidebar
   - Edit the Dashboard in YAML mode
   - Open dashboard/helios_dashboard.yaml in your local Editor 
