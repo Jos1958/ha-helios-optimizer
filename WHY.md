@@ -23,9 +23,26 @@ Helios Optimizer uses Linear Programming (LP) to replace rigid logic with holist
 | Negative Price Handling | Requires manual overrides to prevent charging from grid or exporting solar at a loss. | Automatically calculates solar curtailment and optimal grid charging down to the cent. |
 | Financial Outcome | Sub-optimal savings due to missed opportunities and rigid thresholds. | Guaranteed global optimum—mathematically the cheapest possible execution plan. |
 
-## Key Takeaway
+# Key Takeaway
 Rule-based automations ask: "Is power cheap right now?"
 Helios LP asks: "Given the next 48 hours of prices, solar, and household demand, what is the single most profitable schedule for every 15-minute block?"
+
+## LP vs. Rule-Based Dynamic Planners 2
+Smart control strategies—like HBC's Dynamic Charge—look ahead at daily prices to select a fixed number of the cheapest hours to charge and the most expensive hours to discharge.
+While this works well for simple price-arbitrage, rule-based planners rely on fixed parameters (e.g., "always charge for 3 hours"). Helios LP Optimization replaces fixed thresholds with mathematical, multi-variable balancing.
+
+## Compare 2
+| Feature | Dynamic Rule-Based Planning (e.g., HBC) | Helios LP Optimization |
+|---|---|---|
+| Price Selection | Fixed Hours/Thresholds: Selects a predetermined number of cheapest/most expensive hours. | Dynamic & Variable: Calculates exact charge/discharge durations and power levels down to the minute. |
+| Solar & Load Awareness | Usually plans charging based only on electricity prices, independent of expected solar or house load. | Integrated Model: Balances dynamic prices, solar forecasts, house demand, and battery losses simultaneously. |
+| Partial Charging / Efficiency | Treats hours binary (100% charge or 0%). | Proportional Control: Can partially charge (e.g., 40% power) if full charging exceeds capacity or causes losses. |
+| Negative Price & Curtailment | Relies on hard cut-offs or manual overrides to stop export/charging. | Built-in Economics: Automatically determines exact solar curtailment and zero-export limits based on net cost. |
+| Mathematical Goal | Executes a pre-configured heuristic schedule. | Guaranteed Global Optimum: Solves the entire 48-hour timeline to guarantee the lowest absolute energy bill. |
+
+## Key Takeaway 2
+A dynamic rule planner asks: "Which are the 3 cheapest hours to charge today?"
+Helios LP asks: "Given the next 48 hours of prices, solar yield, house load, and battery efficiency, what exact power schedule results in the lowest total cost?
 
 Nederlandse Versie
 
@@ -55,3 +72,20 @@ Helios Optimizer gebruikt Lineair Programmeren (LP) om starre logica te vervange
 ## Belangrijkste Inzicht
 Regelgebaseerde automatiseringen vragen: "Is stroom NU goedkoop?"
 Helios LP vraagt: "Gegeven de komende 48 uur aan prijzen, zonne-energie en huisverbruik: wat is het meest winstgevende schema voor elk individueel kwartier?"
+
+## LP vs. Regelgebaseerde Dynamische Planners 2
+Slimme stuurstrategieën—zoals HBC's Dynamic Charge—kijken vooruit naar de dagprijzen om een vast aantal van de goedkoopste uren te kiezen om te laden en de duurste uren om te ontladen.
+Hoewel dit prima werkt voor eenvoudige prijsarbitrage, vertrouwen regelgebaseerde planners op vaste parameters (bijv. "laad altijd gedurende 3 uur"). Helios LP-Optimalisatie vervangt deze vaste drempels door een wiskundige afweging tussen alle variabelen tegelijk.
+
+## Vergelijking 2
+| Functie | Dynamische Regel-Planner (bijv. HBC) | Helios LP-Optimalisatie |
+|---|---|---|
+| Prijsselectie | Vaste Uren/Drempels: Kiest een vooraf ingesteld aantal goedkoopste/duurste uren. | Dynamisch & Variabel: Berekent exact hoe lang en met welk vermogen er geladen/ontladen moet worden. |
+| Zon & Verbruik | Plant het laden meestal alleen op basis van stroomprijzen, los van verwachte zonopbrengst of huisverbruik. | Geïntegreerd Model: Balanceert dynamische prijzen, zonvoorspellingen, huisverbruik én batterijverliezen gelijktijdig. |
+| Partieel Laden & Efficiëntie | Werkt vaak binair (100% vermogen laden of 0%). | Proportionele Sturing: Kan ook gedeeltelijk laden (bijv. op 40% vermogen) als vol laden tot verliezen leidt. |
+| Negatieve Prijzen & Curtailment | Vertrouwt op harde limieten of handmatige regels om teruglevering/laden te stoppen. | Ingebouwde Economie: Berekent automatisch de exacte zonne-curtailment en 'no-export' limieten op basis van netto kosten. |
+| Wiskundig Doel | Voert een vooraf geconfigureerd logisch schema uit. | Gegarandeerd Globaal Optimum: Lost de complete 48-uurs horizon op om de allerlaagste energierekening te garanderen. |
+
+## Belangrijkste Inzicht 2
+Een dynamische regel-planner vraagt: "Wat zijn vandaag de 3 goedkoopste uren om te laden?"
+Helios LP vraagt: "Gegeven de komende 48 uur aan prijzen, zonopbrengst, huisverbruik en batterij-efficiëntie: welk exacte vermogensprofiel leidt tot de laagste totale energiekosten?"
