@@ -59,9 +59,11 @@
 - **Dashboard:** **New** Dashboard or **Add to** the **HBC** Dashboard
   - Create a **New** Dashboard:
     - Home Assistant - Settings (Instellingen) - Dashboards - [Add Dashboard] empty dashboard
-      <br>Specify a Title (e.g. Helios Optimizer, Icon (e.g. mid:shield-sun-outline) and URL (e.g. helios-dashboard), 
-      <br>Select: Add to Home Assistant Sidebar 
-      <br>[Create]
+      - Specify a Title (e.g. Helios Optimizer,
+      - Icon (e.g. mid:shield-sun-outline)
+      - URL (e.g. helios-dashboard), 
+      - Select: Add to Home Assistant Sidebar 
+      - [Create]
 
   - Select the **New** Dashboard or the **HBC** Dashboard in the HA Sidebar
   - Edit the Dashboard in YAML mode
