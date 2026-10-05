@@ -5,8 +5,8 @@
 - **Prerequisites:**
   - HACS installation on your Home Assistant System
   - File Editor (or Samba) via HACS: to create folders and upload files
-  - PyScript installation via HACS 
-    - Integrations: Pyscript Python scripting - pyscript - <Configurate>
+  - PyScript installation via HACS with imports and hass access:
+    - Integrations: Pyscript Python scripting - pyscript - [Configurate]
       - V Allow All Imports?
       - V Access hass as a global variable?
       - _ Use legacy decorators? (Not required)
