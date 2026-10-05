@@ -124,7 +124,7 @@ def helios_optimizer_calc_plan(
     price_size=None,             # None=price_size is equal to step_size (Default), resample price          arrays from price_size to step_size when not none and different
     house_size=None,             # None=house_size is equal to step_size (Default), resample house forecast arrays from house_size to step_size when not none and different
     solar_size=None,             # None=solar_size is equal to step_size (Default), resample solar forecast arrays from solar_size to step_size when not none and different
-    price_factor=None,           # Price Factor 1.0 (or None)=Price in euro per kWh, 0.001=Price in euro per Wh, 0.01=Price in cent per kWh
+    price_factor=None,           # Price Factor 1.0 (or None)=Price in euro per kWh, 0.001=Price in euro per Wh, 0.01=Price in cent per kWh (Applicable to Import and Export Prices but not to the Source Price Data)
 
     max_grid_import_kw=MAX_GRID, # Maximum Grid Import Power (kW)
     max_grid_export_kw=MAX_GRID, # Maximum Grid Export Power (kW)
@@ -142,7 +142,7 @@ def helios_optimizer_calc_plan(
     import_prices=None,          # Array with Import Prices (an import price in euro per step)
     export_prices=None,          # Array with Export Prices (an export price in euro per step)
     provider_key=None,           # Provider Key for the Source Price Data (e.g. "hbc_marks" for HBC Energy Prices, "frank_energie" for Frank Energie Import Prices, etc)
-    source_price_id=None,        # Source Price ID (Info Only, since the Source Price Data is already retrieved from HA in the service) - Used by the Helios Service but not in Calculate Plan Function
+    source_price_sensor=None,    # Source Price Sensor (Entity Id) (Info Only, since the Source Price Data is already retrieved from HA in the service) - Used by the Helios Service but not in Calculate Plan Function
     source_price_data=None,      # Source Price Data (alternative to import/export prices)
     source_type=None,            # Source (Price) Type (Market, Import or Export) for Source Price Data
     original_provider=None,      # Original (Energy) Provider (Only applicable when the Price Provider is not the Original Source for the Price Data) 

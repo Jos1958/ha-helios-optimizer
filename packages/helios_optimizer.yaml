@@ -249,16 +249,45 @@ input_select:
       - "disabled"
     #initial: "all"
 
+  helios_optimizer_provider_key:
+    name: "Helios Optimizer Provider Key"
+    icon: mdi:key
+    options:
+      - "hbc_mark"
+      - "frank_energie"
+      - "zonneplan"
+      - "tibber"
+      - "energy_zero"
+      - "nordpool"
+      - "custom"
+    #initial: "import"
+    
+  helios_optimizer_source_type:
+    name: "Helios Optimizer Source Price Type"
+    icon: mdi:currency-eur
+    options:
+      - "import"
+      - "export"
+      - "market"
+    #initial: "import"
+
   helios_optimizer_forecast_solar_sensor:
-  # Select a sensor that contains the Forecast Solar Results (Warning: a specific format is required)
+  # Select an Entity Id for the sensor that contains the Forecast Solar Results (Warning: a specific format is required)
   # The options are filled  using an automation (id=helios_optimizer_forecast_fill_sensor)
     name: "Helios Optimizer Forecast Solar Sensor"
     icon: mdi:lightning-bolt
     options:
       - "sensor.helios_optimizer_forecast_solar_hours"
       
+  helios_optimizer_source_entity_id:
+  # Select an Entity Id for the sensor that contains the Source Price Data (input for Import and Export Price Arrays)
+    name: "Helios Optimizer Forecast Solar Sensor"
+    icon: mdi:cash
+    options:
+      - "sensor.hbc_energy_prices_data"
+      
   helios_optimizer_hbc_sub_strategy:
-  # Output from the Helios Optimizer and Input for the HBC Helios Strategy
+  # Output from the Helios Optimizer and Input for the HBC Helios Sub Strategy
   # Defines the Current Sub Strategy that should be made active by the Helios Strategy in the HBC Node-Red Flow
     name: "Helios Optimizer Current Sub Strategy for HBC"
     icon: mdi:lightning-bolt
@@ -271,6 +300,7 @@ input_select:
       - Sell             # Discharge batteries
       - Zero import      # Use battery to prevent grid import, surplus PV exports to grid
       - Standby / peak shave # Standby, peak shave only. Requires power limits to be set!
+    #initial: "unknown"  
 
 ###########################################################################################################
 # INPUT_BOOLEAN

@@ -117,8 +117,8 @@ class HeliosEnergyPriceParser:
                 "source_type"        : "market"           , # Source Type for the Source Prices of the provider ("market", "import", "export"), determines how to convert to output prices
                 "source_price_factor": 1.0                , # Conversion Factor for the Source Price to euro/kWh
                 "source_has_vat"     : False              , # VAT excluded in the Source Prices of the provider 
-                "markup_import"      : 0.0000             , # Provider Markup (Opslag) for the Import Price 
-                "markup_export"      : 0.0000             , # Provider Markup (Opslag) for the Export Price (sometimes negative value)
+                "markup_import"      : 0.0200             , # Provider Markup (Opslag) for the Import Price 
+                "markup_export"      : 0.0200             , # Provider Markup (Opslag) for the Export Price (sometimes negative value)
             },
             "frank_energie": {
                 "name"               : "Frank Energie (Import)",
@@ -132,12 +132,19 @@ class HeliosEnergyPriceParser:
                 "markup_import"      : 0.01815            ,
                 "markup_export"      : 0.01271            ,
             },
+            "zonneplan": {
+                "name"               : "Zonneplan"           ,
+                "source_type"        : "import"           ,
+                "source_has_vat"     : True               ,
+                "markup_import"      : 0.0200             ,
+                "markup_export"      : 0.0200             ,
+            },
             "tibber": {
                 "name"               : "Tibber"           ,
                 "source_type"        : "import"           ,
                 "source_has_vat"     : True               ,
                 "markup_import"      : 0.0200             ,
-                "markup_export"      : 0.0000             ,
+                "markup_export"      : 0.0200             ,
             },
             "energy_zero": {
                 "name"               : "EnergyZero / ANWB Energie",

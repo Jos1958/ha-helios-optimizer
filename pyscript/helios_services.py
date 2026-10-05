@@ -59,7 +59,7 @@ HELIOS_OPTIM_PLAN    = 'input_number.helios_optimizer_energy_plan' # Helios Resu
 HELIOS_OPTIM_PLAN_OLD= 'pyscript.helios_energy_plan'               # Helios Result with Status, Current and Plan in the attributes
 HELIOS_HBC_SUB_STRAT = 'input_select.helios_optimizer_hbc_sub_strategy' # Helios Sub Strategy for HBC
 HELIOS_HBC_NET_POWER = 'input_number.helios_optimizer_hbc_net_power'    # Helios Net Battery Power for HBC (Charge is Positive, Discharge is Negative), Translated later to Charge and Discharge Power (both Positive)
-HELIOS_AUTOMATION    = 'automation.helios_optimizer_task'          # Helios Automation that calls the Helios Service to calculate the Optimal Energy Plan
+HELIOS_AUTOMATION    = 'automation.helios_optimizer_automation_task'    # Helios Optimizer Automation Task that calls the Helios Optimizer Service to calculate the Optimal Energy Plan
 HELIOS_RUNNING       = 'input_boolean.helios_optimizer_running'    # Helios Automation is running (True/False) for the UI Button to show the service is running (extra second added for short service calls)
 HELIOS_PLAN_NAME     = 'Helios Optimizer Energy Plan'              # Friendly Name for the Helios Result Entity
 HELIOS_RUNNING_NAME  = 'Helios Optimizer Running'                  # Friendly Name for the Helios Running Entity  
@@ -110,7 +110,7 @@ async def helios_optimizer_service(
     import_prices=None,          # Simple Grid Import Prices (€/kWh) as a list of prices per step (per hour or per 15 minutes)
     export_prices=None,          # Simple Grid Export Prices (€/kWh) as a list of prices per step (per hour or per 15 minutes)
     provider_key=None,           # Provider Key (used to retrieve the provider profile to calculate the Import/Export Prices from the Source Price Data), Not needed when import_prices and export_prices are provided directly
-    source_price_id=None,        # Source Price Entity ID, Needed since the Home Assistant automation cannot pass the attributes of an Entity as a dictionary to the service via source_price_data
+    source_price_sensor=None,    # Source Price Sensor (Entity ID), Needed since the Home Assistant automation cannot pass the attributes of an Entity as a dictionary to the service via source_price_data
     source_price_data=None,      # Source Price Data (e.g. €/kWh or cents/kWh or €/kWh), A Dictionary with timestamps and prices (per hour or per 15 minutes), alternative when import and export prices are not available, can be HBC Price Data or Provider Price Data
     source_type=None,            # Source (Price) Type (Price Types are Market, Import or Export) for the source_price_data
     original_provider=None,      # Orginal (Energy) Provider, Needed when the Source Price Data is provided indirectly by the Energy Provider (e.g. for HBC Price Data which is retrieved from original Provider Price Data using Cheapest Hours)
@@ -167,12 +167,12 @@ async def helios_optimizer_service(
         solar_info   = solar   if solar   else {}
 
         # Home Assistant refuses to pass all attributes of an entity as a dictionary to the service (from the automation), instead it converts it to a json structure
-        # Warning: The source price data is retrieved from HA when a source_price_id is specified and REPLACES the source_price_data that was sent as an argument
-        if source_price_id and state.exist(source_price_id): # Source Price Id specified and the entity exists in Home Assistant, retrieve the attributes of the entity as a dictionary
+        # Warning: The source price data is retrieved from HA when a source_price_sensor is specified and REPLACES the source_price_data that was sent as an argument
+        if source_price_sensor and state.exist(source_price_sensor): # Source Price Id specified and the entity exists in Home Assistant, retrieve the attributes of the entity as a dictionary
             source_price_type1 = type(source_price_data)
-            source_price_data2 = state.getattr(source_price_id) # Get the attributes of the source price entity as a dictionary (this is a Home Assistant specific function, not available in Visual Studio)       
+            source_price_data2 = state.getattr(source_price_sensor) # Get the attributes of the source price entity as a dictionary (this is a Home Assistant specific function, not available in Visual Studio)       
             source_price_type2 = type(source_price_data2)
-            await async_write_message('test.log', f"Testing to write a file with steps={steps}, size={step_size}, start={start_step}, soc={battery_info.get('soc_start_pct', None)}, solar_info='{solar_info.get('mode', 'unknown')}', price size={price_size}, source price id={source_price_id}, type={source_price_type1}, type2={source_price_type2}")
+            await async_write_message('test.log', f"Testing to write a file with steps={steps}, size={step_size}, start={start_step}, soc={battery_info.get('soc_start_pct', None)}, solar_info='{solar_info.get('mode', 'unknown')}', price size={price_size}, source price id={source_price_sensor}, type={source_price_type1}, type2={source_price_type2}")
             await async_write_message('test.log', f"source price data={source_price_data}")
             await async_write_message('test.log', f"source price data={source_price_data2}")
             source_price_data = source_price_data2
@@ -204,7 +204,7 @@ async def helios_optimizer_service(
             "import_prices"        : import_prices,         # Simple Import Price Array in euro per step
             "export_prices"        : export_prices,         # Simple Export Price Array in euro per step
             "provider_key"         : provider_key,          # Provider Key (used to retrieve the provider profile to calculate the Import/Export Prices from the Source Price Data)
-            "source_price_id"      : source_price_id,       # Source Price Entity ID (info only since the service already retrieved the related source price data)
+            "source_price_sensor"  : source_price_sensor,   # Source Price Sensor (Entity ID) (info only since the service already retrieved the related source price data)
             "source_price_data"    : source_price_data,     # Source Price Data, Dictionary with Price Info (alternative to Simple Import/Export Price Arrays)
             "source_type"          : source_type,           # Source (Price) Type (Price Types are Market, Import or Export)
             "original_provider"    : original_provider,     # Optional Original (Energy) Provider (Only applicable when the Price Provider is not the Original Source for the Price Data) 
