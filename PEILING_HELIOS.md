@@ -3,7 +3,7 @@ Bedankt voor alle reacties op de peiling! De inzichten geven een goed beeld van 
 
 ## De belangrijkste resultaten op een rij:
  * Interesse & Testbereidheid: Het overgrote deel ziet de LP-optimizer als een waardevolle uitbreiding op de huidige HBC-strategieën. Meer dan de helft meldt zich aan voor de eerste testgroep!
- * Ecosystemen & Hardware: Niet onverwacht maar 100% van de respondenten gebruikt HBC, waarbij de Marstek Venus (v1/v2/v3) veruit de populairste batterij is. Slechts een derde heeft één batterij; maar liefst twee derde beschikt al over 2 of meer batterijen.
+ * Ecosystemen & Hardware: Niet onverwacht maar 100% van de respondenten gebruikt HBC, waarbij de Marstek Venus (v1/v2/v3) uiteraard veruit de populairste batterij is. Slechts een derde heeft één batterij en maar liefst twee derde beschikt al over 2 of meer batterijen.
  * Prijs-integraties: De dynamische prijs-integraties lopen sterk uiteen. Zonneplan, Frank Energie, Nordpool en Tibber vormen samen de top 4.
  * Zonne-energie & P1: Meer dan de helft kan de zonne-omvormer(s) dimmen of uitschakelen, via zeer diverse omvormer-integraties. Bij de P1-meters valt op dat HomeWizard de absolute koploper is.
  * EV's & Laadpalen: Maar liefst 67% beschikt over een elektrische auto en een aanstuurbare laadpaal maar lang niet iedereen kan deze ook aansturen vanuit Home Assistant.
