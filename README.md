@@ -69,10 +69,10 @@ Only small bug fixes will be accepted.
 Please raise an issue to report a bug or to request for new functionality.
 
 # License
-?? **[Helios Optimizer License](LICENSE.)**
+**[Helios Optimizer License](https://github.com/Jos1958/ha-helios-optimizer/blob/main/LICENSE)**
 
 # Help
 
 **Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home Automation, Home Assistant
 
-**README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+**README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)
