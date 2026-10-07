@@ -25,14 +25,14 @@ See [Helios Optimizer Why LP](WHY.md)
 - **Clean Data Structure:** Simple full-day input and output arrays (00:00-24:00/48:00).
 
 ## Roadmap (2026-2027)
+- **Full HBC Integration:** Helios Strategy as a **native HBC strategy** using the Helios Optimizer Output.
 - **Energy Providers:** Add additional **Energy Providers** with their related Provider Markups (Opslag).
-- **HBC Integration:** Helios Strategy as a **native HBC strategy** using the Helios Optimizer Output.
-- **House Usage History:"** Determine House Usage **Forecast** from House Usage **History**.
 - **Solar Forecast:** Support for **Solcast** as an additional Solar Production prediction.
+- **House Usage History:"** Determine House Usage **Forecast** from House Usage **History**.
 - **Additional Models:** Profit Optimization is implemented, Additional models are **Cost Optimization** and **Self Consumption**.
 - **Device Support:** **EV** (highest priority), **Heat Pump**, and **Boiler** support (as **Deferrable** Devices).
-- **Native HA Integration:** Pure Python Home Assistant **Custom Component** (HACS-ready), run without PyScript or external engines.
 - **Modular Connectors:** Dedicated modules for **Energy Providers**, **Solar Forecasts**, Battery and Solar Inverter **Integrations**.
+- **Native HA Integration:** Pure Python Home Assistant **Custom Component** (HACS-ready), run without PyScript or external engines.
 
 ## Required inputs
 - **Configuration Input** (Steps, Step size, Start Step, Solver Time/Iteration limits, Grid Limits)
