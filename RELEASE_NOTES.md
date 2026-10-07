@@ -27,7 +27,7 @@
   - Created the hacs.json with the custom component, render_readme: true, home assistant min release version 
   - Added the document link and the github issue link to the manifest.json
   - Added two workflows: .github/workflow/hacs.yaml & hassfest.yaml, checked results under actions (corrected errors)
-  - Created a release in github (v0.8.0) with the same number as used in the manifest.json
+  - Created a release in github (v0.8.0 with tag 0.8.0) with the same number as used in the manifest.json
   - Forked from hacs/default (hacs repository), created a separate branch, updated the file integration. with "Jos1958/ha-helios-calculator" (alphabetic order)
   - Commit the change (in integration.) to a new branch
   - Create Pull Request and Fill the related checklist (links to release, hacs and hassfest workflow results) for the pull request (Do not the: Merge Pull Request)
