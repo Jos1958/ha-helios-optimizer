@@ -46,7 +46,7 @@
   -       helios_automation.yaml        - contains the automation.helios_optimizer_task 
 ```
 
-- Check the **configuration.yaml:**
+- Check the **configuration.yaml:** Include packages and allow external dirs
 <br>Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
 <br>Helios will write output files (for debugging and testing purposes) to the export folder (not sure if this configuration is needed for pyscript).
 ```
@@ -70,12 +70,12 @@
   - Edit the Dashboard in YAML mode
   - Open dashboard/helios_dashboard.yaml in your local Editor 
   - Select all content of the helios_dashboard.yaml file 
-  - For a **New** Dashboard: Copy/Paste all of the content to the Yaml editor (**replace all existing** lines of the new dashboard including the 'views:' line)
+  - For a **New** Dashboard: Copy/Paste all of the content to the Yaml editor (**replace all existing** lines of the new dashboard including the first line with 'views:')
   - Alternative for adding to the **HBC** Dashboard: Copy/Paste the content **at the bottom** of the HBC Dashboard yaml 
-    but **exclude** the 'views:' line since it is already at the top of the HBC dashboard!
+    but **exclude** the line with 'views:' since it is already at the top of the HBC dashboard!
   - [Save] the Dashboard yaml
   
-- **Helios Optimizer Automation:** Create a new Automation
+- **Helios Optimizer Automation:** Create a new Automation that runs the Helios Optimizer
   - Home Assistant - Settings (Instellingen) - Automations - [Add Automation] from scratch
   - Edit the automation in YAML mode
   - Open automation/helios_automation.yaml in your local Editor 
@@ -88,7 +88,7 @@
     Warning: The Start Button on the Helios Dashboard will NOT work when the entity id is not correct!
   - This automation will now run every 15 minutes and we notify you when an error occurs (see Notificaton menu item)
 
-- ** Solar Forecast Configuration:**
+- **Solar Forecast Configuration:** Adapt the configuration for your location
   - Edit the helios_optimizer_config.yaml in folder packages (see above)
   - Adapt the REST API Definition for forecast.solar with your location and setup
   - The example configuration is defined for a setup in Amsterdam with 20 panels and needs to be adapted to your own situation:
