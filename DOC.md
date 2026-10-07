@@ -8,7 +8,7 @@ For an Introduction and Feature List of the Helios Optimizer: see [Helios Optimi
 ![Helios Calculator](images/HeliosOverview.jpeg)
 
 ## Why use a Linear Programming Model
-See [Why use Linear Programming?](WHY.md#why-lp-en) or [Waarom Lineair Programmeren gebruiken?](WHY.md#waarom-lp-nl)
+See [Why use Linear Programming?](WHY.md#why-use-lp-en) or [Waarom Lineair Programmeren gebruiken?](WHY.md#waarom-lp-gebruiken-nl)
 
 ## Description
 Helios calculates an optimized energy plan for a specified horizon (typically 2 days)
