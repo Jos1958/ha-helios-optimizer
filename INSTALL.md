@@ -2,7 +2,7 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## Installation
-- **Prerequisites:**
+- **Prerequisites for Helios Optimizer:**
   - HACS installation on your Home Assistant System
   - File Editor (or Samba) via HACS: to create folders and upload files
   - PyScript installation via HACS with imports and hass access enabled:
