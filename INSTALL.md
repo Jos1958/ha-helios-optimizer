@@ -1,5 +1,5 @@
 # Helios Optimizer - Installation
-![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
+![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
 
 ## Installation
 - **Prerequisites for Helios Optimizer:**
@@ -117,6 +117,10 @@
   - Save the helios_optimizer_config.yaml
 
 - Reboot you Home Assistant after these changes  
+- Check the Helios Optimizer Dashboard (within 10s after restart the automation should run)
+- Rerun the automation using the green button ("Start Helios Optimizer Task"), the button should turn yellow while running
+![Helios Optimizer Dashboard](images/HeliosDashboard.jpeg)
+
   
 - **HACS:** 
   * Not supported yet (see Helios Calculator)
