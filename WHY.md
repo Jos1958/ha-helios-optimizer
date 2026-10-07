@@ -69,4 +69,4 @@ ontladen en zonne-energie die nodig zijn om de laagst mogelijke kosten voor de h
 Een dynamische regel-planner vraagt: "Wat zijn vandaag de 3 goedkoopste uren om te laden?"
 Helios LP vraagt: "Gegeven de komende 48 uur aan prijzen, zonopbrengst, huisverbruik en batterij-efficiëntie: welk exacte vermogensprofiel leidt tot de laagste totale energiekosten?"
 
-[Readme](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+[Readme](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License]

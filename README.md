@@ -68,11 +68,14 @@ The current code is not very stable yet so your changes may not work on the next
 Only small bug fixes will be accepted.
 Please raise an issue to report a bug or to request for new functionality.
 
+# Interest Poll (Dutch)
+**[Helios Optimizer Interest Poll Results in Dutch](HELIOS_PEILING.md)**
+
 # License
 **[Helios Optimizer License](https://github.com/Jos1958/ha-helios-optimizer/blob/main/LICENSE)**
 
-# Help
+# FAQ and Help
 
-**Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home Automation, Home Assistant
+**Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home and House Automation, Home Assistant, HBC, Linear Programming, Python, PyScript
 
 **README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)

@@ -178,4 +178,4 @@ used (Used in the House, Battery Charged or Exported).
 ## License
 [Helios Optimizer - License](LICENSE "GitHub Docs")
 
-[README](README.md) - **Doc** - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+[README](README.md) - **Doc** - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)
