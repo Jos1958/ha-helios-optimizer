@@ -14,6 +14,7 @@ Most home battery automations rely on static "If/Then" rules (e.g., "If dynamic 
 Helios Optimizer uses Linear Programming (LP) to replace rigid logic with holistic, mathematical forecasting.
 
 ## Compare
+
 | Feature | Traditional If/Then Rules | Helios LP Optimization |
 |---|---|---|
 | Decision Horizon | Reactive: Responds only to the current price or battery status right now. | Proactive: Evaluates the full 24–48 hour horizon at once to plan ahead. |
@@ -31,6 +32,7 @@ Smart control strategies—like HBC's Dynamic Charge—look ahead at daily price
 While this works well for simple price-arbitrage, rule-based planners rely on fixed parameters (e.g., "always charge for 3 hours"). Helios LP Optimization replaces fixed thresholds with mathematical, multi-variable balancing.
 
 ## Compare 2
+
 | Feature | Dynamic Rule-Based Planning (e.g., HBC) | Helios LP Optimization |
 |---|---|---|
 | Price Selection | Fixed Hours/Thresholds: Selects a predetermined number of cheapest/most expensive hours. | Dynamic & Variable: Calculates exact charge/discharge durations and power levels down to the minute. |
@@ -61,6 +63,7 @@ De meeste thuisbatterij-automatiseringen vertrouwen op statische "Als/Dan"-regel
 Helios Optimizer gebruikt Lineair Programmeren (LP) om starre logica te vervangen door een holistische, wiskundige voorspelling.
 
 ## Vergelijking
+
 | Functie | Traditionele Als/Dan-regels | Helios LP-Optimalisatie |
 |---|---|---|
 | Beslissingshorizon | Reactief: Reageert alleen op de actuele prijs of batterijstatus van dit moment. | Proactief: Evalueert de volledige 24–48 uurs horizon in één keer om vooruit te plannen. |
@@ -78,6 +81,7 @@ Slimme stuurstrategieën—zoals HBC's Dynamic Charge—kijken vooruit naar de d
 Hoewel dit prima werkt voor eenvoudige prijsarbitrage, vertrouwen regelgebaseerde planners op vaste parameters (bijv. "laad altijd gedurende 3 uur"). Helios LP-Optimalisatie vervangt deze vaste drempels door een wiskundige afweging tussen alle variabelen tegelijk.
 
 ## Vergelijking 2
+
 | Functie | Dynamische Regel-Planner (bijv. HBC) | Helios LP-Optimalisatie |
 |---|---|---|
 | Prijsselectie | Vaste Uren/Drempels: Kiest een vooraf ingesteld aantal goedkoopste/duurste uren. | Dynamisch & Variabel: Berekent exact hoe lang en met welk vermogen er geladen/ontladen moet worden. |
