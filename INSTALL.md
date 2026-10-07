@@ -91,4 +91,4 @@
 - **HACS:** 
   * Not supported yet (see Helios Calculator)
 
-[README](README.md) - [Documentation](DOC.md) - **Installation** - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - **Install** - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")

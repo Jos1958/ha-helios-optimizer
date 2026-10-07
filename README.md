@@ -75,4 +75,4 @@ Please raise an issue to report a bug or to request for new functionality.
 
 **Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home Automation, Home Assistant
 
-**README** - [Documentation](DOC.md) - [Installation](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+**README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")

@@ -1,7 +1,15 @@
 # HA Helios Optimizer - Release Notes
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
-## 0.8.x (2026-08-15) Custom Component and HACS support (Proof of Concept)
+## 0.9.0 (2026-10-07) First Public Version (PyScript and Python)
+- First public version 
+- Support for reading input parameters from HBC
+- Uses a PyScript Service and a calculation in Pure Python (with SciPy Linear Programming)
+- This Calculation is started from the Home Assistant Loop as an asychronous (Pure Python) function
+- See v 0.7.8 and lower for details
+- **WARNING:** 0.8.x Custom Component functions are not included! 
+
+## 0.8.x (2026-08-15) Custom Component and HACS support (Proof of Concept) - 
 - Proof of concept for a version that runs as a Home Assistant Custom Component (simple model but using LP) (__init__.py)
 - Brand files in sub folder of the custom component (with icon.png and logo.png)
 - Call the SciPy Linear Programming function with the HiGHS solver
@@ -25,7 +33,29 @@
   - Create Pull Request and Fill the related checklist (links to release, hacs and hassfest workflow results) for the pull request (Do not the: Merge Pull Request)
     Make sure the Pull Request is done to the hacs/default (and not to my own master)! Resubmitted the request on 2026-08-17
 
-## 0.7.0 (Not published yet) Hardening of the Optimization Model
+## 0.7.8 (2026-09-30) Hardening of the Optimization Model
+- Included Support for Conversion from Source Price to Target Price, Group Steps and Average Price, Expand Steps (Repeat), Fill Gaps in Day(s), Fallback Days, 
+- Added Source Price Data and improved Helios Energy Price Parser with HBC support (and original Provider)
+- Added house_daily_usage and house_daily_distr arguments as an alternative for house_energy_forecast (since no house energy usage history available yet)
+- Corrected errors in the optimization model related to the difference in power and energy rules for steps smaller than 1 hour (e.g. 15 min), 
+- The Helios Optimizer Calculate Plan now runs asynchronous using pure python, dramatic performance improvement
+- Added input and output files (in the helios service) for validation and regression test purposes
+- Create asynchronouos versions of file handling functions for use in Home Assistant
+- Added Sum (Totals) of Input Arrays and Output Arrays for validation purposes (only at maximum insight level), error in validation when overall_sum above the threshold
+- Allow arrays that are too long (e.g. 48 steps for 2 days while the optimization period is only 24 steps for 1 day), the extra steps will be ignored
+- Separate input step sizes for import/export prices, house forecast and solar forecast arrays instead of a single input step size to allow for different resampling conversions
+- Handing invalid arguments in the service call, this allows the HA Automation to report the error, return invalid argument in payload
+- Added input parameters to the dashboard, improved output markdown cards, adapted the payload  
+- Split off the common functies into a helios_common.py separate from the helios_optimizer.py
+- Improved (PyScript) Performance for the Index in the Variable Array, Vectorized Assignments
+- Included performance measurements (from 12.5s to <800ms for 192 steps (15min) and to 150-250ms for 48 steps (60min)
+- Interpolate (explode or implode) the input arrays to adapt the data to the required step size
+- Extend input arrays when one or more days can be added to the array by reusing the last day
+- Investigated Price Sources and conversion options (see EnergyPriceConversion)
+- Introduce Try/Except to handle errors (with traceback) and return message in the payload
+- Created a Visual Code Version that is compatible with the Home Assistant Pyscript version (for debugging and testing), multiple run option for testing
+
+## 0.7.0 (2026-09-xx) Hardening of the Optimization Model
 - Improved Home Assistant Mockup that allows the code to be developed and tested in Visual Studio
 - Added additional comment in the code and replaced all dutch comments by english
 - Protect agains infeasible solution with invalid SoC Start (outside SoC Min and Max)
@@ -78,4 +108,4 @@
 - The functionality is started from an HA automation
 - Errors in the compilation or runtime can be found in the Home Assistant System Log
 
-[README](README.md) - [Documentation](DOC.md) - [Installation](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
+[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
