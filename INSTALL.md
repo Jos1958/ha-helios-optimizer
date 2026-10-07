@@ -17,7 +17,7 @@
     - Picture (built-in) for /local/HeliosOptimizerBanner.jpeg in www-folder
     
 - **Download and Copy the Helios Optimizer files:**
-  - Download on https://github.com/Jos1958/ha-helios-optimizer/releases/tag/0.9.0
+  - Download on [GitHub](https://github.com/Jos1958/ha-helios-optimizer/releases/tag/0.9.0)
   - Unpack the ha-helios-optimizer-0.9.0.zip file 
   - Use the File Editor or Samba to copy the following files (with a **V**) to Home Assistant installation.
   - Create the folders (with a **!**) when they do not exist: packages, pyscript, helios_python (sub-folder), export and www
