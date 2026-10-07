@@ -1,7 +1,6 @@
-English Version
+# Why use LP (EN)?
 
-# Why Linear Programming (LP)?
-## Explanation
+## Explanation of Linear Programming (LP) 
 Finding the cheapest way to control a battery might seem simple, but with 24 to 48 hours of fluctuating electricity prices, unpredictable solar production, battery loss, and changing household demand, the number of possible decisions is massive.
 Trying to figure this out with basic "if/then" rules or by testing every possible scenario takes a lot of computing power and often misses the best setup.
 Linear Programming (LP) solves this instantly by using smart mathematics:
@@ -46,8 +45,9 @@ Helios LP asks: "Given the next 48 hours of prices, solar yield, house load, and
 
 Nederlandse Versie
 
-# Waarom Lineair Programmeren (LP)?
-## Uitleg
+# Waarom LP gebruiken (NL)?
+
+## Uitleg Lineair Programmeren (LP) 
 Het vinden van de goedkoopste manier om een batterij aan te sturen lijkt op het eerste gezicht eenvoudig. Maar met 24 tot 48 uur aan schommelende elektriciteitsprijzen, onvoorspelbare zonne-energie, batterijverliezen en een wisselend huisverbruik is het aantal mogelijke beslissingen reusachtig.
 Dit proberen op te lossen met simpele "als/dan"-regels of door elke mogelijke situatie uit te proberen kost enorm veel rekenkracht en mist vaak de meest optimale instelling.
 Lineair Programmeren (LP) lost dit direct op met slimme wiskunde:

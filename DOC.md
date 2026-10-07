@@ -1,10 +1,77 @@
-# Helios Optimizer - Documentation with Input and Output
+# Helios Optimizer - Documentation
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## Intro and Features
 For an Introduction and Feature List of the Helios Optimizer: see [Helios Optimizer - README](README.md).
 
-## Helios Dashboard
+## Overview
+![Helios Calculator](images/HeliosOverview.jpeg)
+
+## Why use a Linear Programming Model
+See [Why use Linear Programming?](WHY.md#why-lp-en) or [Waarom Lineair Programmeren gebruiken?](WHY.md#waarom-lp-nl)
+
+## Description
+Helios calculates an optimized energy plan for a specified horizon (typically 2 days)
+by finding the optimal power setpoints (for battery charge/discharge, grid import/export and solar production) for each step in the optimization period.
+The most important optimization rule defines that the Total Power Supply (Discharge, Import and Solar Production) and the Total Power Demand (Charge, Export and House Usage) must be equal in each step.
+The Battery State of Charge (SOC) will be kept between the Minimum and the Maximum SOC Percentages in each step and at the end of the optimization period above the Target SOC.
+In addition the model will keep the Charge/Discharging Power below the Battery Charge/Discharge Limit values and the Import/Export Power below the Maximum Grid Import/Export values.
+Solar Production will be equal to the Solar Forecast unless the Solar Inverter can be Modulated (Dimmed) or Turned On and Off.
+ 
+The planning horizon is defined by the number of steps and the step duration in minutes.
+For example: 48 steps of 60 minutes or 192 steps of 15 minutes both optimize a 2-day period.
+ 
+Grid Import and Export Prices, Solar Energy Forecast and House Energy Forecasts are needed as Input Arrays, containing values for every step in the period.
+HBC Price Data can be used as an alternative source for the Import and Export Price arrays.
+House Daily Usage and Distribution can be provided as an alternative source for the House Energy Forecast array.
+ 
+Total Energy Cost is the sum of energy costs per step (calculated for Grid Import and Export Power).
+To compensate for battery depreciation cost a discharge (default 0.01 euro) and charge cost (default 0.00) is included in the Total Energy Cost.
+A cost for charging and/or discharging will also prevent the model from charging and discharging at the same time.
+The optimizer aims to MINIMIZE the Total Energy Cost over the entire horizon.
+Note: Negative costs may occur when exporting energy to the grid or during negative import prices.
+ 
+Note: Without a battery or deferrable loads, optimization opportunities are limited
+since a strict power balance between consumption, import, and export must be met in each step.
+ 
+The optimization horizon always starts today (and optionally extends to the following days).
+By default (with a start step of 0), the active start step is calculated based on the current time.
+Optionally, a specific start step can be defined (e.g., step 1 to start at 00:00) but this is mainly meant for (regression) testing.
+All input arrays must start at 00:00 today so the optimizer can align prices and forecasts correctly.
+Again for (regression) testing purposes a specific optimizer timestamp can be provided that runs the optimizer for a specific date and time (instead of for the current date and time).
+ 
+The resulting Optimized Energy Plan determines the active strategy for the current step
+(e.g., NOM, Buy, Sell, Charge, Discharge, Disabled) and provides real-time setpoints
+to steer the Battery Charge/Discharge, the Solar Production and (in the future) the Deferrable Loads.
+
+### How It Works: The Energy Model
+At the core of the optimizer is a physical and financial Energy Model. For each discrete time step in the optimization period (e.g., 15-minute or 1-hour intervals over 24–48 hours), the model solves a system of linear equations and constraints:
+- **Energy Balance:** Ensures that at every time step, Total Power Supply (Grid Import + PV Production + Battery Discharge) equals Total Power Demand (House Load + Grid Export + Battery Charge), accounting for round-trip efficiency (RTE) of the battery.
+- **Objective Function:** Minimizes net **Energy Costs** (or maximizes financial return) over the entire horizon, taking into account Dynamic Import and Export Prices, Battery Capacity and Grid and Battery Power limits.
+- **Optimal Variables:** Output values are generated for Target Battery Strategy with Charge/Discharge Power and an optional PV Strategy (Modulating/Dimming or On/Off) Strategy for each step.
+
+### Execution & Architecture
+The current version runs as a PyScript Service installed in your pyscript/ folder. Pure Python modules are in the pyscript/helios_python folder.
+For maximum performance, the calculation (including LinProg) runs asynchronously in a native Python thread, 
+computing a full 48-hour plan in under 500ms without blocking Home Assistant.
+Testing is done on a Home Assistant Operating System (HAOS) Mini-PC (with NUC: Intel Celeron J4105 CPU @ 1.50Ghz, 8Gb, SSD: 512Gb).
+Feedback on the performance on other Home Assistant Environments is welcome.
+
+**Important Note on Hardware Control**:
+HELIOS Optimizer acts purely as the **Planning and Decision Engine**. 
+It does **not** communicate **directly** with your Inverters, Batteries, or Smart Meters. 
+Instead, it exposes Target State and Power Values back to Home Assistant. 
+Physical control of hardware—such as setting charge/discharge rates or managing safety limits—is handled 
+by external automation frameworks like **House Battery Control (HBC)**, **Node-RED** flows or other Home Assistant integrations.
+To maintain high performance the model aggregates all available battery storage 
+into a single virtual battery with combined total capacity (kWh), maximum charge/discharge rates (kW), and average round-trip efficiency.
+Individual battery management—such as balancing states of charge (SoC) or routing power between multiple physical batteries 
+(e.g., dual Marstek Venus units)—is offloaded to the execution layer (HBC or custom automations), 
+which receives the total target power from Helios and distributes it across the physical units.
+
+**Future releases** will migrate the PyScript architecture into a standalone Home Assistant Custom Component.
+
+## Helios Dashboard (Input and Output)
 At the top of the dashboard a short <b>Overview</b> of the Optimizer Results is displayed. 
 Below that are the <b>Input Parameters</b> and more <b>Detailed Results</b> of the calculated Optimized Energy Plan (e.g. Status Blocks, Graph and Table).
 <i>The <b>Helios Optimizer Service</b> will typically run every <b>quarter</b> of an hour 
