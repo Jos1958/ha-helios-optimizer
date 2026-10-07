@@ -12,6 +12,9 @@ based on dynamic Electricity Prices, Solar Forecasts, Battery storage and expect
 ## Why Use a Linear Programming Energy Model:
 See [Helios Optimizer Why LP](WHY.md)
 
+## Installation:
+See [Helios Optimizer Installation](INSTALL.md)
+
 ## Features
 - **LP/MILP Optimization:** Uses SciPy **Linear Programming** to **maximize** profit and **minimize** energy costs.
 - **HBC Ready:** Retrieves Parameters and Prices from **HBC** and creates output for HBC (Sub Strategy and Power)

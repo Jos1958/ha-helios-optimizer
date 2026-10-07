@@ -24,6 +24,7 @@
   - Remark: The Dashboard and Automation files are only templates for your HA dashboard and automation and do not need to be copied!
 
   - File Structure on GitHub
+
 ```
   - [HomeAssistant]                     - Already exist for your HA installation (sometimes called: [config]):
   !    [packages]
@@ -49,9 +50,11 @@
   -       helios_automation.yaml        - contains the automation.helios_optimizer_task 
 ```
 
+
 - Check the **configuration.yaml:** Include packages and allow external dirs
 <br>Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
 <br>Helios will write output files (for debugging and testing purposes) to the export folder (not sure if this configuration is needed for pyscript).
+
 ```
   homeassistant:
     packages: !include_dir_named packages
