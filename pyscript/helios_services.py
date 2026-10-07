@@ -67,7 +67,7 @@ HELIOS_SERVICE_NAME  = 'Helios Optimizer Service'                  # Name of the
 HELIOS_ASYNC_FF_NAME = 'Helios Async File Functions'               # Name of the Helios Async File Functions      
 HELIOS_MAIN_NAME     = 'Helios Optimizer Regression Test'          # Name of the Helios Optimizer Main Routine (Regression Test)
 
-HELIOS_INPUT_FNAME   = 'helios_optimizer_input_ha_192s15i81.json'  # JSON Input file  with the input parameters for testing purposes (see main), only for run type 0 (others use the base parameters from main)
+HELIOS_INPUT_FNAME5  = 'helios_optimizer_input_ha_192s15i81.json'  # JSON Input file  with the input parameters for testing purposes (see main), only for run type 0 (others use the base parameters from main)
 HELIOS_OUTPUT_FNAME  = 'helios_optimizer_output.json'              # JSON Output file with the output results   for testing purposes (see main), renamed to _expected_xxx for validation
 HELIOS_PLAN_FNAME    = 'helios_optimizer_plan.csv'                 # CSV  Output file with the plan variables as a spreadsheet table (value for each step), used in main    (see alos TABLE)
 HELIOS_RESULTS_FNAME = 'helios_test_results_{date}.csv'            # CSV  Output file with the results summary  for multiple test runs (date is replaced by current date)
@@ -138,11 +138,11 @@ async def helios_optimizer_service(
     A Home Assistant PyScript Calculate Energy Plan Service that uses SciPy Linear/MILP Programming.
     """
     try:
-        service_start_ts, service_calc_ts, service_end_ts = datetime.now(), None, None
+        service_begin_ts, service_computed_ts, service_end_ts = datetime.now(), None, None
         calc_code, calc_result, total_fun_cost = RC_SUCCESS, None, "unavailable" # Default to success, will be changed if an exception occurs
-        log.info(f"{HELIOS_SERVICE_NAME}: Started at {service_start_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+        log.info(f"{HELIOS_SERVICE_NAME}: Started at {service_begin_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
 
-        now_ts  = service_start_ts # Local Timestamp (does not have a timezone yet)
+        now_ts  = service_begin_ts # Local Timestamp (does not have a timezone yet)
         now_tz  = now_ts.astimezone().tzinfo # Get Timezone info object from timestamp (but we can get it from the datetime)
         now_off = now_tz.utcoffset(now_ts)
         try: # Try to retrieve the Home Assistant Timestamp and Timezone
@@ -235,27 +235,41 @@ async def helios_optimizer_service(
         calc_result    = payload.get('calc_result'   , None)
         total_fun_cost = payload.get('total_fun_cost', None)
 
-        # ADD the service EXECUTION TIME to the payload for logging and debugging purposes:
-        service_calc_ts = datetime.now()
-        service_calc_ms = round(1000*(service_calc_ts - service_start_ts).total_seconds(), 1) # Performance of the calculation of the plan in ms
-        log.debug(f"[{HELIOS_SERVICE_NAME}]: Calculation Time (excluding state.set)={service_calc_ms:.1f}ms")
-        log.debug(f"[{HELIOS_SERVICE_NAME}]: Calculated at {service_calc_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} with result '{calc_result}'")
-        SERVICE_PERFORMANCE_MS.append(service_calc_ms) # Append this runs calculation time (without state.set)
-        payload['service_calc_time_ms'] = round(service_calc_ms,1) # Add Total Calculation Execution Time for the Calculation to the payload (without the state.set)
+        # ADD the Service EXECUTION TIME to the payload for logging and debugging purposes:
+        service_computed_ts = datetime.now()
+        service_compute_ms = round(1000*(service_computed_ts - service_begin_ts).total_seconds(), 1) # Performance of the calculation of the plan in ms
+        log.debug(f"[{HELIOS_SERVICE_NAME}]: Computed Time (excluding state.sets)={service_compute_ms:.1f}ms")
+        log.debug(f"[{HELIOS_SERVICE_NAME}]: Computed at {service_computed_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} with result '{calc_result}'")
+        SERVICE_PERFORMANCE_MS.append(service_compute_ms) # Append this runs computation time (without state.sets)
+
+        payload['last_service_begin'     ] = datetime_isoformat_msec(service_begin_ts    ) if (service_begin_ts     != None) else None # Begin of the Service (YYYY:MM:DD HH:MM:SS:TTT)
+        payload["last_service_computed"  ] = datetime_isoformat_msec(service_computed_ts ) if (service_computed_ts  != None) else None # End Calculation      (YYYY:MM:DD HH:MM:SS:TTT)
+        payload['service_compute_time_ms'] = round(service_compute_ms,1) # Add Total Calculation Execution Time for the Calculation to the payload (without the state.set)
 
     # HANDLE SERVICE EXCEPTIONS (Remark: Exceptions are more likely to be handled by the Exception handler of the helios_optimizer_calc_plan):
     except Exception as e:
         error_message = repr(e)
         log.error(f"[{HELIOS_SERVICE_NAME}] Exception in Calculate Plan: {error_message}")
         payload = { # Construct a simple version of the payload for the service exception
-            "success"         : False, 
-            "calc_code"       : RC_SERVICE_EXCEPTION, 
-            "calc_result"     : "Service Exception", 
-            "version"         : HELIOS_VERSION,
-            "scipy"           : SCIPY_VERSION,
-            "last_run_started": datetime_isoformat_msec(service_start_ts) if (service_start_ts != None) else None, # Start of the Run (YYYY:MM:DD HH:MM:SS:TTT)
-            "last_run_stopped": datetime_isoformat_msec(service_calc_ts ) if (service_calc_ts  != None) else None, # End   of the Run (YYYY:MM:DD HH:MM:SS:TTT)
-            "solver_message"  : error_message
+            "success"                 : False, 
+            "calc_code"               : RC_SERVICE_EXCEPTION, 
+            "calc_result"             : "Service Exception", 
+            "version"                 : HELIOS_VERSION,
+            "scipy"                   : SCIPY_VERSION,
+
+            "last_service_begin"      : datetime_isoformat_msec(service_begin_ts) if (service_begin_ts != None) else None, # Start of the Run (YYYY:MM:DD HH:MM:SS:TTT)
+            "last_calc_started"       : None, # Calculation did not complete
+            "last_calc_stopped"       : None, # Calculation did not complete
+            "last_service_computed"   : None, # Calculation did not complete
+            "last_service_end"        : None, # End   of the Service will be set at the end of the Service
+
+            "service_total_time_ms"   : None, # Service total run time will be set at the end of the Service
+            "service_compute_time_ms" : None, # Calculation did not complete (no compute   time available)
+            "calc_exec_time_ms"       : None, # Calculation did not complete (no execution time available)
+
+            "solver_exec_time_ms"     : None, # Calculation did not complete (no solver time available)
+            "solver_iterations"       : 0,    # Calculation did not complete (no solver iterations available)
+            "solver_message"          : error_message # Calculation did not complete (no solver message available, an error message will be returned instead)
         } 
   
     # SET Home Assistant STATE for the Helios Optimizer Energy Plan (with the payload in the attributes):
@@ -291,9 +305,12 @@ async def helios_optimizer_service(
     #   task.sleep(1)
     #   task.sleep(0.001)
         service_end_ts = datetime.now()
-        service_end_ms = round(1000*(service_end_ts - service_start_ts).total_seconds(), 1) # Performance of the calculation and the state.set:
+        service_end_ms = round(1000*(service_end_ts - service_begin_ts).total_seconds(), 1) # Performance of the calculation and the state.set:
         log.debug(f"[{HELIOS_SERVICE_NAME}]: Run Time (including state.set)={service_end_ms:.1f}ms")
         log.debug(f"[{HELIOS_SERVICE_NAME}]: Run Finished at {service_end_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} with result '{calc_result}'")
+
+        payload['last_service_end'     ] = datetime_isoformat_msec(service_end_ts) if (service_end_ts != None) else None # End of the Service Run (YYYY:MM:DD HH:MM:SS:TTT)
+        payload['service_total_time_ms'] = round(service_end_ms,1) # Add Total Service Execution Time including the Set Entity States to the payload
     
     # HANDLE SET STATE EXCEPTIONS:
     except Exception as e:

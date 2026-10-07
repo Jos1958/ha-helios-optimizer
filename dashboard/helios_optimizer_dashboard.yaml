@@ -95,9 +95,9 @@ views:
             show_entity_picture: true
             hide_state: false
             state_content:
-              - last_run_started
-              - service_calc_time_ms
-              - solver_execution_time_ms
+              - last_service_begin
+              - calc_exec_time_ms
+              - solver_exec_time_ms
             vertical: false
             features_position: bottom
           - type: tile

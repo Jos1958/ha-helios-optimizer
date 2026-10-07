@@ -69,8 +69,8 @@ except ImportError: # Mock Logger not found (hopefully we are running in Home As
 from helios_python.helios_common import * # Import the Pure Python Helios Common Functions    (used also by the Helios Main)
 from helios_python.helios_prices import * # Import the Pure Python Helios Energy Price Parser (used also by the Helios Main)
 
-HELIOS_VERSION      = "0.7.8s"  # Current Helios Version
-HELIOS_CALC_NAME    = "Helios Optimizer Calculate Plan"
+HELIOS_VERSION      = "0.9.0"   # Current Helios Version (HBC Read-Only Version)
+HELIOS_CALC_NAME    = "Helios Optimizer Calc Plan"
 MINUTES_PER_HOUR    = 60.0      # Conversion factor (float) from hours to minutes
 PERCENTAGE_FACTOR   = 100.0     # Conversion factor (float) from number to % (e.g. kWh to %)
 K_FACTOR            = 1000      # Conversion factor from kilowatt to watt (Watt is used for current values) or for SEC to MSEC
@@ -174,7 +174,7 @@ def helios_optimizer_calc_plan(
     A Python Calculate Energy Plan Function that uses SciPy Linear/MILP Programming.
     """
     start_ts, optimize_ts  = datetime.now(), None # Start of Service Execution (Current Date and Time)
-    t_current, t_start, phase_ms, run_ms = performance_count() # Initialize the performance Array and the Counter
+    t_current, t_start, phase_ms, total_ms = performance_count() # Initialize the performance Array and the Counter
 #   _LOGGER.info(f"{HELIOS_CALC_NAME} Started: Initial Performance Array='{PERFORMANCE_ARRAY_MS}'")
 
     try:
@@ -185,7 +185,7 @@ def helios_optimizer_calc_plan(
         # WARNING: Do not include variables that exist in the argument list in the initialization since the input value will be reset!
 #       test = -1 / 0 # Test an error in phase -1 (this exception will cause an additional exception when creating the payload since the variables below are not defined)
         res             = None  # Result variable for the (LP) optimization (no optimization has been performed yet) 
-        execution_time  = None  # Execution Time  for the (LP) optimization (no optimization has been performed yet) 
+        exec_time       = None  # Execution Time  for the (LP) optimization (no optimization has been performed yet) 
         total_fun_cost  = None  # Total Cost from the LP optimization (res.fun value)
         total_grid_cost = None  # Total Cost for all steps (sum of step costs) for the grid import and export only
         total_step_cost = None  # Total Cost for all steps (sum of step costs)
@@ -218,7 +218,7 @@ def helios_optimizer_calc_plan(
         # Initialize the (Output) Plan Arrays (used later in the Plan dictionary in the payload so init in case an exception occurs):
 #       import_prices, export_prices, house_energy_forecast, # input arrays (DO NOT initialize!)
         solar_energy_forecast = None # Input array but inside solar dictionary so needs to be initialized
-        timestamps , strategy_plan = [], [] # Timestamps array for the optimization steps (length of 0 indicates that no optimization has been performed)) and Strategy Plan array
+        timestamps , strategy_plan, hbc_sub_strat_plan = [], [], [] # Timestamps array for the optimization steps (length of 0 indicates that no optimization has been performed)) and Strategy Plan array
         house_for_plan, house_usg_plan, solar_for_plan, solar_prod_plan, grid_imp_plan, grid_exp_plan = [], [], [], [], [], []
         bat_charge_plan, bat_disch_plan, ev_plan, hp_plan, boil_plan = [], [], [], [], []
         soc_pct_plan, soc_kwh_plan, step_costs, grid_costs = [], [], [], []
@@ -264,7 +264,7 @@ def helios_optimizer_calc_plan(
         start_index = max(0, min(start_index, T)) # 0..T, for T all steps will be skipped
         remaining_steps = T - start_index # Determine how many steps are available in the optimization period (without the steps that are already in the past and are skipped)       
 
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, '0') # Phase 0 time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '0') # Phase 0 time in msec
 
         # ------------------------ PHASE ONE -------------------------------#
         # 1. CHECK INPUT ARRAYS and INPUT PARAMETERS:                       #
@@ -346,7 +346,7 @@ def helios_optimizer_calc_plan(
 
         if (insight >= INSIGHT_MAX):
             _LOGGER.debug(f"Resampled Totals: House={round(sum(house_energy_forecast), ROUND_ENERGY_KWH)}, Solar Forecast={round(sum(solar_energy_forecast), ROUND_ENERGY_KWH)}")
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, '1a-Res') # Phase 1a time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1a-Res') # Phase 1a time in msec
 
         # Validate the length of the input arrays (must be equal to the number of steps T)
         # Note: The input arrays can be shorter than T, for n days the input arrays can be multiplied with a maximum of n times (e.g. 24 items for 1 day, can become 48 steps for 2 days, etc)
@@ -358,7 +358,7 @@ def helios_optimizer_calc_plan(
 
         if (insight >= INSIGHT_MAX):
             _LOGGER.debug(f"Extended Totals: House={round(sum(house_energy_forecast), ROUND_ENERGY_KWH)}, Solar Forecast={round(sum(solar_energy_forecast), ROUND_ENERGY_KWH)}")
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, '1b-Ext') # Phase 1b time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1b-Ext') # Phase 1b time in msec
 
         if (solar_enabled):
             solar_mode     = solar.get("mode", "all").lower() if solar_enabled else "disabled" # Mode: all (default, no dimming or switch), modulating (dimming), binary (on/off)
@@ -412,7 +412,7 @@ def helios_optimizer_calc_plan(
         if boiler_enabled: # Boiler enabled?
             max_boil_power_kw = convert_float(boiler.get("max_power_kw", BOILER_FIXED), "boiler.max_power_kw", decimals=ROUND_POWER_KW)
 
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, '1c') # Phase 1c time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1c') # Phase 1c time in msec
 
         # ------------------------ PHASE TWO -------------------------------#
         # 2. BUILT DYNAMIC INDEX-MAP for optimization variables array       #
@@ -436,7 +436,7 @@ def helios_optimizer_calc_plan(
         M = len(active_vars) # Number of variable types
         total_vars = T * M # total number of variables (steps * variable types)
 
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, 2) # Phase 2 time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 2) # Phase 2 time in msec
 
         # Function to determine the index in the variable array
         # Input is the step index and the variable type
@@ -535,7 +535,7 @@ def helios_optimizer_calc_plan(
             # Create the bounds tuple-list for SciPy Linprog:
             bounds = list(zip(lower_bounds, upper_bounds)) # (upper_bound, lower_bound) tuple for each optimization variable
 
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, 3) # Phase 3 time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 3) # Phase 3 time in msec
 
         # ------------------------ PHASE FOUR ------------------------------#
         # 4. BALANCE RULES (A_eq, b_eq): Sum of Power variables is always zero
@@ -584,7 +584,7 @@ def helios_optimizer_calc_plan(
         A_eq = A_eq_factors.tolist()
         b_eq = b_eq_consts .tolist()
 
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, 4) # Phase 4 time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 4) # Phase 4 time in msec
 
         # ------------------------ PHASE FIVE ------------------------------#
         # 5. BATTERIJ SOC LIMITATIONS & BORDERLINE CASES (A_ub, b_ub)       #
@@ -677,7 +677,7 @@ def helios_optimizer_calc_plan(
             A_ub = A_ub_factors.tolist() # append all A battery factors in one step
             b_ub = b_ub_consts.tolist()  # append all b battery constants in one step  
 
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, 5) # Phase 5 time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 5) # Phase 5 time in msec
 
         # ------------------------ PHASE SIX -------------------------------#
         # 6. Call SCIPY with HiGHs SOLVER                                   #
@@ -709,9 +709,9 @@ def helios_optimizer_calc_plan(
 
         # Determine Step 6 (LP HiGHS run) performance:
 #       t_end = time.perf_counter() # End of LP run
-#       execution_time = round(K_FACTOR * (t_end - t_start), 2) # calculate execution time in milliseconds
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, '6-LP') # Phase 6 time in msec
-        execution_time = phase_ms # LP performance is also stored separately in the Payload
+#       exec_time = round(K_FACTOR * (t_end - t_start), 2) # calculate execution time in milliseconds
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '6-LP') # Phase 6 time in msec
+        exec_time = phase_ms # LP performance is also stored separately in the Payload
 
         # ---------------------- PHASE SEVEN -------------------------------#
         # 7. PROCESS OPTIMIZER RESULTS and DETERMINE STRATEGIES             #
@@ -733,7 +733,7 @@ def helios_optimizer_calc_plan(
         # Battery Energy Plan:
         # soc_kwh_plan          Calculate from soc_kwh_plan[t-1] + bat_charge_kw_arr[t] (bat_charge_kw) - bat_disch_kw_arr[t] (bat_disch_kw) (Starts with soc_start_kwh)
         # soc_pct_plan          Calculate from soc_kwh_plan[t] and capacity_kwh
-        # strategy_plan         Calculate based upon
+        # strategy_plan         Calculate based upon power values
 
 #       test = 7 / 0 # Test an error in phase 7
         if (res != None) and res.success: # Solution Found (not Infeasible)?
@@ -801,6 +801,7 @@ def helios_optimizer_calc_plan(
                 # Determine the (Battery) Strategy for the Step from the Power levels (for skipped steps strategy is 'Skipped')
                 if t < start_index: # Step in the Past?
                     strat = 'Skipped' # Step is in the Past: always use 'Skipped'
+                    hbc_sub_strat = "Skipped"
                 else: # Current or Future Step!
                     # Determine House Demand or Solar Surplus (only one of the two will have a value and the other is zero)
                     net_house_demand_kw  = max(0.0, house_usg_kw - sol_prod_kw) # House needs more than Sun is producing
@@ -833,6 +834,7 @@ def helios_optimizer_calc_plan(
                         hbc_sub_strat = 'Zero import'
 
                 strategy_plan.append(strat)
+                hbc_sub_strat_plan.append(hbc_sub_strat)
 
                 # Keep the results for the Active (Current) Step:
                 # This are mainly Power values in kW (TODO: convert already to W and round as preparation for Current Dictionary)
@@ -911,7 +913,7 @@ def helios_optimizer_calc_plan(
             total_step_cost = np.sum(net_step_cost_arr).item() # Individual step cost as calculated above (same factors as the optimizer uses)
             total_grid_cost = np.sum(net_grid_cost_arr).item() # Individual grid step cost as calculated above (without the battery costs, only import and export)
     
-        t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, 7) # Phase 7 time in msec
+        t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 7) # Phase 7 time in msec
 
         # ---------------------- PHASE EIGHT -------------------------------#
         # 8. VALIDATE the RESULTS and CALCULATE TOTALS:                     #
@@ -985,7 +987,7 @@ def helios_optimizer_calc_plan(
         _LOGGER.error(f"Full Exception Message for [{HELIOS_CALC_NAME}]:")
         _LOGGER.error(error_stack)        
     
-    t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, 8) # Phase 8 time in msec
+    t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 8) # Phase 8 time in msec
 
     # ---------------------- PHASE NINE --------------------------------#
     # 9. BUILT THE RESULTING PAYLOAD:                                   #
@@ -1074,11 +1076,18 @@ def helios_optimizer_calc_plan(
         "python_details"          : PYTHON_DETAILS if (insight >= INSIGHT_MAX) else None,
         "python_info"             : PYTHON_INFO    if (insight >= INSIGHT_MAX) else None,
         "scipy"                   : SCIPY_VERSION,
-        "last_run_started"        : datetime_isoformat_msec(start_ts) if (start_ts != None) else None, # Start of the Run (YYYY:MM:DD HH:MM:SS:TTT)
-        "last_run_stopped"        : datetime_isoformat_msec(stop_ts ) if (stop_ts  != None) else None, # End   of the Run (YYYY:MM:DD HH:MM:SS:TTT)
-        "service_calc_time_ms"    : None, # Service Calculation time is overwritten in the helios_optimizer_servic function (helios_services.py) 
 
-        "solver_execution_time_ms": execution_time  if (execution_time != None) else 0,
+        "last_service_begin"      : None, # Begin of the Service will be set by the Service itself
+        "last_calc_started"       : datetime_isoformat_msec(start_ts) if (start_ts != None) else None, # Start of the Calculation (YYYY:MM:DD HH:MM:SS:TTT)
+        "last_calc_stopped"       : datetime_isoformat_msec(stop_ts ) if (stop_ts  != None) else None, # End   of the Calculation (YYYY:MM:DD HH:MM:SS:TTT)
+        "last_service_computed"   : None, # Plan Computed        will be set by the Service itself
+        "last_service_end"        : None, # End of the Service   will be set by the Service itself
+
+        "service_total_time_ms"   : None, # Service     Total     time is set in the helios_optimizer_service function (helios_services.py), Total Service Time including Entity Update
+        "service_compute_time_ms" : None, # Service     Compute   time is set in the helios_optimizer_service function (helios_services.py), Total Service Time without   Entity Update
+        "calc_exec_time_ms"       : None, # Calculation Execution time (will be set at the end of the helios_optimizer calculate plan function)
+
+        "solver_exec_time_ms"     : exec_time  if (exec_time != None) else 0,
         "solver_iterations"       : res.nit     if (res != None) and (res.nit != None      ) else 0,
         "solver_message"          : res.message if (res != None) and (error_message is None) else error_message, # Use the solver message unless an error message is set 
 
@@ -1127,6 +1136,7 @@ def helios_optimizer_calc_plan(
             "solar_forecast_kw"   : solar_for_plan, 
             "solar_production_kw" : solar_prod_plan,
             "strategy"            : strategy_plan,
+            "hbc_sub_strat"       : hbc_sub_strat_plan,
             "soc_pct"             : soc_pct_plan,
             "soc_kwh"             : soc_kwh_plan,
             "grid_import_kw"      : grid_imp_plan,
@@ -1143,7 +1153,7 @@ def helios_optimizer_calc_plan(
         # Add the performance details for debugging purposes:
         full_payload["performance_ms"] = PERFORMANCE_ARRAY_MS
         
-    t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, 9) # Phase 9 time in msec
+    t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 9) # Phase 9 time in msec
 
     # ---------------------- PHASE TEN ---------------------------------#
     # 10. RETURN the RESULT with the FULL PAYLOAD:                      #
@@ -1151,19 +1161,20 @@ def helios_optimizer_calc_plan(
     # Depending on the success of the optimization log the result with different logging levels:
     if (res != None) and (error_message is None):
         if res.success:
-            _LOGGER.info(f"[{HELIOS_CALC_NAME}] Succeeded: {execution_time}ms (cost={round(res.fun,4)}, start_step={start_index + 1}, iterations={res.nit}).")        
+            _LOGGER.info(f"[{HELIOS_CALC_NAME}] Succeeded: {exec_time}ms (cost={round(res.fun,4)}, start_step={start_index + 1}, iterations={res.nit}).")        
         else:
             _LOGGER.warning(f"[{HELIOS_CALC_NAME}] Infeasible: {res.message}")
     else:
         _LOGGER.error(f"[{HELIOS_CALC_NAME}] Failed: {error_message}")
 
     # Determine the performance of the Last Phase and add the Total Run Time to the Performance Array aswell:
-    t_current, t_start, phase_ms, run_ms = performance_count(t_current, t_start, 10) # Phase 10 time in msec
-    PERFORMANCE_ARRAY_MS.append(f"CalcTotal={run_ms:.1f}") # Add the total time to the global performance array
+    t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 10) # Phase 10 time in msec
+    PERFORMANCE_ARRAY_MS.append(f"CalcTotal={total_ms:.1f}") # Add the total time to the global performance array
+    full_payload["calc_exec_time_ms"] = total_ms # Add the total execution time to the payload (for debugging purposes)]
 
     # Some detailed logging information (only applicable for debug log level):
     final_ts = datetime.now() # Stop Timestamp (stop_ts) has already been determined (and is saved in the payload) but some additional activity has been performed afterwards
-    _LOGGER.debug(f"Run Time based on Timestamp: {round(K_FACTOR * (final_ts - start_ts).total_seconds(), ROUND_TIME_MSEC):.1f}ms, Performance={run_ms:.1f}ms")
+    _LOGGER.debug(f"Run Time based on Timestamp: {round(K_FACTOR * (final_ts - start_ts).total_seconds(), ROUND_TIME_MSEC):.1f}ms, Performance={total_ms:.1f}ms")
     _LOGGER.debug(f"Phase Performance Array in ms:\n{PERFORMANCE_ARRAY_MS}") # Print performance array for all phases of the calculator and total run time in ms
 
     # Return Full Payload to the Service Trace

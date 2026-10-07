@@ -691,7 +691,7 @@ def raw_csv_writer(path: str, row_list: list[dict], headers: list = None, row_ke
                 with raw_open_file_for_replace(path, newline=newline, encoding=encoding) as f: # Open for replace ("w")
                     writer = csv.DictWriter(f, fieldnames=headers, delimiter=column_delimiter, extrasaction=extrasaction) # Create the Dictionary Writer for the file with the field names
     
-                    if (headers != None):
+                    if (headers != None) and (len(headers) > 0):
                         writer.writeheader() # Write the header based upon the fieldnames
                         row_count += 1
     
