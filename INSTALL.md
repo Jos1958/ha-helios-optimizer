@@ -23,7 +23,7 @@
   - Create the folders (with a **!**) when they do not exist: packages, pyscript, helios_python (sub-folder), export and www
   - Remark: The Dashboard and Automation files are only templates for your HA dashboard and automation and do not need to be copied!
 
-  - File Structure on GitHub
+  - File Structure on GitHub:
 
 ```
   - [HomeAssistant]                     - Already exist for your HA installation (sometimes called: [config]):
@@ -118,7 +118,21 @@
 
 - Reboot you Home Assistant after these changes  
 - Check the Helios Optimizer Dashboard (within 10s after restart the automation should run)
-- Rerun the automation using the green button ("Start Helios Optimizer Task"), the button should turn yellow while running
+- Adapt the Optimization Parameters and the Battery Parameters to your needs
+  - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
+    <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
+    <br>Use only a specifiy start step for simulation/test runs!
+  - House Daily Usage (e.g. 10.0 kWh) 
+  - House Daily Usage Distribution (e.g. [ 1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8, 3, 1])
+  - Max Grid Import and Export: 9.0 kWh (2x)
+  - Battery Enabled: On (or Off when you do not have a battery)
+  - Battery SOC Target: 40%-50% (to be left for the rest of the night)
+  - Battery SOC Min and Max (e.g. 10% and 90%, depending on your battery requirements)
+  - Battery Charge and Discharge Limit (e.g. 1.2kWh, total limit, depending on your battery configuration)
+  - Battery Charge and Discharge Efficiency (2x 0.9 for a RTE of 81%)
+- Rerun the automation using the green button ("Start Helios Optimizer Task")
+- The button will turn yellow (at least 1 sec) while the Helios Optimizer is running
+- Check out the results in the Results Overview, 
 ![Helios Optimizer Dashboard](images/HeliosDashboard.jpeg)
 
   
