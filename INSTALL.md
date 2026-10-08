@@ -132,7 +132,8 @@
   - Battery Charge and Discharge Efficiency (2x 0.9 for a RTE of 81%)
 - Rerun the automation using the green button ("Start Helios Optimizer Task")
 - The button will turn yellow (at least 1 sec) while the Helios Optimizer is running
-- Check out the results in the Results Overview, 
+- Check out the results in the Results Overview and the Optimized Energy Plan (as a Graph and as a Table)
+- The Current Values (for the Active Step) can be found in the 'Actuals' section
 ![Helios Optimizer Dashboard](images/HeliosDashboard.jpeg)
 
   
