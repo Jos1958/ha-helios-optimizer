@@ -34,7 +34,7 @@
   V       helios_services.py            - Helios Services file which defines the Helios Services for HA using PyScript
   !       [helios_python]
   V          helios_optimizer.py        - Optimizer with the Calculation of the Energy Plan (Pure Python functions)
-  V          helios_common.py           - Common Python functions
+  V          helios_common.py           - Common Python functions for Helios Optimizer
   V          helios_prices.py           - Energy Price Parser Class (for HBC Price and Provider Price Data)
   -    [custom_components]              - Probably already exist for other Custom Components
   -       [helios_optimizer]            - This is for the future version as a Custom Component (not needed yet)
@@ -118,21 +118,25 @@
 
 - Reboot you Home Assistant after these changes  
 - Check the Helios Optimizer Dashboard (within 10s after restart the automation should run)
+- Make sure that you select a <b>Dynamic Strategy in HBC</b> since that will generate Price Data used by the Helios Optimizer
 - Adapt the Optimization Parameters and the Battery Parameters to your needs
   - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
     <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
     <br>Use only a specifiy start step for simulation/test runs!
   - House Daily Usage (e.g. 10.0 kWh) 
   - House Daily Usage Distribution (e.g. [ 1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8, 3, 1])
-  - Max Grid Import and Export: 9.0 kWh (2x)
+  - Max Grid Import and Export: 11.0 kWh (2x)
   - Battery Enabled: On (or Off when you do not have a battery)
-  - Battery SOC Target: 40%-50% (to be left for the rest of the night)
+  - Battery SOC Target: 40%-50% (to be left for the rest of the night at the end of the optimization period, usually end of the day tomorrow)
   - Battery SOC Min and Max (e.g. 10% and 90%, depending on your battery requirements)
   - Battery Charge and Discharge Limit (e.g. 1.2kWh, total limit, depending on your battery configuration)
   - Battery Charge and Discharge Efficiency (2x 0.9 for a RTE of 81%)
 - Rerun the automation using the green button ("Start Helios Optimizer Task")
 - The button will turn yellow (at least 1 sec) while the Helios Optimizer is running
 - Check out the results in the Results Overview and the Optimized Energy Plan (as a Graph and as a Table)
+  <br>Especially check the 'Result' and the 'Solver Status' boxes on the Results Overview!
+  <br>The 'Solver Status' will display an error/exception message if the Optimizer failed.
+  <br>Refresh the browser page (Ctrl-F5) if the graph is not yet displayed.
 - The Current Values (for the Active Step) can be found in the 'Actuals' section
 ![Helios Optimizer Dashboard](images/HeliosDashboard.jpeg)
 

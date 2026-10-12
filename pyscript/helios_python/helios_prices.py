@@ -422,7 +422,10 @@ class HeliosEnergyPriceParser:
         ]
 
         if (len(bucket_prices) <= 0): # No Price Records found?
-            error_message = f"Source Price List is Empty or All Records are Invalid (see Warnings)!"
+            if len(source_price_list) <= 0: # No Price Records in the Source Price List?
+                error_message = f"Source Price List {self.data_path} is Empty!"
+            else: # No Price Records found after Grouping by Step (all records were invalid)
+                error_message = f"No Valid Price Records found after Grouping by Step (see Warnings for Invalid Records)!"
             if self.raise_error:
                 raise ValueError(error_message)
 

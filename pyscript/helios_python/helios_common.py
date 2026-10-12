@@ -89,6 +89,25 @@ INSIGHT_PLAN        = 8         # Plan Arrays are created (from the Solver Varia
 INSIGHT_MAX         = 9         # Maximum Insight Level (All debug info is created)
 INSIGHT_OPTIONS     =[INSIGHT_OFF, INSIGHT_MIN, INSIGHT_LOW, INSIGHT_SUM, INSIGHT_PLAN, INSIGHT_MAX]
 
+# Abnormal State Internal Values (applicable to Battery States and House Power Surplus State, copied from _batmgt_config.py):
+INITIAL_STATE   = "Initial"     # Initial version of a state at load of the pyscript or before retrieval from Home Assistant
+UNKNOWN_STATE   = "Unknown"     # Unknown state  (Used when the SOC of a battery or the House Power Surplus are temporary not available)
+UNAVAIL_STATE   = "Unavailable" # Unavailable state (Serious problem with getting access)
+FAILED_STATE    = "Failed"      # Failed state   (Used when an exception occurs while calculating the state)
+NOT_FOUND_STATE = "NotFound"    # Not Found      (Set at the start of the calculation/lookup, indicates that no valid state has been found)
+NONAME_STATE    = "NoStateName" # No Name        (Set when a state is retrieved for a state name of None, only allowed for optional states/results)
+
+# Home Assistant Entity values (copied from _batmgt_config.py):
+HA_ON        = "on"             # Home Assistant switch value for On
+HA_OFF       = "off"            # Home Assistant switch value for Off
+HA_UNK       = "Unk"            # Home Assistant switch value not yet retrieved
+HA_UNKNOWN   = "unknown"        # Home Assistant Stae is temporary not known (e.g. at startup), processing can continue because the value may come available later
+HA_UNAVAIL   = "unavailable"    # Home Assistant State is unavailable due to a connection error with the device or other more serious problem, perhaps better stop processing
+HA_UN_LIST   = [HA_UNKNOWN, HA_UNAVAIL] # Home Assistant List of Undefined States (unknown or unavailable)
+HA_FRNAME    = "friendly_name"  # Home Assistant attribute name for Friendly (Alternative) Name of a state 
+HA_TS_FORMAT = "%Y-%m-%d %H:%M:%S" # Format for timestamp attributes in Home Assistant
+MAX_DELAY_VALUE = 99999         # Prevent overflow of timestamp delta's by replacing it by this value for delta's since fromtimestamp(0)
+
 PERMISSION_WARNING = "WARNING: The file may be IN USE by another application! Close this OTHER Application and Restart this process!"
 
 # -------------------------------------------------------------------
@@ -154,6 +173,12 @@ def get_single_char() -> str:
         finally:
             termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
         return char
+
+# Parse the version number string into a tuple of integers for correct numerical comparison (e.g., '1.2.13' becomes (1, 2, 13)).
+def parse_version(version_str: str) -> tuple[int, ...]:
+    """Convert the version from '1.2.13' to (1, 2, 13) for correct numerical comparison."""
+    clean_str = version_str.lstrip("vV").strip()
+    return tuple(map(int, clean_str.split(".")))
 
 def performance_count(t_prev: float = None, t_begin: float = None, phase: any = '?') -> tuple[float, int, int]: 
     t_next = time.perf_counter() # Retrieve (next) performance counter
@@ -626,7 +651,7 @@ def convert_dictoflists_to_listofdicts(data_dict: dict[list], column_delimiter =
 
 #################################################################################################
 #### WARNING: Following File Functions cannot be executed in the main loop in Home Assistant ####
-#### WARNING: Use the Async version in Helios Services instead                               ####
+####          Use the Async version in Helios Services instead                               ####
 ####          The Async version will call the related raw versions as defined below          ####
 #################################################################################################
 

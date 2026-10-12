@@ -1,6 +1,16 @@
 # HA Helios Optimizer - Release Notes
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
+## 0.9.1 (2026-10-12) First Public Version
+- Initializes Helios Optimizer Input Entities depending on the previous helios release version
+- For some initial values of Input Entities HBC values are used (sell/charge target, max discharge/charge power)
+- Update Files: 
+  - All pyscript files    (initialize input entities, state functions added)
+  - helios_dashboard.yaml (updates on graph and table, shorter text since info now available in the documentation)
+  - helios_optimizer.yaml (small typos and descriptions)
+  - Several documentation files (*.md), Use the links on the dashboard to access the DOC.md !
+- Reboot after installation of the pyscript files since pure python files are not refreshed automatically
+
 ## 0.9.0 (2026-10-07) First Public Version (PyScript and Python)
 - First public version 
 - Support for reading input parameters from HBC

@@ -50,8 +50,7 @@ views:
             heading_style: subtitle
             tap_action:
               action: url
-              url_path: >-
-                https://jos1958.github.io/ha-helios-optimizer/DOC#results-overview
+              url_path: https://jos1958.github.io/ha-helios-optimizer/DOC#results-overview
           - type: tile
             entity: input_number.helios_optimizer_energy_plan
             name: Result
@@ -214,10 +213,10 @@ views:
 
               <i>The <b>Helios Optimizer Service</b> will typically run every
               <b>quarter</b> of an hour and can be <b>manually</b> started with
-              the <b>Start Helios</b> button.<br>
+              the <b>Start Helios</b> button.
 
-              <b>Remark:</b> See the link above for detailed documentation of
-              the Optimizer and Input Parameters and Output Results.
+              <b>Remark:</b> See the link above for detailed Helios Optimizer
+              Documentation.
 
               </i></font>
             grid_options:
@@ -271,20 +270,13 @@ views:
               rows: auto
             tap_action:
               action: url
-              url_path: >-
-                https://jos1958.github.io/ha-helios-optimizer/DOC#optimization-parameters
+              url_path: https://jos1958.github.io/ha-helios-optimizer/DOC#optimization-parameters
           - type: markdown
             content: >-
               <font color="grey"><i>The <b>settings</b> below tune how the
-              Helios Optimizer runs. Use <b>Steps 48</b> and <b>Step Size 60</b>
-              minutes for a typical run with a horizon of <b>2 days</b>. 
-
-
-              <b>Important Remark</b>: Use an <b>automatic</b> start step
-              (<b>zero</b>). Only use a specific start step for
-              <b>Simulation</b> runs!
-
-              </i></font>
+              Helios Optimizer runs. Use <b>Steps 48</b> and <b>Step Size
+              60min</b> and <u>automatic</u> <b>Start Step 0</b> for a typical
+              run with a horizon of <b>2 days</b>.
           - type: entities
             entities:
               - entity: input_number.helios_optimizer_steps
@@ -320,8 +312,7 @@ views:
               rows: auto
             tap_action:
               action: url
-              url_path: >-
-                https://jos1958.github.io/ha-helios-optimizer/DOC#battery-parameters
+              url_path: https://jos1958.github.io/ha-helios-optimizer/DOC#battery-parameters
           - type: markdown
             content: >-
               <font color="grey"><i>The <b>settings</b> below tune how the
@@ -361,8 +352,7 @@ views:
             heading: Derived Parameters
             tap_action:
               action: url
-              url_path: >-
-                https://jos1958.github.io/ha-helios-optimizer/DOC#derived-parameters
+              url_path: https://jos1958.github.io/ha-helios-optimizer/DOC#derived-parameters
           - type: markdown
             content: >-
               <font color="grey"><i>The read-only <b>settings</b> below are
@@ -440,9 +430,9 @@ views:
               rows: auto
           - type: markdown
             content: >-
-              <font color="grey"><i>These parameters are retrieved from HBC but
-              are not always available and are already compensated for min and
-              max SOC values.</i></font>
+              <font color="grey"><i>These parameters are retrieved from
+              <b>HBC</b> but are not always available and are already
+              compensated for min and max SOC values.</i></font>
           - type: entities
             entities:
               - entity: input_number.house_battery_count
@@ -553,6 +543,7 @@ views:
               - entity: input_number.helios_optimizer_energy_plan
                 name: Battery SoC
                 yaxis_id: soc
+                unit: '%'
                 show:
                   legend_value: false
                 color: '#00E396'
@@ -566,6 +557,7 @@ views:
               - entity: input_number.helios_optimizer_energy_plan
                 name: Battery (Discharge-Charge)
                 yaxis_id: power
+                unit: kW
                 show:
                   legend_value: false
                 color: '#000FFB'
@@ -583,6 +575,7 @@ views:
               - entity: input_number.helios_optimizer_energy_plan
                 name: Solar Forecast
                 yaxis_id: power
+                unit: kW
                 show:
                   legend_value: false
                 color: '#FEB099'
@@ -597,6 +590,7 @@ views:
               - entity: input_number.helios_optimizer_energy_plan
                 name: Solar Production
                 yaxis_id: power
+                unit: kW
                 show:
                   legend_value: false
                 color: '#FEB019'
@@ -611,6 +605,7 @@ views:
               - entity: input_number.helios_optimizer_energy_plan
                 name: House Usage
                 yaxis_id: power
+                unit: kW
                 show:
                   legend_value: false
                 color: '#FF4560'
@@ -624,6 +619,7 @@ views:
               - entity: input_number.helios_optimizer_energy_plan
                 name: Grid (Import-Export)
                 yaxis_id: power
+                unit: kW
                 show:
                   legend_value: false
                 color: '#008FFB'
@@ -641,6 +637,7 @@ views:
               - entity: input_number.helios_optimizer_energy_plan
                 name: EV Charging
                 yaxis_id: power
+                unit: kW
                 show:
                   legend_value: false
                 color: '#775DD0'
@@ -705,6 +702,7 @@ views:
                 | Component | State | Power |
                 | :--- | :---: | :---: |
                 | ?? **Battery Strategy**  | **{{ c.battery_strategy }}**                                         | {{ c.grid_power_w        }} W |
+                | ?? **HBC Sub Strategy**  | **{{ c.hbc_sub_strategy }}**                                         | {{ c.battery_net_power_w }} W |
                 | ?? **Net Battery Power** | {{ '?? Discharge' if c.battery_net_power_w < 0 else ('?? Charge' if c.battery_net_power_w > 0 else '? Standby') }} | {{ c.battery_net_power_w }} W |
                 | ?? **Battery Power**     |                                                                      | {{ c.battery_power_w     }} W |
                 | ? **Charge Power**      | {{ '?? Active'   if c.battery_charge_w     > 0 else '? Standby' }} | {{ c.battery_charge_w    }} W |
@@ -761,13 +759,13 @@ views:
             content: >
               {%- set hdr1 = "| Time | Import (€) | Export (€) | FunCost (€) |
               House-For (kW) | House-Usg (kW) | Sun-For (kW) | Sun-Prod (kW) |
-              Strategy | SoC (%) | SoC (kWh) | Grid-Net (kW) | Discharge (kW) |
-              Charge (kW) |" -%}
+              Strategy | HBC Sub Strat | SoC (%) | SoC (kWh) | Grid-Net (kW) |
+              Discharge (kW) | Charge (kW) |" -%}
 
-              {%- set hdr2 = "| :--- |   ---: |   ---: | ---:    |  
+              {%- set hdr2 = "| :--- |   ---:     |   ---:     | ---:        |  
               :---:        |   :---:        |  :---:       |  :---:        |
-              :---:    | :---:   | :---:     | :---:    | :---:          |
-              :---:       |" -%}
+              :---:    | :---:         | :---:   | :---:     | :---:         |
+              :---:          | :---:       |" -%}
 
               {%- set p =
               state_attr('input_number.helios_optimizer_energy_plan', 'plan')
@@ -793,6 +791,8 @@ views:
                   {%- set soc_pct      = "%4.1f"  | format(p.soc_pct[i]) -%}
                   {%- set soc_kwh      = "%5.2f"  | format(p.soc_kwh[i]) -%}
                   {%- set grid_net_kw  = "%5.2f"  | format(p.grid_import_kw[i] - p.grid_export_kw[i]) -%}
+                  {%- set helios_strat = p.strategy[i] -%}
+                  {%- set hbc_sub_strat= p.hbc_sub_strat[i] -%}
 
                   {%- set discharge_kw = "%5.2f"  | format(p.battery_discharge_kw[i] if p.battery_discharge_kw != None else 0) -%}
                   {%- set charge_kw    = "%5.2f"  | format(p.battery_charge_kw[i] if p.battery_charge_kw != None else 0) -%}
@@ -808,7 +808,8 @@ views:
                   {%- set row = row ~ "|" ~ house_usg_kw -%} 
                   {%- set row = row ~ "|" ~ sol_for_kw -%}
                   {%- set row = row ~ "|" ~ sol_prod_kw -%}
-                  {%- set row = row ~ "|" ~ p.strategy[i] -%}
+                  {%- set row = row ~ "|" ~ helios_strat -%}
+                  {%- set row = row ~ "|" ~ hbc_sub_strat -%}
                   {%- set row = row ~ "|" ~ soc_pct  ~ "|" ~  soc_kwh ~ "|" ~ grid_net_kw -%}
                   {%  set row = row ~ "|" ~ discharge_kw ~ "|" ~ charge_kw -%}
                   {%- set row = row ~ "|" ~ (ev_kw if p.ev_charge_kw != None else "n/a") -%}

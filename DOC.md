@@ -82,6 +82,10 @@ and can be <b>manually</b> started with the green <b>Start Helios</b> button.<br
 - **Steps:** Optimization Steps (24-192)
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
   <br>Remark: Advised Optimization Period is 2 Days (48 steps of 60 minutes or 192 steps of 15 minutes)
+- **Start Step:** Start the Optimization in the specified step (0..Steps). 
+  <br><b>Important:</b> Typically use a value of <b>Zero</b> (0) since the Optimization will determine the start step <b>automatically</b> based on the current time!
+  <br>All steps before the Start Step are <b>Skipped</b> so starting at the current time is the most logical step to start the optimization.
+  <br>Other Start Step values are only to be used for (Regression) Testing or Simulation Runs of the Optimizer!
 - **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
   <br>In the future the House Energy Usage will be retrieved from history data but at the moment you need to make an estimate for the average energy usage in the house. 
   <br>Large energy users (EV, WP and Boiler) will be optimized separately in the future and will have to be excluded from the house usage but for now you may want to **include** them in the house usage. 
@@ -146,6 +150,8 @@ This is the most important output of the Helios Optimizer and represents for a t
 (or for the sum of all batteries) and the Power values for the Battery (Discharge-Charge,) Solar Forecast and Production, House Usage and Grid (Import-Export).
 Positive power values indicate that power is made available to the House (Battery Discharged, Solar Production or Imported) and negative values indicate that power is
 used (Used in the House, Battery Charged or Exported).
+<br>
+Warning: Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
 <br><br>
 
 ### Optimization State

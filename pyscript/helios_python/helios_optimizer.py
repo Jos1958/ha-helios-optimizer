@@ -38,6 +38,8 @@
 #   2026-09-18: JR  v0.78r Added HBC Price Array and Provider Price Arrays as Input Price Array (Import and Export Price Arrays are derived from the Input Array)
 #   2026-09-18: JR  v0.79r Added a now_ts to the arguments with Naive (without timezone) (HA) Current Time, rename optimize_ts to optimize_ts_str
 #   2026-10-01: JR  v0.79s Added Source Price Data parsing to determine the Import and Export Price Arrays (using the Helios Energy Price Parser), added source_type and original_provider to the arguments
+#   2026-10-07: JR  v0.90  First Public Release (Read-only for HBC), Support for HBC Price Data, Updates Helios Optimizer Entities for HBC (Sub-Strategy and Net Power) but has no Helios Strategy yet in HBC
+#   2026-10-12: JR  v0.91  Initializes Helios Optimizer Input Entities depending on the previous helios release version, For some initial values of Input Entities HBC values are used (sell/charge target, max discharge/charge power)
 #
 #   Remark: For the full helios history see helios_main.py
 #   
@@ -69,35 +71,52 @@ except ImportError: # Mock Logger not found (hopefully we are running in Home As
 from helios_python.helios_common import * # Import the Pure Python Helios Common Functions    (used also by the Helios Main)
 from helios_python.helios_prices import * # Import the Pure Python Helios Energy Price Parser (used also by the Helios Main)
 
-HELIOS_VERSION      = "0.9.0"   # Current Helios Version (HBC Read-Only Version)
+HELIOS_VERSION      = "0.9.1"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
 HELIOS_CALC_NAME    = "Helios Optimizer Calc Plan"
 MINUTES_PER_HOUR    = 60.0      # Conversion factor (float) from hours to minutes
 PERCENTAGE_FACTOR   = 100.0     # Conversion factor (float) from number to % (e.g. kWh to %)
 K_FACTOR            = 1000      # Conversion factor from kilowatt to watt (Watt is used for current values) or for SEC to MSEC
-STEPS               = 24        # Default Number of Steps (24 steps of 60 minutes is one day)
+STEPS               = 48        # Default Number of Steps (48 steps of 60 minutes is two days)
 STEP_SIZE           = 60        # Default Step Size (60 minutes)
+STEP_ZERO           = 0         # Default Start Step (0=Automatic start step at current time)
 PRICE_FACTOR        = 1.0       # Default Price Factor (1.0 = price is in euro per kWh, 0.001 = price is in euro per Wh, 0.01 = price is in cent per kWh) 
 MAX_TIME            = 10.0      # Default Maximum Solver Time (seconds) 
 MAX_ITER            = 10000     # Default Maximum Solver Iterations
-MAX_GRID            = 11.0      # Default Maximum Grid Import/Export Capacity (kW)
-BAT_EFF             = 0.95      # Default Charge and Discharge Efficiency Factor (Overall or Round Trip Efficiency (RTE) is bat_charge_eff * bat_disch_eff)
-BAT_CAP             = 10.0      # Default Battery Capacity (kWh)
-SOC_MIN             = 10.0      # Default Battery Minimum SoC (%)  
-SOC_MAX             = 90.0      # Default Battery Maximum SoC (%)  
-SOC_START           = 50.0      # Default Battery Start SoC (%)   - Current SoC  at the Start of the optimization 
-#SOC_TARGET         = 40.0      # Default Battery Min End Target SoC (%) - Minimum Required SoC at the End of the optimization (not applicable since the SOC Minimum will be used as default)
-MAX_CHARGE          = 1.2       # Default Battery Max Charge Power (kW)
-MAX_DISCHARGE       = 0.8       # Default Battery Max Discharge Power (kW)
-CHARGE_COST         = 0.00      # Default Battery Charge cost    per kWh in euro
-DISCHARGE_COST      = 0.01      # Default Battert Discharge cost per kWh in euro (minimum of 0.01 required otherwise charging and discharging can happen together)
+
 IMPORT_PRICE_FIXED  = 0.20      # Default Import Price when no import_prices or import_fixed is provided
 EXPORT_PRICE_FIXED  = 0.05      # Default Export Price when no import_prices or import_fixed is provided
+
+MAX_GRID            = 11.0      # Default Maximum Grid Import/Export Capacity (kW)
 HOUSE_POWER_FIXED   = 0.5       # Default House Usage (kW) Power when no house_energy_forecast or house_power_fixed is provided, 0.5 kW is 500 Watt constant usage is 12 kWh per day
 HOUSE_DAY           = 10.0      # Default House Usage for a Day (kWh) when a house_spread_hours is provide
+HOUSE_DISTR         = '[ 1, 1, 1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 6, 3, 3, 1]' # Default House Distribution
+
+BAT_ON              = True      # Default Battery Enabled
+BAT_CAP             = 10.0      # Default Battery Capacity (kWh)
+SOC_TARGET          = 45.0      # Default Battery State of Charge (SOC) % Target - Minimum Required SoC at the End of the optimization (when not specified the SOC_MIN will be used)
+SOC_MIN             = 10.0      # Default Battery State of Charge (SOC) % Minimum
+SOC_MAX             = 90.0      # Default Battery State of Charge (SOC) % Maximum
+SOC_START           = 50.0      # Default Battery Start SoC (%) - Typically equal to the Current SoC at the Start of the optimization 
+MAX_CHARGE          = 1.2       # Default Battery Max Charge Power    (kW) (1.2kW = 1200W)
+MAX_DISCH           = 0.8       # Default Battery Max Discharge Power (kW) (0.8kW =  800W)
+BAT_EFF             = 0.90      # Default Charge and Discharge Efficiency Factor (Overall or Round Trip Efficiency (RTE) is bat_charge_eff * bat_disch_eff, e.g. RTE= 0.81 = 0.9 x 0.9)
+CHARGE_COST         = 0.00      # Default Battery Charge cost    per kWh in euro
+DISCH_COST          = 0.01      # Default Battert Discharge cost per kWh in euro (minimum of 0.01 required otherwise charging and discharging can happen together)
+
+SOLAR_ON            = True      # Default Solar Enabled 
 SOLAR_ZERO          = 0.0       # Default Solar Forecast (kW) Power when no solar_energy_forecast is provided (solar forecast is zero, a fixed solar forecast makes no sense)
+SOLAR_ALL        = 'all'        # Solar Mode where Solar Production is equal to the Full (Solar Forecast)
+SOLAR_MOD        = 'modulating' # Solar Mode where Solar Production is Dimmed between Zero (0) and Full (Solar Forecast)
+SOLAR_BIN        = 'binary'     # Solar Mode where Solar Production is Binary: Zero (0) or Full (Solar Forecast)
+SOLAR_DIS        = 'disabled'   # Solar Mode where Solar Production is Zero (0)
+SOLAR_MODE          = SOLAR_ALL # Default Solar Mode is Solar Production is All (Full and equal to Solar Forecast)
+
+EV_OFF              = False     # Default Electrical Vehicle Disabled
+HP_OFF              = False     # Default Heatpump Disabled
+BOIL_OFF            = False     # Default Boiler Disabled
 EV_FIXED            = 7.4       # Default Electric Vehicle (EV) Charge Power (kW) when no ev.charge_power is provided
 HP_FIXED            = 2.0       # Default Heat Pump (HP) Max Power (kW) when no heat_pump.max_power is provided 
-BOILER_FIXED        = 1.5       # Default Boiler Max Power (kW) when no boiler.max_power is provided
+BOIL_FIXED          = 1.5       # Default Boiler Max Power (kW) when no boiler.max_power is provided
 ROUND_PRICES_EURO   = 5         # Round float values for input prices 
 ROUND_POWER_KW      = 3         # Round float values for power kW variables in the plan at 3 decimals 
 ROUND_POWER_W       = 0         # Round float values for power W  variables in the plan at 0 decimals 
@@ -119,7 +138,7 @@ MAX_DELTA_BALANCE   = 0.02      # Allow a difference in sum of balance variables
 def helios_optimizer_calc_plan( 
     steps=STEPS,                 # 24 steps for 60 minutes is one day,  48 steps is two days
     step_size=STEP_SIZE,         # 96 steps for 15 minutes is one day, 192 steps is two days
-    start_step=0,                # 0 = Determine start step automatically using current time
+    start_step=STEP_ZERO,        # 0 = Determine start step automatically using current time
 
     price_size=None,             # None=price_size is equal to step_size (Default), resample price          arrays from price_size to step_size when not none and different
     house_size=None,             # None=house_size is equal to step_size (Default), resample house forecast arrays from house_size to step_size when not none and different
@@ -270,11 +289,11 @@ def helios_optimizer_calc_plan(
         # 1. CHECK INPUT ARRAYS and INPUT PARAMETERS:                       #
         # ------------------------------------------------------------------#
 #       test = 1 / 0 # Test an error in phase 1
-        solar_enabled  = bool(solar     and solar.get    ("enabled", True ))
-        bat_enabled    = bool(battery   and battery.get  ("enabled", True ))
-        ev_enabled     = bool(ev        and ev.get       ("enabled", False))
-        hp_enabled     = bool(heat_pump and heat_pump.get("enabled", False))
-        boiler_enabled = bool(boiler    and boiler.get   ("enabled", False))
+        solar_enabled  = bool(solar     and solar.get    ("enabled", SOLAR_ON)) # Default Enabled
+        bat_enabled    = bool(battery   and battery.get  ("enabled", BAT_ON  )) # Default Enabled
+        ev_enabled     = bool(ev        and ev.get       ("enabled", EV_OFF  )) # Default Disabled
+        hp_enabled     = bool(heat_pump and heat_pump.get("enabled", HP_OFF  )) # Default Disabled
+        boiler_enabled = bool(boiler    and boiler.get   ("enabled", BOIL_OFF)) # Default Disabled
 
         # Determine the expected steps sizes for the input arrays (per type) and the related expected length of the input arrays (per type):
         if price_size is None: price_size = step_size
@@ -361,8 +380,8 @@ def helios_optimizer_calc_plan(
         t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1b-Ext') # Phase 1b time in msec
 
         if (solar_enabled):
-            solar_mode     = solar.get("mode", "all").lower() if solar_enabled else "disabled" # Mode: all (default, no dimming or switch), modulating (dimming), binary (on/off)
-            solar_mode     = solar_mode if (solar_mode in ['all','modulating','binary']) else 'all' if solar_enabled else 'disabled' # prevent invalid solar modes
+            solar_mode     = solar.get("mode", SOLAR_ALL).lower() if solar_enabled else "disabled" # Mode: all (default, no dimming or switch), modulating (dimming), binary (on/off)
+            solar_mode     = solar_mode if (solar_mode in [SOLAR_ALL,SOLAR_MOD, SOLAR_BIN]) else SOLAR_ALL if solar_enabled else SOLAR_DIS # prevent invalid solar modes
         
         # JR2026-09-11: Conversion from Solar and House Energy Forecasts to Power Forecasts,
         # This requires a conversion from Energy (kWh) to Power (kW) by multiplying with steps per hour (Power = steps_per_hour * Energy or Power = Energy / delta_time):
@@ -391,26 +410,26 @@ def helios_optimizer_calc_plan(
             soc_max_kwh = (soc_max_pct / PERCENTAGE_FACTOR) * capacity_kwh
 
             # Get the Maximum Battery Charge and Discharge Power:
-            max_bat_charge_kw = convert_float(battery.get("max_charge_power_kw"   , MAX_CHARGE   ), "battery.max_charge_power_kw"   , decimals=ROUND_ENERGY_KWH2)
-            max_bat_disch_kw  = convert_float(battery.get("max_discharge_power_kw", MAX_DISCHARGE), "battery.max_discharge_power_kw", decimals=ROUND_ENERGY_KWH2)
+            max_bat_charge_kw = convert_float(battery.get("max_charge_power_kw"   , MAX_CHARGE), "battery.max_charge_power_kw"   , decimals=ROUND_ENERGY_KWH2)
+            max_bat_disch_kw  = convert_float(battery.get("max_discharge_power_kw", MAX_DISCH ), "battery.max_discharge_power_kw", decimals=ROUND_ENERGY_KWH2)
 
             # Get the Battery Soc Target value in % and Determine kWh:
             soc_target_pct  = convert_float(battery.get("soc_target_pct", soc_min_pct), "battery.soc_target_pct", ROUND_ENERGY_PCT) # Use the SOC Min when no SOC Target (Min) is specified
             soc_target_kwh = (soc_target_pct / PERCENTAGE_FACTOR) * capacity_kwh # Requested Minium SOC Target at the end of the optimization period
 
             # Get the Battery Charge and Discharge Cost:
-            charge_cost    = convert_float(battery.get("charge_cost"   , CHARGE_COST   ), "battery.charge_cost"   , decimals=ROUND_PRICES_EURO)
-            discharge_cost = convert_float(battery.get("discharge_cost", DISCHARGE_COST), "battery.discharge_cost", decimals=ROUND_PRICES_EURO)
+            charge_cost    = convert_float(battery.get("charge_cost"   , CHARGE_COST), "battery.charge_cost"   , decimals=ROUND_PRICES_EURO)
+            discharge_cost = convert_float(battery.get("discharge_cost", DISCH_COST ), "battery.discharge_cost", decimals=ROUND_PRICES_EURO)
         
         # Optional Smart Deferrable Devices:
         if ev_enabled: # Electrical Vehicle enabled?
-            max_ev_power_kw   = convert_float(ev    .get("max_power_kw", EV_FIXED    ), "ev.max_power_kw"    , decimals=ROUND_POWER_KW)
+            max_ev_power_kw   = convert_float(ev    .get("max_power_kw", EV_FIXED  ), "ev.max_power_kw"    , decimals=ROUND_POWER_KW)
 
         if hp_enabled: # Heat Pump enabled?
-            max_hp_power_kw   = convert_float(hp    .get("max_power_kw", HP_FIXED    ), "hp.max_power_kw"    , decimals=ROUND_POWER_KW)
+            max_hp_power_kw   = convert_float(hp    .get("max_power_kw", HP_FIXED  ), "hp.max_power_kw"    , decimals=ROUND_POWER_KW)
 
         if boiler_enabled: # Boiler enabled?
-            max_boil_power_kw = convert_float(boiler.get("max_power_kw", BOILER_FIXED), "boiler.max_power_kw", decimals=ROUND_POWER_KW)
+            max_boil_power_kw = convert_float(boiler.get("max_power_kw", BOIL_FIXED), "boiler.max_power_kw", decimals=ROUND_POWER_KW)
 
         t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1c') # Phase 1c time in msec
 
@@ -503,17 +522,17 @@ def helios_optimizer_calc_plan(
             # Vectorized assignment for the Lower and Upper boundaries of the Solar Production:
             # Solar (all=no dimming or switch (default), modulating=dimming possible, binary=switch off or on):
             if solar_enabled:            
-                if solar_mode == 'binary': # Solar Switch is possible
+                if solar_mode == SOLAR_BIN: # Solar Switch is possible
                     milp_enabled = True # MILP optimizer is required for binary mode
                 #   lower_bounds[idx_solar_switch + start_index : idx_solar_switch + T] = 0.0 # solar_prod = 0 (Not needed: lower bound is already zero)
                     upper_bounds[idx_solar_switch + start_index : idx_solar_switch + T] = 1.0 # solar_prod = solar_power_forecast (not solar_energy_forecast)
                     integrality [idx_solar_switch + start_index : idx_solar_switch + T] = 1 # Enable integrality for Solar Switch variable
             
-                else: # No Solar Switch ('all' or 'modulating')               
+                else: # No Solar Switch (SOLAR_ALL or SOLAR_MOD)               
                 #   Following step for modulating mode is not needed since the lower bounds are already zero
-                #   if solar_mode == 'modulating': # Solar Dimming is possible
+                #   if solar_mode == SOLAR_MOD: # Solar Dimming is possible
                 #       lower_bounds[idx_solar_prod + start_index : idx_solar_prod + T] = np.zeros(T-start_index) # Minimum solar production is 0 (dimming is possible)
-                    if solar_mode == 'all': # Solar Dimming is not possible (no Solar Dimming)
+                    if solar_mode == SOLAR_ALL: # Solar Dimming is not possible (no Solar Dimming)
                         lower_bounds[idx_solar_prod + start_index : idx_solar_prod + T] = steps_per_hour * np.array(solar_energy_forecast[start_index : T])
                     upper_bounds    [idx_solar_prod + start_index : idx_solar_prod + T] = steps_per_hour * np.array(solar_energy_forecast[start_index : T])
 
@@ -754,10 +773,10 @@ def helios_optimizer_calc_plan(
 
             # Vectorized rounding of the Solar Production Power and Solar Forecast Power arrays
             if solar_enabled: # Is Solar Enabled?
-                if solar_mode == "binary": # Solar On or Off only?
+                if solar_mode == SOLAR_BIN: # Binary Solar Mode (On or Off only)?
                     # JR2026-09-11: Use the (converted from Energy) Solar Power Forecast Arrays instead of the Energy Forecast Array
                     sol_prod_kw_arr = np.round(res.x[idx_solar_switch : idx_solar_switch + T] * solar_power_forecast_np[:T], ROUND_POWER_KW) # Maximum Solar or Nul (Convert Solar Binary Switch to Solar Production Power )
-                else: # Solar 'all' or 'modulating'
+                else: # Solar SOLAR_ALL or SOLAR_MOD (Full or Modulating)
                     sol_prod_kw_arr = np.round(res.x[idx_solar_prod   : idx_solar_prod   + T]                              , ROUND_POWER_KW) # 0 <= Solar Production Power <= Solar Forecast Power
             else: # Solar Disabled!
                 sol_prod_kw_arr = np.zeros(T)

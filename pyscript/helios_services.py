@@ -16,6 +16,8 @@
 #   2026-09-18: JR  v0.78r Added HBC Price Array and Provider Price Arrays as Input Price Array (Import and Export Price Arrays are derived from the Input Array), 
 #   2026-09-18: JR  v0.79r Use HA Datetime Util for Now() to support HA Container Enviorments, Use Naive (without timezone) Timestamps for optimization time (and price and forecast array lookups), rename optimize_ts to optimize_ts_str
 #   2026-09-30: JR  v0.78s Included Support for Conversion from Source Price to Target Price, Group Steps and Average Price, Expand Steps (Repeat), Fill Gaps in Day(s), Fallback Days, 
+#   2026-10-07: JR  v0.90  First Public Release (Read-only for HBC), Support for HBC Price Data, Updates Helios Optimizer Entities for HBC (Sub-Strategy and Net Power) but has no Helios Strategy yet in HBC
+#   2026-10-12: JR  v0.91  Initializes Helios Optimizer Input Entities depending on the previous helios release version, For some initial values of Input Entities HBC values are used (sell/charge target, max discharge/charge power)
 #
 #   Remark: For a full history see helios_main.py
 
@@ -55,12 +57,44 @@ if "/config/pyscript" not in sys.path: # Already in the search path for pure pyt
 from helios_python.helios_optimizer import * # Import helios_optimizer.py for the Helios Pure Python Calculate Plan function and other Optimize Energy functions (and Helios Common Functions via helios_common.py)
 
 # Constant values for the Home Assistant Entities and Automations used by the Helios Service
-HELIOS_OPTIM_PLAN    = 'input_number.helios_optimizer_energy_plan' # Helios Result with Status, Current and Plan in the attributes
-HELIOS_OPTIM_PLAN_OLD= 'pyscript.helios_energy_plan'               # Helios Result with Status, Current and Plan in the attributes
-HELIOS_HBC_SUB_STRAT = 'input_select.helios_optimizer_hbc_sub_strategy' # Helios Sub Strategy for HBC
-HELIOS_HBC_NET_POWER = 'input_number.helios_optimizer_hbc_net_power'    # Helios Net Battery Power for HBC (Charge is Positive, Discharge is Negative), Translated later to Charge and Discharge Power (both Positive)
-HELIOS_AUTOMATION    = 'automation.helios_optimizer_automation_task'    # Helios Optimizer Automation Task that calls the Helios Optimizer Service to calculate the Optimal Energy Plan
-HELIOS_RUNNING       = 'input_boolean.helios_optimizer_running'    # Helios Automation is running (True/False) for the UI Button to show the service is running (extra second added for short service calls)
+# Home Assistant Entities used by the Helios Optimizer Service (these entities must be created in Home Assistant before the service can be used)
+HELIOS_OPTIM_PLAN        = 'input_number.helios_optimizer_energy_plan'          # Sensor Helios Optimizer Result with Status, Current and Plan in the attributes
+HELIOS_OPTIM_PLAN_OLD    = 'pyscript.helios_energy_plan'                        # Sensor Helios Result with Status, Current and Plan in the attributes
+HELIOS_HBC_SUB_STRAT     = 'input_select.helios_optimizer_hbc_sub_strategy'     # Sensor Helios Sub Strategy for HBC
+HELIOS_HBC_NET_POWER     = 'input_number.helios_optimizer_hbc_net_power'        # Sensor Helios Net Battery Power for HBC (Charge is Positive, Discharge is Negative), Translated later to Charge and Discharge Power (both Positive)
+HELIOS_AUTOMATION        = 'automation.helios_optimizer_automation_task'        # Sensor Helios Optimizer Automation Task that calls the Helios Optimizer Service to calculate the Optimal Energy Plan
+HELIOS_RUNNING           = 'input_boolean.helios_optimizer_running'             # Sensor Helios Automation is running (True/False) for the UI Button to show the service is running (extra second added for short service calls)
+
+# Home Assisant Entities (a copy in home_assistant_mock.py and the original in helios_services.py):
+HELIOS_INPUT_VERSION     = 'input_text.helios_optimizer_version'                # Sensor Helios Optimizer Version 
+HELIOS_INPUT_STEPS       = 'input_number.helios_optimizer_steps'                # Sensor Helios Optimizer Steps (24, 48, 96 or 192 steps of 60 or 15 minutes)
+HELIOS_INPUT_STEP_SIZE   = 'input_select.helios_optimizer_step_size'            # Sensor Helios Optimizer Step Size (Dropdown Select for 60 or 15 minutes)
+HELIOS_INPUT_START_STEP  = 'input_number.helios_optimizer_start_step'           # Sensor Helios Optimizer Start Step (0=Automatic, 1-192 is manual for testing)
+HELIOS_INPUT_MAX_GRID_IMP= 'input_number.helios_optimizer_max_grid_import'      # Sensor Helios Optimizer Maximum Grid Import in kW
+HELIOS_INPUT_MAX_GRID_EXP= 'input_number.helios_optimizer_max_grid_export'      # Sensor Helios Optimizer Maximum Grid Export in kW
+HELIOS_INPUT_HOUSE_USAGE = 'input_number.helios_optimizer_house_daily_usage'    # Sensor Helios Optimizer House Daily Usage over the Day in kWh
+HELIOS_INPUT_HOUSE_DISTR = 'input_text.helios_optimizer_house_daily_distr'      # Sensor Helios Optimizer House Daily Distribution of the House Usage over the Day as a list of 24 or 96 relative values for each hour or quarter of an hour of the day
+
+HELIOS_INPUT_BAT_ENABLED = 'input_boolean.helios_optimizer_battery_enabled'     # Sensor Helios Optimizer Battery Enabled (True/False, On/Off)
+HELIOS_INPUT_SOC_TARGET  = 'input_number.helios_optimizer_soc_target_pct'       # Sensor Helios Optimizer Battery Target SOC (State of Charge) in % for the Optimization (for End of Optimizaton Period/Horizon)
+HELIOS_INPUT_SOC_MIN     = 'input_number.helios_optimizer_soc_min_pct'          # Sensor Helios Optimizer Battery Minimum SOC (State of Charge) in % for the Optimization (Overall Minimum for ALL Steps / full Period)
+HELIOS_INPUT_SOC_MAX     = 'input_number.helios_optimizer_soc_max_pct'          # Sensor Helios Optimizer Battery Maximum SOC (State of Charge) in % for the Optimization (Overall Maximum for ALL Steps / full Period)
+HELIOS_INPUT_CHARGE_LIMIT= 'input_number.helios_optimizer_charge_limit'         # Sensor Helios Optimizer Maximum Battery Charge    Limit in kW   (all batteries together) 
+HELIOS_INPUT_DISCH_LIMIT = 'input_number.helios_optimizer_discharge_limit'      # Sensor Helios Optimizer Maximum Battery Discharge Limit in kW   (all batteries together) 
+HELIOS_INPUT_CHARGE_EFF  = 'input_number.helios_optimizer_charge_efficiency'    # Sensor Helios Optimizer Battery Charge    Efficiency Percentage (all batteries together) 
+HELIOS_INPUT_DISCH_EFF   = 'input_number.helios_optimizer_discharge_efficiency' # Sensor Helios Optimizer Battery Discharge Efficiency Percentage (all batteries together) 
+
+HELIOS_INPUT_SOLAR_MODE  = 'input_select.helios_optimizer_solar_mode'           # Sensor Helios Optimizer Solar Mode (Dropdown Select for SOLAR_ALL, SOLAR_MOD, SOLAR_BIN or SOLAR_DIS)
+
+HELIOS_TEMPL_HBC_MAX_CAP = 'sensor.helios_template_hbc_maximum_energy'          # Sensor Helios Template with HBC Total Maximum   Energy for all of the Batteries
+HELIOS_TEMPL_HBC_REM_ENGY= 'sensor.helios_template_hbc_remaining_energy'        # Sensor Helios Template with HBC Total Remaining Energy for all of the Batteries
+HELIOS_TEMPL_HBC_TOT_SOC = 'sensor.helios_template_hbc_total_soc'               # Sensor Helios Template with HBC Total SOC Percentage   for all of the Batteries (derived from Maximum and Remaining above)
+HELIOS_TEMPL_HBC_MAX_CHG = 'sensor.helios_template_hbc_max_charge_power'        # Sensor Helios Template with HBC Maximum Battery Charge    Power
+HELIOS_TEMPL_HBC_MAX_DIS = 'sensor.helios_template_hbc_max_discharge_power'     # Sensor Helios Template with HBC Maximum Battery Discharge Power
+
+HBC_STRAT_SELL_TARGET_SOC= 'input_number.house_battery_strategy_sell_target_soc'   # Sensor HBC Strategy Sell (Discharge) Target SOC Percentage
+HBC_STRAT_BUY_TARGET_SOC = 'input_number.house_battery_strategy_charge_target_soc' # Sensor HBC Strategy Buy  (Charge   ) Target SOC Percentage
+
 HELIOS_PLAN_NAME     = 'Helios Optimizer Energy Plan'              # Friendly Name for the Helios Result Entity
 HELIOS_RUNNING_NAME  = 'Helios Optimizer Running'                  # Friendly Name for the Helios Running Entity  
 HELIOS_SERVICE_NAME  = 'Helios Optimizer Service'                  # Name of the Helios Optimizer Service
@@ -127,7 +161,7 @@ async def helios_optimizer_service(
     # Following parameters are automatically provided by Home Assistant when the service is called, but are not used in the service itself
     # WARNING: If these parameters are not included in the service definition, the check on kwargs will throw an TypeError
     #    Any new parameters added by Home Assistant in the future need to be added here, otherwise the service will fail with a TypeError !!!
-    return_response=None, # Return a result
+    return_response=None, # Return a result (Must be a dictionary!)
     trigger_type=None,    # Trigger type (time_trigger, state_trigger, event_trigger) for the service call
     context=None,         # Context of the service call (used for logging and debugging)
 
@@ -165,6 +199,9 @@ async def helios_optimizer_service(
 
         battery_info = battery if battery else {}
         solar_info   = solar   if solar   else {}
+
+        # Initialize the Helios Optimizer Entities (executed only once until new entities are added in the next release)
+        helios_optimizer_init()
 
         # Home Assistant refuses to pass all attributes of an entity as a dictionary to the service (from the automation), instead it converts it to a json structure
         # Warning: The source price data is retrieved from HA when a source_price_sensor is specified and REPLACES the source_price_data that was sent as an argument
@@ -289,14 +326,14 @@ async def helios_optimizer_service(
             # The Helios Optimizer Energy Plan Entity is now updated with the new payload (two fields from this payload also have their own Home Assistant Entities)
             # The HBC Sub Strategy and Net Battery Power are also updated in their respective entities for use in the Home Assistant Node-Red Flow for the Helios Strategy:
             current = payload.get('current', None)
-            if state.exist(HELIOS_HBC_SUB_STRAT) and current: # The HBC Sub Strategy Entity and payload['current'] must exist?
+            if ha_exist(HELIOS_HBC_SUB_STRAT) and current: # The HBC Sub Strategy Entity and payload['current'] must exist?
                 hbc_sub_strategy = current.get('hbc_sub_strategy', None)         # Get the HBC Sub Strategy from the payload
-                state.set(HELIOS_HBC_SUB_STRAT, value=hbc_sub_strategy)          # Set the HBC Sub Strategy 
+                ha_set_state(HELIOS_HBC_SUB_STRAT, value=hbc_sub_strategy)          # Set the HBC Sub Strategy 
             else: log.error(f"[{HELIOS_SERVICE_NAME}]: Entity {HELIOS_HBC_SUB_STRAT} does not exist!")    
 
-            if state.exist(HELIOS_HBC_NET_POWER) and current: # The HBC Net Battery Power Entity and payload['current'] must exist 
+            if ha_exist(HELIOS_HBC_NET_POWER) and current: # The HBC Net Battery Power Entity and payload['current'] must exist 
                 hbc_net_battery_power = current.get('battery_net_power_w', None) # Get the Net Battery Power in Watt from the payload
-                state.set(HELIOS_HBC_NET_POWER, value=hbc_net_battery_power)     # Set the Net Battery Power for HBC (Charge is Positive, Discharge is Negative) in Watt
+                ha_set_int(HELIOS_HBC_NET_POWER, value=int(hbc_net_battery_power) if hbc_net_battery_power != None else None) # Set the Net Battery Power for HBC (Charge is Positive, Discharge is Negative) in Watt
             else: log.error(f"[{HELIOS_SERVICE_NAME}]: Entity {HELIOS_HBC_NET_POWER} does not exist!")    
 
         else: # The entity must already exist before we write to it (since otherwise a pyscript entity would be created)!
@@ -337,6 +374,179 @@ async def helios_optimizer_service(
 
     return payload # Return the payload to the Home Assistant Automation in the return_response (see the automation trace for details)
 
+def helios_optimizer_init():
+    """
+    Helios Optimizer Initialisation of (new) Home Assistant Helios Optimizer Entities.
+    Depending on the Helios Optimizer Version the HA Entities will be initialized.
+    Typically Entities already initialized in an earlier version will not be initialized again.
+    """ 
+    if ha_exist(HELIOS_INPUT_VERSION): # Does the HA Helios Optimizer Version Entity Exist?
+        init_count = 0
+        previous_version_tuple = parse_version(ha_get_text(HELIOS_INPUT_VERSION, "0.0.0"))
+        current_version_tuple  = parse_version(HELIOS_VERSION)
+        if (current_version_tuple > previous_version_tuple): # Helios Current Version is higher than the Previous Version
+            # Initialize Entities when new in a helios release (depending on the version):
+            if (previous_version_tuple < (0,3,0)): # Below v0.3.0 Optimizer Entities
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_STEPS       , STEPS       )
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_STEP_SIZE   , STEP_SIZE   )
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_START_STEP  , STEP_ZERO   )
+
+            if (previous_version_tuple < (0,3,1)): # Below v0.3.1 Maximum Grid Power Entities
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_MAX_GRID_IMP, MAX_GRID    )
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_MAX_GRID_EXP, MAX_GRID    )
+
+            if (previous_version_tuple < (0,8,0)): # Below v0.8.0 all applicable optimizer arguments must be initialized
+                # Initialize the Helios House Daily Usage and House Daily Usage Distribution Entities:
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_HOUSE_USAGE , HOUSE_DAY   )
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_HOUSE_DISTR , HOUSE_DISTR )
+
+#               HELIOS_TEMPL_HBC_MAX_CAP 
+#               HELIOS_TEMPL_HBC_REM_ENGY
+#               HELIOS_TEMPL_HBC_TOT_SOC 
+                # Get some default battery values from HBC and use them when available (otherwise use the Helios defaults):
+                hbc_sell_target_soc = ha_get_float(HBC_STRAT_SELL_TARGET_SOC, SOC_MIN        , raise_error=False)
+                hbc_buy_target_soc  = ha_get_float(HBC_STRAT_BUY_TARGET_SOC , SOC_MAX        , raise_error=False) 
+                hbc_max_charge      = ha_get_float(HELIOS_TEMPL_HBC_MAX_CHG , 1000*MAX_CHARGE, raise_error=False) # Maximum HBC Battery Charge    Power in W
+                hbc_max_discharge   = ha_get_float(HELIOS_TEMPL_HBC_MAX_DIS , 1000*MAX_DISCH , raise_error=False) # Maximum HBC Battery Discharge Power in W
+
+                # Initialize the Helios Battery Entities:
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_BAT_ENABLED , BAT_ON    ) 
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_SOC_TARGET  , SOC_TARGET)
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_SOC_MIN     , hbc_sell_target_soc)
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_SOC_MAX     , hbc_buy_target_soc )
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_CHARGE_LIMIT, hbc_max_charge    / 1000)
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_DISCH_LIMIT , hbc_max_discharge / 1000)
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_CHARGE_EFF  , BAT_EFF   )
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_DISCH_EFF   , BAT_EFF   )
+
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_SOLAR_MODE  , SOLAR_MODE)
+
+            # Update the Helios Optimizer Version (above initializations will not happen again afterwards until the version is increased):
+            ha_set_text(HELIOS_INPUT_VERSION, HELIOS_VERSION) # Store the latest version in HA Entity
+
+            try: # Create a Home Assistant Persistent Notification
+                title   = "Helios Optimizer Initialized"
+                message = f"Helios Optimizer has been upgraded to version '{HELIOS_VERSION}'."
+                if (init_count > 0):
+                    message += f"\nHelios Optimizer Initialized {init_count} Entities."
+
+                persistent_notification.create( # Only in HA!
+                    title=title,
+                    message=message,
+                    notification_id="helios_optimizer_init"
+                )
+            except: # Not Possible outside Home Assistant!
+                log.warning(f"{title}: {message}")
+
+def helios_optimizer_init_entity(entity_id: str, value: any, raise_error = True) -> int:
+    """Initialize an Entity State with the (default) value (Integer, Float, Boolean or String)."""
+    entity_count = 0
+    if ha_exist(entity_id):
+        try:
+            if isinstance(value, bool): # First check on boolean (since a boolean is also an integer)
+                ha_set_bool(entity_id, value, existing_only=True)
+            elif isinstance(value, int):
+                ha_set_int(entity_id, value, existing_only=True)
+            elif isinstance(value, float):
+                ha_set_float(entity_id, value, existing_only=True)
+            else:
+                ha_set_text(entity_id, str(value), existing_only=True)
+
+            entity_count = 1 # Entity Updated
+
+        except Exception as e: # An Error occured in the Entity Update
+
+            error_message = f"Initialization of Helios Optimizer Entity '{entity_id}' Failed: {repr(e)}"
+            if raise_error:
+                raise ValueError(error_message) 
+            log.error(f"[{HELIOS_SERVICE_NAME}-Init-Entity] Exception: {error_message}")
+    else:
+        error_message = f"Helios Optimizer Entity '{entity_id}' does not exist!"
+        if raise_error:
+            raise TypeError(error_message) 
+        log.warning(f"[{HELIOS_SERVICE_NAME}-Init-Entity] Error: {error_message}")
+
+    return entity_count # Helios Entity Initialization Successful (return 1)
+
+@service(supports_response="optional") 
+def helios_hello_world(
+    entity_id: str = None, # Entity ID to retrieve
+    attr_name: str = None, # Attribute Name (Optional)
+    return_response=None,  # Return a result (must be a Dictonary!)
+    trigger_type=None,     # Trigger type (time_trigger, state_trigger, event_trigger) for the service call
+    context=None,          # Context of the service call (used for logging and debugging)
+    **kwargs  # <--- Catches all unknown parameters 
+    ):
+    """
+    Helios Optimizer Hello World Service for testing of Home Assistant PyScript State Functions and for a HA Notification. 
+    If it runs you can be sure that PyScript is working!
+    This function will return a dictionary with all Attributes of the Entity or a name: value of the specified Attribute.
+    Specify an Entity (with entity_id) and an optional Attribute (attr_name). Without any argument the Helios Optimizer Energy Plan Entity will be used.
+    For Entities that do not exist or Attributes that do not exist, an error message will be returned.
+    Any Exception that is thrown will be caught and the error message will be returned aswell.
+    The Service always returns a Dictionary with all of the Attributes or a single Attribute (attr_name: attr_value) or an Error/Exception.
+    For debugging purposes it will also log the results of the retrieval of entity state, number of attributes and optional an entity attribute value.
+    """
+    results, message = {}, None
+    try:
+        if (entity_id is None) or (entity_id == ""): # Entity Id not specified?
+            entity_id = HELIOS_OPTIM_PLAN # Use the default Helios Optimizer Energy Plan Entity Id
+
+#       value = state.get(entity_id) # Get Entity using State (throws an exception when entity id does not exist)
+        if state.exist(entity_id): # Does the Entity Exist?
+            value = state.get(entity_id) # Get Entity using State
+            log.error(f"[{HELIOS_SERVICE_NAME}]: Get Entity({entity_id}): '{value}'")
+            attributes = state.getattr(entity_id) or {} # Get Entity Attributes using state.getattr (returns a Dictionary or None when entity does not exist, so use {} as default)
+#           log.error(f"[{HELIOS_SERVICE_NAME}]: Get Entity-Attrs({entity_id}): {attributes}") # Warning: Can be a lot of data in the log for large attributes
+            log.error(f"[{HELIOS_SERVICE_NAME}]: Get Entity-Attrs({entity_id})-Length: {len(attributes)}") # Return the number of attributes for the entity (can be 0 when no attributes exist)
+
+            if (attr_name != None): # Attribute name specified, retrieve the attribute value
+                if attr_name in attributes.keys(): # Does the attribute exist?
+                    attr1_value = attributes.get(attr_name, 'onbekend1') # Use state.getattr with entity_id and get with attr_name
+                    if isinstance(attr1_value, str): # String? (Only print when attribute is a string, not dictionaries or lists)
+                        log.error(f"[{HELIOS_SERVICE_NAME}]: Get1 Entity-Attr({entity_id},{attr_name}): '{attr1_value}'")
+                
+                    attr2_value = state.get(f"{entity_id}.{attr_name}") # Use state.get with entity_id.attr_name
+                    if isinstance(attr2_value, str): # String? (Only print when attribute is a string, not dictionaries or lists)
+                        log.error(f"[{HELIOS_SERVICE_NAME}]: Get2 Entity-Attr({entity_id},{attr_name}): '{attr2_value}'")
+
+                    if isinstance(attr1_value, (dict)): # Attribute Value already a dictionary?
+                        results = attr1_value # Return the attribute value as a dictionary
+                    else: # Attribute Value is not a dictionary (We need to return a dictionary so convert the value to a dictionary)
+                        results = {attr_name: attr1_value} # Return the attribute value as a dictionary with the attribute name as key
+                
+                else: # Attribute does not exist!
+                    message = f"Attribute '{attr_name}' for Entity Id '{entity_id}' does not exist!"
+                    results = {"Error": message}
+            
+            else: # No Attribute name specified (return All Attributes)!
+                results = attributes # Return the Attributes as a dictionary
+
+        else: # Entity does not exist!
+            message = f"Entity Id '{entity_id}' does not exist!"
+            results = {"Error": message}
+    
+    except Exception as e:
+        message = repr(e)
+        results = {"Exception": message}
+
+    try: # Create a Home Assistant Persistent Notification
+        if message is None: # No message yet so built one with the Entity Info (without all attributes)
+            title   = "Helios Optimizer Hello World is Ready"
+            message = f"Entity '{entity_id}' has State Value '{value}' and has {len(attributes)} attributes."
+        else: # Message already exists (error or exception), so use it as the notification message
+            title   = "Helios Optimizer Hello World has an Error"
+
+        persistent_notification.create( # Only in HA!
+            title=title,
+            message=message,
+            notification_id="helios_hello_world"
+        )
+    except: # Not Possible outside Home Assistant!
+        log.warning(f"{title}: {message}")
+
+    return results # Return always a dictionary 
+
 # Home Assistant Service to Start the Helios Automation and Show the Running Status in the UI
 # This service is called by the Home Assistant Button in the UI and triggers the Helios Automation to calculate the optimized energy plan
 # All the input parameters for the optimization are provided by the Home Assistant Helios Automation, so this service does not need any input parameters
@@ -357,10 +567,13 @@ def helios_optimizer_automation():
     # 4. Turn off the helios optimizer running status (switches the button back to green)
     state.set(HELIOS_RUNNING, "off", friendly_name=HELIOS_RUNNING_NAME)
 
-# Home Assistant Write and Read FILE Functions:
-# VERY IMPORTANT: Use these functions instead of synchronous read/write functions in the Home Assistant Main Loop !!!!!
-# The async read/write functions are moved to helios_common.py and are now PURE Python functions (outside HA PyScript)
-# In HA PyScript these read/write functions needed a special compiler option (@pyscript_compile) since otherwise no blocking read/writes were allowed!
+##########################################################################################################################
+# Asynchronous Home Assistant Write and Read FILE Functions:                                                             # 
+# VERY IMPORTANT: Use these functions instead of synchronous read/write functions in the Home Assistant Main Loop !!!!!  #
+# The raw read/write functions are moved to helios_common.py and are now PURE Python functions (outside HA PyScript)     #
+# In HA PyScript these raw read/write functions would need a special compiler option (@pyscript_compile)                 #       
+# since otherwise no blocking read/writes were allowed in the HA!                                                        #
+##########################################################################################################################
 # Write a message with an optional timestamp to a file and add a newline
 async def async_write_message(path: str, message: str, add_ts: bool = False, add_nl: bool = True) -> int:
     """
@@ -425,3 +638,256 @@ async def async_read_dict_from_json_file(path: str) -> dict:
         json_dict = None
 
     return json_dict # Return the dictionary or None when file not found or invalid
+
+##########################################################################
+# PyScript Home Assistant State Functions                                #
+# Copied from _batmgt_util.py and modified for use in Helios             #
+# Not yet applied to the Battery Management System (BMS)                 #
+# Warning: Use hass (instead of state) for python and custom_components! #
+##########################################################################
+# Exist Home Assistant Entity
+def ha_exist(entity_id: str) -> bool:
+    """Check if a Home Assistant State exists."""
+    return state.exist(entity_id) # Check if the state name exists in the Home Assistant state dictionary
+
+def ha_is_unknown(entity_id: str): return state.is_unknown(entity_id)
+def ha_is_unavailable(entity_id: str): return state.is_unavailable(entity_id)
+def ha_has_value(entity_id: str): return state.has_value(entity_id)
+
+def ha_as_dict(entity_id: str) -> dict: 
+    """Built a dictionary for an entity within Pyscript."""
+    # Warning: state.as_dict does not exist in PyScript!
+    value = state.get(entity_id)
+    if value is None: # Does Entity Exist?
+        return None # Entity does not exist (return None)
+        
+    return { # Return the Entity as a Dictionary with a sub-dict for the attributes
+        "entity_id": entity_id,
+        "state": value, # Value of the Entity (can also be HA_UNKNOWN or HA_UNAVAIL)
+        "attributes": state.getattr(entity_id) or {} # All Attributes as a Dictionary
+    }
+
+# Get Internal State from Home Assistant Entity State (copied from state_get_state in _batmgt_util.py).
+# Internal State is a text value but represents the state of a Device or System.
+# Home Assistant states (for 'unknown' and 'unavailable') are integrated as state values (UNKNOWN_STATE and UNAVAIL_STATE). 
+# None is handled as equal to 'unknown' (Remark: None is not possible as a entity state value in HA).
+# For an Entity Id of None a NONAME_STATE is returned. For an non existing Entity an error will occur.
+# Warning: Battery Management is not yet migrated to helios common functions!
+def ha_get_state(entity_id: str, default_value: str = FAILED_STATE, ignore_undefined: bool = False, raise_error: bool = False) -> str: 
+    """ 
+    Get Internal State (Text field with State values) from Home Assistant State
+    Convert HA unknown and unavailable to "Unknown" and "Unavailable" unless ignore undefined is True (then the default value (FAILED_STATE) is returned)
+    Warning: Use ha_exist for separate handling of states that do not exist (this function will throw an exception)
+    """
+    state_value = NONAME_STATE # Initial value is not the default (NONAME_STATE will be returned when no entity id specified)
+    try:
+        if (entity_id != None): # Entity Id specified?
+            state_value = state.get(entity_id) # Retrieve the state of the HA Entity
+
+        if (state_value in HA_UN_LIST or state_value is None) and ignore_undefined:
+            state_value = default_value # Default value is returned when ignore undefined and (value is HA unknown or unavailable or None)
+
+        else: # Handle HA unknown and HA unavailable as separate state values
+            if (state_value == HA_UNKNOWN) or (state_value is None):
+                state_value = UNKNOWN_STATE # Set the "Unknown" state
+            elif (state_value == HA_UNAVAIL):
+                state_value = UNAVAIL_STATE # Set the "Unavailable" state
+            
+    except (Exception) as e: # An error occurred while retrieving the state
+        if state.exist(entity_id): # Entity exist but State conversion failed (Remark: Not sure what can go wrong in state conversion)? 
+            error_msg = f"State Conversion Failed for HA Entity '{entity_id}' with value '{state_value}': {repr(e)}"
+        else: # Get performed but failed since entity does not exist
+            error_msg = f"HA State Entity {entity_id} does NOT Exist!"
+        if raise_error:
+            raise ValueError(error_msg)
+        log.error(f"[{HELIOS_SERVICE_NAME}-ha-get-state] Exception: {error_msg}")
+        state_value = default_value # Usually: FAILED_STATE
+            
+    return str(state_value) if (state_value != None) else None # Always return as string unless None
+
+# Get Text from Home Assistant Entity State 
+# For an non existing Entity an error will occur.
+def ha_get_text(entity_id, default_value: str = None, ignore_undefined: bool = True, raise_error: bool = False) -> str: 
+    """ 
+    Get Text from Home Assistant Entity State
+    By default "unknown" or "unavailable" values will return None but when ignore undefined is False the values will be returned as-is.
+    Warning: Use ha_exist for separate handling of states that do not exist (this function will throw an exception)
+    """
+    state_value = None
+    try:
+        if (entity_id != None): # Entity Id specified?
+            state_value = state.get(entity_id) # Retrieve the state of the HA Entity
+
+        if (state_value in HA_UN_LIST or state_value is None) and ignore_undefined:
+            state_value = default_value # Default value is returned when ignore undefined and (value is HA unknown or unavailable or None)
+            
+    except (Exception) as e: # An error occurred while retrieving the entity state for the text field
+        if state.exist(entity_id): # Entity exist but State conversion failed (Remark: Not sure what can go wrong in text conversion)? 
+            error_msg = f"Text Retrieve Failed for HA Entity '{entity_id}': {repr(e)}"
+        else: # Get performed but failed since entity does not exist
+            error_msg = f"HA Text Entity {entity_id} does NOT Exist!"
+        if raise_error:
+            raise ValueError(error_msg)
+        log.error(f"[{HELIOS_SERVICE_NAME}-ha-get-text] Exception: {error_msg}")
+        state_value = default_value
+            
+    return str(state_value) if (state_value != None) else None # Always return as string unless None
+
+# Get Float from Home Assistant Entity State (copied from state_get_float in _batmgt_util.py)
+# Warning: Battery Management is not yet migrated to helios common functions!
+def ha_get_float(entity_id: str, default_value: float = None, ignore_undefined: bool = True, raise_error: bool = False) -> float:
+    """
+    Get a float value for a Home Assistant state value. 
+    By default "unknown" or "unavailable" values will return None but when ignore undefined is False an exception will be thrown.
+    Warning: For the Anker Output Preset value ignore_unknown MUST be enabled since this value is only used with mode "manual" and may be unknown for other modes.
+    Warning: In general For HomeWizard and Anker attribute the state can be temporary unavailable (during startup or for communication errors).
+    Returns Float Value or None when HA state is unavailable, unknown or for an invalid number (string)!
+    """
+    state_value, float_value = None, None
+    try:
+        if (entity_id != None): # Entity Id specified?
+            state_value = state.get(entity_id) # Retrieve the state of the HA Entity (throws an exception when the entity does not exist)
+
+        # float() works for numbers (e.g. 10 or 10.5) and string numbers (e.g. "10.5")
+        # but fails for None, "unavailable" of "unknown"
+        if (state_value in HA_UN_LIST or state_value is None) and ignore_undefined:
+            state_value = default_value  # Return default_value when ignore undefined and (value is unknown or unavailable or None)
+
+        # Try to convert the value to float (will fail with an exception when value is not a float or an integer (including for unknown and unavailable))
+        float_value = float(state_value) if (state_value != None) else None # Convert from string to float unless None
+    
+    except (Exception) as e: # Conversion Error or Get Error (Remark: used for floats but also for integers)
+        if state.exist(entity_id): # Entity exist but Float conversion failed?
+            error_msg = f"Float or Integer Conversion Failed for HA Entity '{entity_id}' with value '{state_value}': {repr(e)}"
+        else: # Get performed but failed since entity does not exist
+            error_msg = f"HA Float or Integer Entity {entity_id} does NOT Exist!"
+        if raise_error:
+            raise ValueError(error_msg)
+        log.error(f"[{HELIOS_SERVICE_NAME}-ha-get-float] Exception: {error_msg}")
+        float_value = default_value
+
+    return float_value
+
+def ha_get_bool(entity_id: str, default_value: bool = False, ignored_undefined: bool = True) -> bool:
+    state_value, bool_value = None, None
+    try:
+        if (entity_id != None): 
+            state_value = state.get(entity_id) # Retrieve the state of the HA Entity
+
+        if (state_value in HA_UN_LIST or state_value is None) and ignore_undefined:
+            state_value = default_value # Return default_value when ignore undefined and (value is unknown or unavailable or None)
+
+        # Convert the value to bool (only for state_value is 'on')
+        bool_value = (state_value == HA_ON) if (state_value != None) else None # Convert from string to bool unless None
+
+    except (Exception) as e: # Conversion Error for Boolean
+        if state.exist(entity_id): # Entity exist but Boolean conversion failed?
+            error_msg = f"Boolean Conversion Failed for HA Entity '{entity_id}' with value '{state_value}': {repr(e)}"
+        else: # Get performed but failed since entity does not exist
+            error_msg = f"HA Boolean Entity {entity_id} does NOT Exist!"
+        if raise_error:
+            raise ValueError(error_msg)
+        log.error(f"[{HELIOS_SERVICE_NAME}-ha-get-bool] Exception: {error_msg}")
+        bool_value = default_value
+
+    return bool_value
+
+# Get Integer from Home Assistant Entity State (copied from state_get_int in _batmgt_util.py)
+# Warning: Battery Management is not yet migrated to helios common functions!
+def ha_get_int(entity_id: str, default_value: int = None, ignore_undefined: bool = True, raise_error: bool = False) -> int:
+    float_value = None # Start with a Float (not with an integer)
+    if (entity_id != None): # Entity Id defined?
+        float_value = ha_get_float(entity_id, default_value, ignore_undefined, raise_error) # # Retrieve the state of the HA Entity as a float (only later convert to integer)
+    return round(float_value) if (float_value != None) else None # Convert to an integer
+
+# Get All the Attributes of a Home Assistant Entity
+# Returns Dictonary with all Attribute or None when the Entity does not exist
+def ha_get_all_attr(entity_id: str) -> dict:
+    if ha_exist(entity_id): # Entity exist?
+        return state.getattr(entity_id)
+    else: # Entity does not exist
+        return None
+
+# Get the Attribute Value of a Home Assistant Entity
+# Returns Value of the Attribute or None when the Entity does not exist or when the Entity does not have the Attribute
+def ha_get_attr(entity_id: str, attr_name: str, default_value = None):
+    value = default_value
+    attributes = ha_get_all_attr(entity_id)
+    if (attributes != None) and attr_name in attributes.keys(): 
+        value = attributes[attr_name]
+    return value
+
+# Set Internal State in Home Assistant Entity State (copied from state_set_state in _batmgt_util.py) and optionally the related attributes
+# Attributes can be combined in the new_attributes dictionary or specified separatedly (via **attribs) or both
+# Warning: Battery Management is not yet migrated to helios common functions!
+def ha_set_state(entity_id: str, value: str = None, existing_only: bool = False, new_attributes: dict = None, **attribs) -> bool:
+    updated = False
+    if not existing_only or ha_exist(entity_id):
+        if (entity_id != None):
+            state_value = HA_UNKNOWN if (value == None) else str(value) # Replace a None value by HA 'unknown' ("Onbekend" in Nederlands)
+            if (value == UNKNOWN_STATE): state_value = HA_UNKNOWN # Replace a "Unknown"     by HA 'unknown'
+            if (value == UNAVAIL_STATE): state_value = HA_UNAVAIL # Replace a "Unavailable" by HA 'unavailable'
+            if (new_attributes == None):
+                state.set(entity_id, state_value, **attribs)
+            else:    
+                state.set(entity_id, state_value, new_attributes=new_attributes, **attribs)
+            updated = True
+    return updated # True when updated
+
+# Set Text in Home Assistant Entity State (copied from state_set_state in _batmgt_util.py) and optionally the related attributes
+# Warning: Battery Management is not yet migrated to helios common functions!
+def ha_set_text(entity_id: str, value: str = None, existing_only: bool = False) -> bool:
+    updated = False
+    if not existing_only or ha_exist(entity_id):
+        if (entity_id != None):
+            state_value = HA_UNKNOWN if (value == None) else str(value) # Replace a None value by HA "unknown" ("Onbekend" in Nederlands)
+            state.set(entity_id, state_value)
+            updated = True
+    return updated # True when updated
+
+# Set Entity Attribute in Home Assistant Entity
+def ha_set_attr(entity_id: str, attr_name: str, value):
+    updated = False
+    if ha_exist(entity_id): 
+        state.setattr(entity_id+'.'+attr_name, value)
+        updated = True
+    return updated # True when updated
+
+# Set Integer in Home Assistant Entity State (copied from state_set_int in _batmgt_util.py)
+# Warning: Battery Management is not yet migrated to helios common functions!
+def ha_set_int(entity_id: str, value: int = None, existing_only: bool = False) -> bool:
+    updated = False
+    if not existing_only or ha_exist(entity_id):
+        if (entity_id != None):
+            state_value = HA_UNKNOWN if (value == None) else str(int(value)) # Replace a None value by HA "unknown" ("Onbekend" in NL)
+            state.set(entity_id, state_value)
+            updated = True
+    return updated # True when updated
+
+# Set Float in Home Assistant Entity State
+def ha_set_float(entity_id: str, value: float = None, existing_only: bool = False) -> bool:
+    updated = False
+    if not existing_only or ha_exist(entity_id):
+        if (entity_id != None):
+            state_value = HA_UNKNOWN if (value == None) else str(float(value)) # Replace a None value by HA "unknown" ("Onbekend" in NL)
+            state.set(entity_id, state_value)
+            updated = True
+    return updated # True when updated
+
+# Set Boolean in Home Assistant Entity State
+def ha_set_bool(entity_id: str, value: bool = None, existing_only: bool = False) -> bool:
+    updated = False
+    if not existing_only or ha_exist(entity_id):
+        if (entity_id != None):
+            state_value = HA_UNKNOWN if (value == None) else (HA_ON if value else HA_OFF) # Replace a None value by HA "unknown" ("Onbekend" in NL)
+            state.set(entity_id, state_value)
+            updated = True
+    return updated # True when updated
+
+# Delete a Home Assistant Entity
+def ha_delete(entity_id: str) -> bool:
+    deleted = False
+    if ha_exist(entity_id):
+        state.delete(entity_id)
+        deleted = True
+    return deleted # True when deleted

@@ -59,6 +59,39 @@ input_number:
     unit_of_measurement: ""
     mode: box
 
+  helios_optimizer_house_daily_usage:
+    # Input Entity for the Usage in the House for a single day (excluding deferrable loads like EV, HP, Boiler)
+    name: "Helios Optimizer Average House Daily Energy Usage"
+    unit_of_measurement: "kWh"
+    icon: mdi:counter  
+    min: 0.0
+    max: 200.0
+    step: 0.1    
+    #initial: 10.0
+    mode: box
+
+  helios_optimizer_max_grid_import:
+    # Input Entity for the Maximum Grid Import for the Helios Optimizer when calculating the Energy Plan
+    name: "Helios Optimizer Max Grid Import"
+    unit_of_measurement: "kW"
+    icon: mdi:flash  
+    min: 0.0
+    max: 25.0
+    step: 0.1    
+    #initial: 9.0
+    mode: box
+
+  helios_optimizer_max_grid_export:
+    # Input Entity for the Maximum Grid Export for the Helios Optimizer when calculating the Energy Plan
+    name: "Helios Optimizer Max Grid Export"
+    unit_of_measurement: "kW"
+    icon: mdi:flash  
+    min: 0.0
+    max: 25.0
+    step: 0.1    
+    #initial: 9.0
+    mode: box
+
   helios_optimizer_soc_target_pct:
     # Input Entity for the Target State of Charge (SOC) of the Battery for the Helios Optimizer when calculating the Energy Plan
     # Note: Currently Helios Optimizer only supports a single (total) battery 
@@ -96,39 +129,6 @@ input_number:
     step: 1    
     #initial: 90
     unit_of_measurement: "%"
-    mode: box
-
-  helios_optimizer_max_grid_import:
-    # Input Entity for the Maximum Grid Import for the Helios Optimizer when calculating the Energy Plan
-    name: "Helios Optimizer Max Grid Import"
-    unit_of_measurement: "kW"
-    icon: mdi:flash  
-    min: 0.0
-    max: 25.0
-    step: 0.1    
-    #initial: 9.0
-    mode: box
-
-  helios_optimizer_house_daily_usage:
-    # Input Entity for the Usage in the House for a single day (excluding deferrable loads like EV, HP, Boiler)
-    name: "Helios Optimizer Average House Daily Energy Usage"
-    unit_of_measurement: "kWh"
-    icon: mdi:counter  
-    min: 0.0
-    max: 200.0
-    step: 0.1    
-    #initial: 10.0
-    mode: box
-
-  helios_optimizer_max_grid_export:
-    # Input Entity for the Maximum Grid Export for the Helios Optimizer when calculating the Energy Plan
-    name: "Helios Optimizer Max Grid Export"
-    unit_of_measurement: "kW"
-    icon: mdi:flash  
-    min: 0.0
-    max: 25.0
-    step: 0.1    
-    #initial: 9.0
     mode: box
 
   helios_optimizer_charge_limit:
@@ -214,10 +214,10 @@ input_text:
   helios_optimizer_version:
     # Helios Optimizer Version Installed 
     # Used to initialize the other entities at first run of the Helios Optimizer
-    # Version 1.2.3 is "01.02.03", 11.12.13 is "11.12.13", 0.9.1 is "00.09.01"
+    # Version 0.9.1, 1.2.3, 11.2.33 (compares will be done with tuples (e.g. 11,2,33) instead of alphabetic)
     name: "Helios Optimizer Version"
     icon: mdi:shield-sun-outline
-    #initial: "99.99.99"
+    #initial: "0.9.0"
 
   helios_optimizer_house_daily_distr:
     # Helios Optimizer House Usage Distribution
@@ -273,7 +273,8 @@ input_select:
 
   helios_optimizer_forecast_solar_sensor:
   # Select an Entity Id for the sensor that contains the Forecast Solar Results (Warning: a specific format is required)
-  # The options are filled  using an automation (id=helios_optimizer_forecast_fill_sensor)
+  # The options for the sensor are filled  using an automation (id=helios_optimizer_forecast_fill_sensor)
+  # The sensor.helios_optimizer_forecast_solar_hours value and attributes are generated using a template based on sensor.helios_optimizer_forecast_solar_raw (forecast.solar REST API data)
     name: "Helios Optimizer Forecast Solar Sensor"
     icon: mdi:lightning-bolt
     options:

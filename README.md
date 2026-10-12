@@ -37,6 +37,14 @@ See [Helios Optimizer Installation](INSTALL.md)
 - **Modular Connectors:** Dedicated modules for **Energy Providers**, **Solar Forecasts**, Battery and Solar Inverter **Integrations**.
 - **Native HA Integration:** Pure Python Home Assistant **Custom Component** (HACS-ready), run without PyScript or external engines.
 
+## Important Remark
+Helios can derive Export Prices using Source Price Data (e.g. from HBC Price Data with Import Prices). 
+The Import Price is based upon the Market and includes Energy Tax (Energiebelasting).
+The Export Price is also based upon the Market Price and does not included Energy Tax.
+Since the Net Metering (Nederlandse Salderingsregeling) is no longer applicable in 2027 this a future proof approach.
+<b>However in 2026<b> the value of the export of energy can be higher than the export price.
+As long as the total of exported energy is less than the total of imported energy the Energy Tax is compensated while exporting energy!
+
 ## Required inputs
 - **Configuration Input** (Steps, Step size, Start Step, Solver Time/Iteration limits, Grid Limits)
 - Grid **Import Prices** array (import price per step) or Source Price Data or Sensor
