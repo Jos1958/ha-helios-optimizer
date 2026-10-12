@@ -1,4 +1,4 @@
-views:
+ views:
   - type: sections
     path: jos-helios-controls
     max_columns: 3
@@ -665,10 +665,10 @@ views:
                 | **Success**           | {{ a.get('success') }} | 
                 | **Result**            | {{ a.get('calc_result') }} | 
                 | **Optimize Time**     | {{ a.get('optimize_time'     ) }} |
-                | **Fun Cost**          | � {{ a.get('total_fun_cost'  ) }} |
-                | **Total Step Cost**   | � {{ a.get('total_step_cost' ) }} |
-                | **Total Delta Cost**  | � {{ a.get('total_delta_cost') }} |
-                | **Total Grid Cost**   | � {{ a.get('total_grid_cost' ) }} |
+                | **Fun Cost**          | € {{ a.get('total_fun_cost'  ) }} |
+                | **Total Step Cost**   | € {{ a.get('total_step_cost' ) }} |
+                | **Total Delta Cost**  | € {{ a.get('total_delta_cost') }} |
+                | **Total Grid Cost**   | € {{ a.get('total_grid_cost' ) }} |
                 | **Steps**             | {{ a.get('steps'             ) }} |
                 | **Step Size**         | {{ a.get('step_size'         ) }} min |
                 | **Base Step**         | {{ a.get('base_step'         ) }} |
@@ -693,25 +693,25 @@ views:
               {%- if c is defined and c is not none -%}
                 {%- set step  = state_attr('input_number.helios_optimizer_energy_plan', 'active_step') | default(None) -%}
                 {%- set start = state_attr('input_number.helios_optimizer_energy_plan', 'active_time') | default('')  -%}
-              ?? **Active Step:** {{ step }}
+              🐾 **Active Step:** {{ step }}
 
-              ??? **Step Start Time:** {{ start }}
+              🕰️ **Step Start Time:** {{ start }}
                 | Component | State | Power |
                 | :--- | :---: | :---: |
-                | ?? **Battery Strategy**  | **{{ c.battery_strategy }}**                                         | {{ c.grid_power_w        }} W |
-                | ?? **HBC Sub Strategy**  | **{{ c.hbc_sub_strategy }}**                                         | {{ c.battery_net_power_w }} W |
-                | ?? **Net Battery Power** | {{ '?? Discharge' if c.battery_net_power_w < 0 else ('?? Charge' if c.battery_net_power_w > 0 else '? Standby') }} | {{ c.battery_net_power_w }} W |
-                | ?? **Battery Power**     |                                                                      | {{ c.battery_power_w     }} W |
-                | ? **Charge Power**      | {{ '?? Active'   if c.battery_charge_w     > 0 else '? Standby' }} | {{ c.battery_charge_w    }} W |
-                | ?? **Discharge Power**   | {{ '?? Active'   if c.battery_discharge_w  > 0 else '? Standby' }} | {{ c.battery_discharge_w }} W |
-                | ? **Charge Limit**      | {{ '?? Active'   if c.max_charge_w         > 0 else '? Disabled'}} | {{ c.max_charge_w        }} W |
-                | ?? **Discharge Limit**   | {{ '?? Active'   if c.max_discharge_w      > 0 else '? Disabled'}} | {{ c.max_discharge_w     }} W |
-                | ? **Max Grid Import**   | {{ '?? Active'   if c.max_grid_import_w    > 0 else '? Off-Grid'}} | {{ c.max_grid_import_w   }} W |
-                | ?? **Max Grid Export**   | {{ '?? Active'   if c.max_grid_export_w    > 0 else '? Disabled'}} | {{ c.max_grid_export_w   }} W |
+                | 🧠 **Battery Strategy**  | **{{ c.battery_strategy }}**                                         | {{ c.grid_power_w        }} W |
+                | 🧠 **HBC Sub Strategy**  | **{{ c.hbc_sub_strategy }}**                                         | {{ c.battery_net_power_w }} W |
+                | 📊 **Net Battery Power** | {{ '🔻 Discharge' if c.battery_net_power_w < 0 else ('🔺 Charge' if c.battery_net_power_w > 0 else '⚪ Standby') }} | {{ c.battery_net_power_w }} W |
+                | 🔋 **Battery Power**     |                                                                      | {{ c.battery_power_w     }} W |
+                | ⚡ **Charge Power**      | {{ '🟢 Active'   if c.battery_charge_w     > 0 else '⚪ Standby' }} | {{ c.battery_charge_w    }} W |
+                | 🔻 **Discharge Power**   | {{ '🔴 Active'   if c.battery_discharge_w  > 0 else '⚪ Standby' }} | {{ c.battery_discharge_w }} W |
+                | ⚡ **Charge Limit**      | {{ '🟢 Active'   if c.max_charge_w         > 0 else '⚪ Disabled'}} | {{ c.max_charge_w        }} W |
+                | 🔻 **Discharge Limit**   | {{ '🔴 Active'   if c.max_discharge_w      > 0 else '⚪ Disabled'}} | {{ c.max_discharge_w     }} W |
+                | ⚡ **Max Grid Import**   | {{ '🔵 Active'   if c.max_grid_import_w    > 0 else '⚪ Off-Grid'}} | {{ c.max_grid_import_w   }} W |
+                | 🔻 **Max Grid Export**   | {{ '🟡 Active'   if c.max_grid_export_w    > 0 else '⚪ Disabled'}} | {{ c.max_grid_export_w   }} W |
               {%- elif false -%}  
-                | ?? **EV Laadpaal**       | {{ '? Charge'   if c.ev_power_w           > 0 else '? Off'     }} | {{ c.ev_power_w          }} W |
-                | ?? **Heatpump**          | {{ '?? Heat'     if c.hp_power_w           > 0 else '? Off'     }} | {{ c.hp_power_w          }} W |
-                | ?? **Boiler**            | {{ '?? Heat Up'  if c.boiler_power_w       > 0 else '? Off'     }} | {{ c.boiler_power_w      }} W |
+                | 🚗 **EV Laadpaal**       | {{ '⚡ Charge'   if c.ev_power_w           > 0 else '⚪ Off'     }} | {{ c.ev_power_w          }} W |
+                | ♨️ **Heatpump**          | {{ '🔥 Heat'     if c.hp_power_w           > 0 else '⚪ Off'     }} | {{ c.hp_power_w          }} W |
+                | 🚿 **Boiler**            | {{ '💧 Heat Up'  if c.boiler_power_w       > 0 else '⚪ Off'     }} | {{ c.boiler_power_w      }} W |
               {%- else -%}
 
               *No Current Strategy and Power available.*
@@ -754,7 +754,7 @@ views:
           - type: markdown
             title: Optimized Energy Plan
             content: >
-              {%- set hdr1 = "| Time | Import (�) | Export (�) | FunCost (�) |
+              {%- set hdr1 = "| Time | Import (€) | Export (€) | FunCost (€) |
               House-For (kW) | House-Usg (kW) | Sun-For (kW) | Sun-Prod (kW) |
               Strategy | HBC Sub Strat | SoC (%) | SoC (kWh) | Grid-Net (kW) |
               Discharge (kW) | Charge (kW) |" -%}
