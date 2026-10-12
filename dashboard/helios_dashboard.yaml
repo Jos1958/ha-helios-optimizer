@@ -564,9 +564,6 @@ views:
                 type: area
                 stroke_width: 2
                 data_generator: |
-                  return entity.attributes.plan.timestamp.map((time, index) => {
-                    return [new Date(time).getTime(), entity.attributes.plan.battery_discharge_kw[index] - entity.attributes.plan.battery_charge_kw[index]];
-                  });
                   const dis_array = entity.attributes.plan.battery_discharge_kw;
                   const cha_array = entity.attributes.plan.battery_charge_kw;
                   return entity.attributes.plan.timestamp.map((time, i) => [
