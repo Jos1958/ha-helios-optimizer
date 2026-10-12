@@ -1,6 +1,9 @@
 # HA Helios Optimizer - Release Notes
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
+## 0.9.2 (2026-10-12) Fixed special characters on dashboard
+- Invalid codepage for helios_dashboard.yaml, changed from ANSI to UTF-8
+
 ## 0.9.1 (2026-10-12) Initialize Input Entities
 - Initializes Helios Optimizer Input Entities depending on the previous helios release version
 - For some initial values of Input Entities HBC values are used (sell/charge target, max discharge/charge power)
