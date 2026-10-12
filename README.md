@@ -42,8 +42,9 @@ Helios can derive Export Prices using Source Price Data (e.g. from HBC Price Dat
 The Import Price is based upon the Market and includes Energy Tax (Energiebelasting).
 The Export Price is also based upon the Market Price and does not included Energy Tax.
 Since the Net Metering (Nederlandse Salderingsregeling) is no longer applicable in 2027 this a future proof approach.
-<b>However in 2026<b> the value of the export of energy can be higher than the export price.
+<b>However in 2026</b> the value of the export of energy can be <b>higher</b> than the export price.
 As long as the total of exported energy is less than the total of imported energy the Energy Tax is compensated while exporting energy!
+The Optimizer Model does not take this extra value into account.
 
 ## Required inputs
 - **Configuration Input** (Steps, Step size, Start Step, Solver Time/Iteration limits, Grid Limits)
