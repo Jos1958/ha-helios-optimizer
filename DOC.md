@@ -135,6 +135,7 @@ These parameters are retrieved from HBC or Helios and cannot be changed by the u
 ** TODO **
 
 ## Output Results
+
 ### Results Overview
 - **Result:** Successful or Not (True or False), Total Cost, Grid Cost (Total Cost without Battery Cost)
 - **Calculation:** Calculation Result (e.g.: Optimized, Infeasible, Exception, Balance Error, ...), Solver Iterations
@@ -148,18 +149,19 @@ These parameters are retrieved from HBC or Helios and cannot be changed by the u
 
 ### Helios Prices and Strategy (Graph)
 ![Helios Calculator](images/HeliosGraphs2a-Prices.jpeg)
-This Graph displays the Import Prices (as columns) and the related Export and Market Prices.
-These prices are retrieved from the HBC Price Data (which contains only Import Prices).
+This Graph displays the <b>Import Prices</b> (as columns) and the related <b>Export</b> and <b>Market Prices</b>.
+These prices are retrieved from the <b>HBC Price Data</b> (which contains only Import Prices).
 Export and Market Prices can be calculated from the Import Prices using the Energy Tax (Energie Belasting), VAT (BTW) and the Provider Import and Export Markup (Opslag).
 <br>**TODO:** These values will be configurable in the near future, specify a more detailed formula here.
-<br>The colour of the Import Price columns represents the selected HBC sub-strategy:
+
+<br><br>The colour of the Import Price columns represents the selected <b>HBC Sub-Strategy</b>:
 - **Skipped:** Steps in the past (before start step) are skipped
-- **Sell:**  Sell Energy in the Battery to the Grid
-- **Charge:** Charge the Battery from Grid Energy (and optionally from Solar Energy)
-- **Charge PV:** Charge the Battery from Solar Energy only
-- **Self-consumption:** Use the Battery to prevent Import from and Export to the Grid 
-- **Zero import:** Use the Battery to prevent Import from the Grid but do not Charge the Battery
-- **Standby / peak shave:** Battery is on stand-by but will try to prevent peaks in the Grid Energy 
+- **Sell:**  Sell Energy <b>from</b> the Battery <b>to</b> the Grid
+- **Charge:** Charge <b>to</b> the Battery <b>from</b> the <b>Grid</b> Energy (and optionally with <b>Solar</b> Energy)
+- **Charge PV:** Charge the Battery with <b>Solar</b> Energy <b>only</b>
+- **Self-consumption:** Use the Battery to <b>prevent</b> <b>Import</b> from and <b>Export</b> to the Grid (is the same as <b>N</b>ull <b>O</b>n <b>M</b>eter)
+- **Zero import:** Use the Battery to <b>prevent Import</b> from the Grid but do not Charge the Battery
+- **Standby / peak shave:** Battery is on <b>Stand-by</b> but will try to <b>prevent peaks</b> 
 
 ### Helios Optimal Energy Plan (Graph)
 ![Helios Calculator](images/HeliosGraphs2b-OptimalEnergyPlan.jpeg)
