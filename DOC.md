@@ -72,6 +72,7 @@ which receives the total target power from Helios and distributes it across the 
 **Future releases** will migrate the PyScript architecture into a standalone Home Assistant Custom Component.
 
 ## Helios Dashboard (Input and Output)
+![Helios Calculator](images/HeliosDashboard.jpeg)
 At the top of the dashboard a short <b>Overview</b> of the Optimizer Results is displayed. 
 Below that are the <b>Input Parameters</b> and more <b>Detailed Results</b> of the calculated Optimized Energy Plan (e.g. Status Blocks, Graph and Table).
 <i>The <b>Helios Optimizer Service</b> will typically run every <b>quarter</b> of an hour 
@@ -145,32 +146,49 @@ These parameters are retrieved from HBC or Helios and cannot be changed by the u
 - **Solver Status:** Solver (SciPy LP) Message or other Error Message
 - **Versions:** Helios, Python and SciPy Software Levels (e.g. 1.0.0 - 3.14.6 - 1.18.1) 
 
-### Optimized Energy Plan (Graph)
-This is the most important output of the Helios Optimizer and represents for a two day window the resulting SOC Percentages for the battery 
+### Helios Prices and Strategy (Graph)
+![Helios Calculator](images/HeliosGraphs2a-Prices.jpeg)
+This Graph displays the Import Prices (as columns) and the related Export and Market Prices.
+These prices are retrieved from the HBC Price Data (which contains only Import Prices).
+Export and Market Prices can be calculated from the Import Prices using the Energy Tax (Energie Belasting), VAT (BTW) and the Provider Import and Export Markup (Opslag).
+<br>**TODO:** These values will be configurable in the near future, specify a more detailed formula here.
+<p>The colour of the Import Price columns represents the selected HBC sub-strategy:
+- **Skipped:** Steps in the past (before start step) are skipped
+- **Sell:**  Sell Energy in the Battery to the Grid
+- **Charge:** Charge the Battery from Grid Energy (and optionally from Solar Energy)
+- **Charge PV:** Charge the Battery from Solar Energy only
+- **Self-consumption:** Use the Battery to prevent Import from and Export to the Grid 
+- **Zero import:** Use the Battery to prevent Import from the Grid but do not Charge the Battery
+- **Standby / peak shave:** Battery is on stand-by but will try to prevent peaks in the Grid Energy 
+
+### Helios Optimal Energy Plan (Graph)
+![Helios Calculator](images/HeliosGraphs2b-OptimalEnergyPlan.jpeg)
+This is the most important output of the Helios Optimizer and represents for a two day window the resulting SOC Percentages (black line) for the battery 
 (or for the sum of all batteries) and the Power values for the Battery (Discharge-Charge,) Solar Forecast and Production, House Usage and Grid (Import-Export).
-Positive power values indicate that power is made available to the House (Battery Discharged, Solar Production or Imported) and negative values indicate that power is
-used (Used in the House, Battery Charged or Exported).
+<b>Positive Power</b> values (above the X-as) indicate that power is made available to the House (Battery Discharged, Solar Production or Imported) and 
+<b>Negative Power</b> values (below the X-as) indicate that power is used (Used in the House, Battery Charged or Exported).
+<br>The <b>left</b> Y-as is for the Power values (kW) and the <b>right</b> Y-as is for the SOC Percentages (0-100%). 
 <br>
 Warning: Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
 <br><br>
 
 ### Optimization State
-** TODO **
+**TODO**
 
 ### Actuals for the Current Step
-** TODO **
+**TODO**
 
 ### Solar and Battery Information
-** TODO **
+**TODO**
 
 ### Optimized Energy Plan (Table)
-** TODO **
+**TODO**
 
 ### Optimization Run
-** TODO **
+**TODO**
 
 ### Energy Plan Totals
-** TODO **
+**TODO**
 
 ## Documentation
 [Helios Optimizer - Documentation](DOC.md)
