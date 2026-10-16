@@ -152,7 +152,7 @@ This Graph displays the Import Prices (as columns) and the related Export and Ma
 These prices are retrieved from the HBC Price Data (which contains only Import Prices).
 Export and Market Prices can be calculated from the Import Prices using the Energy Tax (Energie Belasting), VAT (BTW) and the Provider Import and Export Markup (Opslag).
 <br>**TODO:** These values will be configurable in the near future, specify a more detailed formula here.
-<p>The colour of the Import Price columns represents the selected HBC sub-strategy:
+<br>The colour of the Import Price columns represents the selected HBC sub-strategy:
 - **Skipped:** Steps in the past (before start step) are skipped
 - **Sell:**  Sell Energy in the Battery to the Grid
 - **Charge:** Charge the Battery from Grid Energy (and optionally from Solar Energy)
@@ -173,22 +173,22 @@ Warning: Occasionally the browser page content with the Helios Energy Plan Graph
 <br><br>
 
 ### Optimization State
-**TODO**
+**TODO:**
 
 ### Actuals for the Current Step
-**TODO**
+**TODO:**
 
 ### Solar and Battery Information
-**TODO**
+**TODO:**
 
 ### Optimized Energy Plan (Table)
-**TODO**
+**TODO:**
 
 ### Optimization Run
-**TODO**
+**TODO:**
 
 ### Energy Plan Totals
-**TODO**
+**TODO:**
 
 ## Documentation
 [Helios Optimizer - Documentation](DOC.md)
