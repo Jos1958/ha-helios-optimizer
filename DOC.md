@@ -165,8 +165,15 @@ Export and Market Prices can be calculated from the Import Prices using the Ener
 
 ### Helios Optimal Energy Plan (Graph)
 ![Helios Calculator](images/HeliosGraphs2b-OptimalEnergyPlan.jpeg)
-This is the most important output of the Helios Optimizer and represents for a two day window the resulting SOC Percentages (black line) for the battery 
-(or for the sum of all batteries) and the Power values for the Battery (Discharge-Charge,) Solar Forecast and Production, House Usage and Grid (Import-Export).
+This is the most important Output of the Helios Optimizer combined into one Graph.
+It represents the results for each step of a two day horizon:
+- SOC Percentages (black line) for the Battery (or for the sum of All Batteries)
+<br>The State of Charge of the Battery at the end of the step
+- Power values:
+  - Battery (Discharge - Charge) 
+  - Solar Forecast and Production
+  - House Usage 
+  - Grid Import and Export
 <b>Positive Power</b> values (above the X-as) indicate that power is made available to the House (Battery Discharged, Solar Production or Imported) and 
 <b>Negative Power</b> values (below the X-as) indicate that power is used (Used in the House, Battery Charged or Exported).
 <br>The <b>left</b> Y-as is for the Power values (kW) and the <b>right</b> Y-as is for the SOC Percentages (0-100%). 
