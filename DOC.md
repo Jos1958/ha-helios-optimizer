@@ -143,14 +143,15 @@ The following parameters should represent the (total) values for <b>all</b> HBC 
 - **Max Discharge Power (All):** Maximum Discharge Power (Sum of Max Discharge Power per Battery)
 - **HBC Sell Target SOC%:** Overall Target State of Charge when discharging the batteries
 - **HBC Charge Target SOC%:** Overall Target State of Charge when charging the batteries 
-<br>The Maximum and Remaining Energy and the derived Total SOC parameters are used as input for the Helios Optimizer. 
+
+The Maximum and Remaining Energy and the derived Total SOC parameters are used as input for the Helios Optimizer. 
 <br>The Max Charge/Discharge and Target SOC-s are <b>copied</b> to the Helios Battery Parameters at installation time.
 <br>**Warning:** When these fields are updated in HBC after installation of Helios they will <b>NOT</b> be copied again to the Helios Battery Parameters
 
-At the bottom of this section are two Helios Entities for HBC which are <b>derived<b> from the Helios Optimal Energy Plan and are used by the Helios Strategy in HBC:
+At the bottom of this section are two Helios Entities for HBC which are <b>derived</b> from the Helios Optimal Energy Plan and are used by the Helios Strategy in HBC:
 - **HBC Sub Strategy by Helios:** The current Sub Strategy as calculated by Helios for HBC
 - **HBC Net Power for Battery by Helios:**  The current Net Battery Power as calculated by Helios for HBC
-<br>
+
 Every time when the Helios Optimizer is run these HA Entities are updated.
 The Helios Strategy Flow in HBC will pickup these field and makes them available to the Executions section of the flow.
 The Home Battery Start flow will call this executor (in Call "Link in" node) and will further process the selected Sub-Strategy.
