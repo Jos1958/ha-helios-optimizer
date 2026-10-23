@@ -79,6 +79,7 @@ Below that are the <b>Input Parameters</b> and more <b>Detailed Results</b> of t
 and can be <b>manually</b> started with the green <b>Start Helios</b> button.<br>
 
 ## Input Parameters
+
 ### Optimization Parameters
 - **Steps:** Optimization Steps (24-192)
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
@@ -158,9 +159,9 @@ The Home Battery Start flow will call this executor (in Call "Link in" node) and
 The Net Power value is provided to HBC with a value calculated by Helios (for Charge/Buy and Discharge/Sell) but HBC can only charging and discharge at maximum power. 
 For the other Sub-Strategies (e.g. Self-consumption, Zero import, Standby / peak shave and Charge PV) the Net Power value is not applicable/needed.
 
-## Output Results
+## Output
 
-### Results Overview
+### Results Summary
 - **Result:** Successful or Not (True or False), Total Cost, Grid Cost (Total Cost without Battery Cost)
 - **Calculation:** Calculation Result (e.g.: Optimized, Infeasible, Exception, Balance Error, ...), Solver Iterations
 - **Last Optimization Run:** Date and Time of the Last Run, Excecution Time, Lineair Programming Time (SciPy LP) 
@@ -171,7 +172,7 @@ For the other Sub-Strategies (e.g. Self-consumption, Zero import, Standby / peak
 - **Solver Status:** Solver (SciPy LP) Message or other Error Message
 - **Versions:** Helios, Python and SciPy Software Levels (e.g. 1.0.0 - 3.14.6 - 1.18.1) 
 
-### Helios Prices and Strategy (Graph)
+### Helios Prices and Strategy 
 ![Helios Calculator](images/HeliosGraphs2a-Prices.jpeg)
 This Graph displays the <b>Import Prices</b> (as columns) and the related <b>Export</b> and <b>Market Prices</b>.
 These prices are retrieved from the <b>HBC Price Data</b> (which contains only Import Prices).
@@ -187,7 +188,7 @@ Export and Market Prices can be calculated from the Import Prices using the Ener
 - **Zero import:** Use the Battery to <b>prevent Import</b> from the Grid but do not Charge the Battery
 - **Standby / peak shave:** Battery is on <b>Stand-by</b> but will try to <b>prevent peaks</b> 
 
-### Helios Optimal Energy Plan (Graph)
+### Helios Optimal Energy Plan
 ![Helios Calculator](images/HeliosGraphs2b-OptimalEnergyPlan.jpeg)
 This is the most important Output of the Helios Optimizer combined into one Graph.
 <br>It represents the results for each step of a two day horizon:
@@ -206,6 +207,8 @@ This is the most important Output of the Helios Optimizer combined into one Grap
 Warning: Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
 <br><br>
 
+## Output Details
+
 ### Optimization State
 **TODO:**
 
@@ -215,17 +218,20 @@ Warning: Occasionally the browser page content with the Helios Energy Plan Graph
 ### Solar and Battery Information
 **TODO:**
 
-### Optimized Energy Plan (Table)
+## Insight Details
+Enable insights mode to make the following outputs visible.
+
+### Optimized Energy Plan 
+Table with all variables for every step.
 **TODO:**
+
+### Run and Totals
 
 ### Optimization Run
 **TODO:**
 
 ### Energy Plan Totals
 **TODO:**
-
-## Documentation
-[Helios Optimizer - Documentation](DOC.md)
 
 ## Installation
 [Helios Optimizer - Installation](INSTALL.md)
