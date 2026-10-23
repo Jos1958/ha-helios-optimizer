@@ -172,7 +172,7 @@ For the other Sub-Strategies (e.g. Self-consumption, Zero import, Standby / peak
 - **Solver Status:** Solver (SciPy LP) Message or other Error Message
 - **Versions:** Helios, Python and SciPy Software Levels (e.g. 1.0.0 - 3.14.6 - 1.18.1) 
 
-### Helios Prices and Strategy 
+### Prices and Strategy 
 ![Helios Calculator](images/HeliosGraphs2a-Prices.jpeg)
 This Graph displays the <b>Import Prices</b> (as columns) and the related <b>Export</b> and <b>Market Prices</b>.
 These prices are retrieved from the <b>HBC Price Data</b> (which contains only Import Prices).
@@ -188,7 +188,7 @@ Export and Market Prices can be calculated from the Import Prices using the Ener
 - **Zero import:** Use the Battery to <b>prevent Import</b> from the Grid but do not Charge the Battery
 - **Standby / peak shave:** Battery is on <b>Stand-by</b> but will try to <b>prevent peaks</b> 
 
-### Helios Optimal Energy Plan
+### Optimal Energy Plan Graph
 ![Helios Calculator](images/HeliosGraphs2b-OptimalEnergyPlan.jpeg)
 This is the most important Output of the Helios Optimizer combined into one Graph.
 <br>It represents the results for each step of a two day horizon:
@@ -221,7 +221,7 @@ Warning: Occasionally the browser page content with the Helios Energy Plan Graph
 ## Insight Details
 Enable insights mode to make the following outputs visible.
 
-### Optimized Energy Plan 
+### Optimal Energy Plan Table
 Table with all variables for every step.
 **TODO:**
 
