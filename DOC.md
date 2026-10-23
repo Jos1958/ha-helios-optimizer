@@ -172,7 +172,7 @@ For the other Sub-Strategies (e.g. Self-consumption, Zero import, Standby / peak
 - **Solver Status:** Solver (SciPy LP) Message or other Error Message
 - **Versions:** Helios, Python and SciPy Software Levels (e.g. 1.0.0 - 3.14.6 - 1.18.1) 
 
-### Prices and Strategy 
+### Prices and Strategy Graph
 ![Helios Calculator](images/HeliosGraphs2a-Prices.jpeg)
 This Graph displays the <b>Import Prices</b> (as columns) and the related <b>Export</b> and <b>Market Prices</b>.
 These prices are retrieved from the <b>HBC Price Data</b> (which contains only Import Prices).
