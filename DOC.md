@@ -8,10 +8,14 @@ calculate an **Optimal Energy Plan** for your House for today and tomorrow.
 To find the financially **Optimal** Energy Management **Strategy** for Charging, Discharging and Solar Production
 it looks at Dynamic Electricity Prices, Solar Forecasts, Battery storage and expected Household Energy Usage.
 
-For each step (of an hour or 15 minutes) it will determine the best battery strategy
+For **each step** (of an hour or 15 minutes) it will determine the **best** battery strategy
 (Sell/Discharge Charge/Buy, Charge PV, Self-consumption, Zero import or Standby).
-It will take into account: Maximum and Minimum State of Charge of the Battery, Efficiency of Battery Charging and Discharging,
-Prediction of the Solar Production and the Energy Usage Distribution in the House.
+It will take into account: maximum and minimum State of Charge (SoC) of the Battery, Target SoC and the end of the optimization period,
+efficiency of battery charging and discharging, prediction of the solar production during the day(s) and the energy usage distribution over the day.
+It calculates for each step the costs for import, export and battery discharging and searchs very quickly
+for a solution with the minimum total cost for all steps while respecting all restrictions specified.
+A typical optimization period/horizon is from the current time today to the end of the day tomorrow.
+
 Two Graphs are provided that show an insight in the selected strategies per step, the battery state of charge and the power usage.
 Use the documentation links above each section to get more details about the inputs and results.
 
