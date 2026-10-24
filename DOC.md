@@ -1,8 +1,22 @@
 # Helios Optimizer - Documentation
 ![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
 
-## Intro and Features
-For an Introduction and Feature List of the Helios Optimizer: see [Helios Optimizer - README](README.md).
+## Intro
+The **HELIOS Optimizer Service** is a **H**ome **A**ssistant **PyScript** Application designed to 
+calculate an **Optimal Energy Plan** for your House for today and tomorrow.
+
+To find the financially **Optimal** Energy Management **Strategy** for Charging, Discharging and Solar Production
+it looks at Dynamic Electricity Prices, Solar Forecasts, Battery storage and expected Household Energy Usage.
+
+For each step (of an hour or 15 minutes) it will determine the best battery strategy
+(Sell/Discharge Charge/Buy, Charge PV, Self-consumption, Zero import or Standby).
+It will take into account: Maximum and Minimum State of Charge of the Battery, Efficiency of Battery Charging and Discharging,
+Prediction of the Solar Production and the Energy Usage Distribution in the House.
+Two Graphs are provided that show an insight in the selected strategies per step, the battery state of charge and the power usage.
+Use the documentation links above each section to get more details about the inputs and results.
+
+The calculation uses a **Mathematical Model** and **Linear Programming** to determine the **Optimal Energy Plan**. 
+The Model uses the Python scientific computing library SciPy to solve the linear programming calculations.
 
 ## Overview
 ![Helios Calculator](images/HeliosOverview.jpeg)
@@ -73,10 +87,10 @@ which receives the total target power from Helios and distributes it across the 
 
 ## Helios Dashboard (Input and Output)
 ![Helios Calculator](images/HeliosDashboard.jpeg)
-At the top of the dashboard a short <b>Overview</b> of the Optimizer Results is displayed. 
-Below that are the <b>Input Parameters</b> and more <b>Detailed Results</b> of the calculated Optimized Energy Plan (e.g. Status Blocks, Graph and Table).
-<i>The <b>Helios Optimizer Service</b> will typically run every <b>quarter</b> of an hour 
-and can be <b>manually</b> started with the green <b>Start Helios</b> button.<br>
+At the top of the dashboard a short **Overview** of the Optimizer Results is displayed. 
+Below that are the **Input Parameters** and more **Detailed Results** of the calculated Optimized Energy Plan (e.g. Status Blocks, Graph and Table).
+<i>The **Helios Optimizer Service** will typically run every **quarter** of an hour 
+and can be **manually** started with the green **Start Helios** button.<br>
 
 ## Input Parameters
 
@@ -85,8 +99,8 @@ and can be <b>manually</b> started with the green <b>Start Helios</b> button.<br
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
   <br>Remark: Advised Optimization Period is 2 Days (48 steps of 60 minutes or 192 steps of 15 minutes)
 - **Start Step:** Start the Optimization in the specified step (0..Steps). 
-  <br><b>Important:</b> Typically use a value of <b>Zero</b> (0) since the Optimization will determine the start step <b>automatically</b> based on the current time!
-  <br>All steps before the Start Step are <b>Skipped</b> so starting at the current time is the most logical step to start the optimization.
+  <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
+  <br>All steps before the Start Step are **Skipped** so starting at the current time is the most logical step to start the optimization.
   <br>Other Start Step values are only to be used for (Regression) Testing or Simulation Runs of the Optimizer!
 - **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
   <br>In the future the House Energy Usage will be retrieved from history data but at the moment you need to make an estimate for the average energy usage in the house. 
@@ -136,7 +150,7 @@ The parameters in this section are retrieved from HBC or Helios and cannot be ch
 They are displayed only for validation purposes:
 - **Helios Version:** Latest installed version of Helios
 
-The following parameters should represent the (total) values for <b>all</b> HBC batteries and calculated based on HBC Marstek Entities using Helios Templates:
+The following parameters should represent the (total) values for **all** HBC batteries and calculated based on HBC Marstek Entities using Helios Templates:
 - **Maximum Energy (All Batteries):** Total Energy that can be stored in the HBC Batteries (Sum of all batteries)
 - **Remaining Energy (All):** Remaining Energy in the HBC Batteries (Sum of all batteries)
 - **Total SOC (All):** State of Charge for all of the HBC Batteries (Remaining Energy / Maximum Energy)
@@ -146,10 +160,10 @@ The following parameters should represent the (total) values for <b>all</b> HBC 
 - **HBC Charge Target SOC%:** Overall Target State of Charge when charging the batteries 
 
 The Maximum and Remaining Energy and the derived Total SOC parameters are used as input for the Helios Optimizer. 
-<br>The Max Charge/Discharge and Target SOC-s are <b>copied</b> to the Helios Battery Parameters at installation time.
-<br>**Warning:** When these fields are updated in HBC after installation of Helios they will <b>NOT</b> be copied again to the Helios Battery Parameters
+<br>The Max Charge/Discharge and Target SOC-s are **copied** to the Helios Battery Parameters at installation time.
+<br>**Warning:** When these fields are updated in HBC after installation of Helios they will **NOT** be copied again to the Helios Battery Parameters
 
-At the bottom of this section are two Helios Entities for HBC which are <b>derived</b> from the Helios Optimal Energy Plan and are used by the Helios Strategy in HBC:
+At the bottom of this section are two Helios Entities for HBC which are **derived** from the Helios Optimal Energy Plan and are used by the Helios Strategy in HBC:
 - **HBC Sub Strategy by Helios:** The current Sub Strategy as calculated by Helios for HBC
 - **HBC Net Power for Battery by Helios:**  The current Net Battery Power as calculated by Helios for HBC
 
@@ -173,36 +187,37 @@ For the other Sub-Strategies (e.g. Self-consumption, Zero import, Standby / peak
 - **Versions:** Helios, Python and SciPy Software Levels (e.g. 1.0.0 - 3.14.6 - 1.18.1) 
 
 ### Prices and Strategy Graph
-![Helios Calculator](images/HeliosGraphs2a-Prices.jpeg)
-This Graph displays the <b>Import Prices</b> (as columns) and the related <b>Export</b> and <b>Market Prices</b>.
-These prices are retrieved from the <b>HBC Price Data</b> (which contains only Import Prices).
-Export and Market Prices can be calculated from the Import Prices using the Energy Tax (Energie Belasting), VAT (BTW) and the Provider Import and Export Markup (Opslag).
+![Helios Optimizer: Prices and Strategy Graph](images/HeliosGraphs2a-Prices.jpeg)
+The Prices and Strategy Graph displays the **Import Prices** (as columns) and the related **Export** and **Market Prices** (as 2 lines).
+These prices are retrieved from the **HBC Price Data** (which contains only Import Prices).
+Export and Market Prices are calculated from the Import Prices using the Energy Tax (Energie Belasting), VAT (BTW) and the Provider Import and Export Markup (Opslag).
+
 <br>**TODO:** These values will be configurable in the near future, specify a more detailed formula here.
 
-<br><br>The colour of the Import Price columns represents the selected <b>HBC Sub-Strategy</b>:
-- **Skipped:** Steps in the past (before start step) are skipped
-- **Sell:**  Sell Energy <b>from</b> the Battery <b>to</b> the Grid
-- **Charge:** Charge <b>to</b> the Battery <b>from</b> the <b>Grid</b> Energy (and optionally with <b>Solar</b> Energy)
-- **Charge PV:** Charge the Battery with <b>Solar</b> Energy <b>only</b>
-- **Self-consumption:** Use the Battery to <b>prevent</b> <b>Import</b> from and <b>Export</b> to the Grid (is the same as <b>N</b>ull <b>O</b>n <b>M</b>eter)
-- **Zero import:** Use the Battery to <b>prevent Import</b> from the Grid but do not Charge the Battery
-- **Standby / peak shave:** Battery is on <b>Stand-by</b> but will try to <b>prevent peaks</b> 
+The colour of the Import Price columns represents the selected **HBC Sub-Strategy**:
+- **0=Skipped:** Steps in the past (before start step) are skipped
+- **1=Sell:**  Sell Energy **from** the Battery **to** the Grid
+- **2=Charge:** Charge **to** the Battery **from** the **Grid** Energy (and optionally with **Solar** Energy)
+- **3=Charge PV:** Charge the Battery with **Solar** Energy **only**
+- **4-Self-consumption:** Use the Battery to **prevent** **Import** from and **Export** to the Grid (is the same as **N**ull **O**n **M**eter)
+- **5=Zero import:** Use the Battery to **prevent Import** from the Grid but do not Charge the Battery
+- **8=Standby / peak shave:** Battery is on **Stand-by** but will try to **prevent peaks** 
 
 ### Optimal Energy Plan Graph
-![Helios Calculator](images/HeliosGraphs2b-OptimalEnergyPlan.jpeg)
-This is the most important Output of the Helios Optimizer combined into one Graph.
-<br>It represents the results for each step of a two day horizon:
-- <b>SOC Percentages</b> (the black line) for the Battery (or for the sum of All Batteries)
-<br>The State of Charge of the Battery at the <b>end</b> of the step!
-- <b>Power</b> values per step:
-  - Battery (Discharge - Charge) 
-  - Solar Forecast and Production
-  - House Usage 
-  - Grid Import and Export
+![Helios Optimizer: Optimal Energy Plan Graph](images/HeliosGraphs2b-OptimalEnergyPlan.jpeg)
+The Optimal Energy Plan Graph displays the most important Output of the Helios Optimizer combined into one Graph.
+<br>It represents the optimizer results for each step of a two day horizon:
+- **SOC Percentages** (the black line) for the Battery (or for the sum of All Batteries)
+<br>The **State of Charge** of the Battery at the **END** of each **Step**!
+- **Power** values per step:
+  - **Battery** (Discharge - Charge) 
+  - **Solar** Forecast and Production
+  - **House** Usage 
+  - **Grid** Import and Export
 
-<b>Positive Power</b> values (above the X-as) indicate that power is made available to the House (Battery Discharged, Solar Production or Imported) and 
-<b>Negative Power</b> values (below the X-as) indicate that power is used (Used in the House, Battery Charged or Exported).
-<br>The <b>left</b> Y-as is for the Power values (kW) and the <b>right</b> Y-as is for the SOC Percentages (0-100%). 
+**Positive Power** values (above the X-as) indicate that power is made available to the House (Battery Discharged, Solar Production or Imported) and 
+**Negative Power** values (below the X-as) indicate that power is used (Used in the House, Battery Charged or Exported).
+<br>The **left** Y-as is for the Power values (kW) and the **right** Y-as is for the SOC Percentages (0-100%). 
 <br>
 Warning: Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
 <br><br>

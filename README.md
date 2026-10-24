@@ -2,10 +2,7 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## Intro 
-The **HELIOS Optimizer Service** is a **H**ome **A**ssistant **PyScript** Application designed to calculate a Mathematically **Optimal Energy Plan**.
-The calculation uses **SciPy Linear/Mixed-Integer Linear Programming (LP/MILP)** 
-to find the financially **Optimal** Energy Management **Strategy** for Charging, Discharging and Solar Production
-based on dynamic Electricity Prices, Solar Forecasts, Battery storage and expected Household Energy Usage.
+For an Introduction of the Helios Optimizer: see [Helios Optimizer - Documentation](DOC.md#intro).
 
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Integration-3DDC84?logo=home-assistant&logoColor=#03A9F4)](https://www.home-assistant.io/) 
 
