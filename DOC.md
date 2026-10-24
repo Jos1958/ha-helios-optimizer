@@ -256,22 +256,22 @@ Enable insights mode to make the following outputs visible.
 
 ### Optimal Energy Plan Table
 Table with all variables for every step.
-- ** Start Time:** Start Time of the Step in HH:MM (Today or Tomorrow)
-- ** Import Price:** Import Price for Importing Energy from the Grid
-- ** Export Price:** Export Price for Exporting Energy to the Grid (when negative you are paying for exporting)
-- ** Market Price:** Market Price is the Energy Price without Energy Tax, VAT and Provider Markup
-- ** Fun Cost:** Cost per Step for Importing, Exporting (usually negative) and Discharging
-- ** House Forecast:** Power used by the House as forecasted (based on House Usage and Distribution)
-- ** House Usage:** Power used by the House (same as forecasted but 0 for skipped steps since these are not included in the model)
-- ** Solar Forecast:** Power produced by the Solar Panels as forecasted 
-- ** Solar Production:** Power produced by the Solar Panels (usually same as forecasted but 0 for skipped steps, when solar turned off or less when solar production dimmed)
-- ** Strategy:** Strategy as calculated by the Helios Optimizer
-- ** HBC Sub-Strategy:** Home Battery Control Sub Strategy derived from the Helios Strategy (HBC has less strategies and strategies with different names)
-- ** SoC%:** State of Charge Percentage at the **end** of the step
-- ** SoC (kWH):** State of Charge in kilo Watt Hours (Battery Remaining Energy derived from the battery capacity and SoC%)
-- ** Grid Net (kW):** Grid Import Power minus Grid Export Power in kilo Watt
-- ** Charge (kW):** Battery Charge Power in kilo Watt
-- ** Discharge (kW):** Battery Discharge Power in kilo Watt 
+- **Start Time:** Start Time of the Step in HH:MM (Today or Tomorrow)
+- **Import Price:** Import Price for Importing Energy from the Grid
+- **Export Price:** Export Price for Exporting Energy to the Grid (when negative you are paying for exporting)
+- **Market Price:** Market Price is the Energy Price without Energy Tax, VAT and Provider Markup
+- **Fun Cost:** Cost per Step for Importing, Exporting (usually negative) and Discharging
+- **House Forecast:** Power used by the House as forecasted (based on House Usage and Distribution)
+- **House Usage:** Power used by the House (same as forecasted but 0 for skipped steps since these are not included in the model)
+- **Solar Forecast:** Power produced by the Solar Panels as forecasted 
+- **Solar Production:** Power produced by the Solar Panels (usually same as forecasted but 0 for skipped steps, when solar turned off or less when solar production dimmed)
+- **Strategy:** Strategy as calculated by the Helios Optimizer
+- **HBC Sub-Strategy:** Home Battery Control Sub Strategy derived from the Helios Strategy (HBC has less strategies and strategies with different names)
+- **SoC%:** State of Charge Percentage at the **end** of the step
+- **SoC (kWH):** State of Charge in kilo Watt Hours (Battery Remaining Energy derived from the battery capacity and SoC%)
+- **Grid Net (kW):** Grid Import Power minus Grid Export Power in kilo Watt
+- **Charge (kW):** Battery Charge Power in kilo Watt
+- **Discharge (kW):** Battery Discharge Power in kilo Watt 
 - Battery Net Power: Battery Charge Power - Battery Discharge Power; Positive when charging and negative when discharging
 - Battery Power: Absolute value of Battery Net Power; Always positive
 
