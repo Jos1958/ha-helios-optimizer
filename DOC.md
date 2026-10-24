@@ -2,11 +2,11 @@
 ![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
 
 ## Intro
-The **HELIOS Optimizer Service** is a **H**ome **A**ssistant **PyScript** Application designed to 
-calculate an **Optimal Energy Plan** for your House for typically 2 days.
+The **HELIOS Optimizer Service** is a **H**ome **A**ssistant **PyScript** application designed to 
+calculate an **Optimal Energy Plan** for your house for typically 2 days.
 
-To find the financially **Optimal** Energy Management **Strategy** for Charging, Discharging and Solar Production
-it looks at Dynamic Electricity Prices, Solar Forecasts, Battery storage and expected Household Energy Usage.
+To find the financially **Optimal** Energy Management **Strategy** for charging, discharging and solar production,
+it looks at dynamic electricity prices, solar forecasts, battery storage and expected household energy usage.
 
 For **each step** (of an hour or 15 minutes) it will determine the best **Battery Strategy
 (Sell/Discharge Charge/Buy, Charge PV, Self-consumption, Zero import or Standby).
@@ -15,18 +15,23 @@ efficiency of battery charging and discharging, prediction of the solar producti
 It calculates for each step the costs for import, export and battery discharging and searchs very quickly
 for a solution with the minimum total cost for all steps while respecting all restrictions specified.
 A typical optimization period/horizon is from the current time today to the end of the day tomorrow.
-The Helios Optimizer will run again every 15 minutes so that it adapts automatically to changing circumstances.
+The Helios Optimizer will run again every 15 minutes so that it adapts automatically to changing circumstances 
+(e.g. battery SoC, actual house usage and solar production).
 
-Two Graphs are provided that show an insight in the selected strategies per step, the battery state of charge and the power usage.
-Use the documentation links above each section to get more details about the inputs and results.
+Two **graphs** are provided that give an insight in the selected strategies per step, the battery state of charge and the power usage.
+Use the documentation **links** above each section to get more details (as described below) about the inputs and results.
 
-An **important observation** is that Helios Optimizer calculates an Energy Plan but does **not** directly interface with your devices!
-It does provide an interface with Home Battery Control (HBC) and includes a Node-Red Helios Strategy Flow to connect
+An **important observation** is that Helios Optimizer calculates an Energy Plan 
+but does **not** directly interface with your devices (Batteries and Solar Invertors)!
+It does provide an interface with **Home Battery Control (HBC)*** and includes a Node-Red Helios Strategy Flow to connect
 the Helios Energy Plan with the HBC Battery Management. So all rules that you define in HBC 
-(e.g. SoC Min/Max, Max Power, Peak shaving, Battery Balancing) will still apply.
+(e.g. SoC Min/Max, Max Power, Peak shaving, Battery Balancing) will still be followed.
 The NR Helios Strategy will just read the Helios Strategy and will activate the related HBC Sub-Strategy.
-Please be aware that due to a restriction in HBC the Charging and Discharging in HBC is always at maximum power
+Please be aware that due to a restriction in HBC the charging and discharging in HBC is always at maximum power
 which may not always be equal to the optimal power level calculated by Helios Optimizer.
+Initially the Battery parameters for Maximum Power and SoC Minimum and Maximum will be copied 
+from HBC but it you change these afterward you need to adapt the Helios Input parameters aswell.
+Battery SoC and Capacity (Maximum Energy) will be automatically taken from HBC settings.
 
 The optimization is based on a **Mathematical Model** and uses **Linear Programming** to determine the **Optimal Energy Plan**. 
 The Model uses **SciPy**, a Python Scientific Computing Library, to solve the linear programming calculations.
