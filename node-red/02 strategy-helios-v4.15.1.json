@@ -46,7 +46,7 @@
         "id": "43b2231179655cd6",
         "type": "group",
         "z": "7c7d18610e7fbc38",
-        "name": "Plan",
+        "name": "Plan Determine Strategy (Every 15 min or for User Changes/Helios Input) or Clear and Refresh Price Cache and Plan (4x a Day or for Data Source Change)",
         "style": {
             "label": true
         },
@@ -62,7 +62,7 @@
         "x": 328,
         "y": 253,
         "w": 1404,
-        "h": 954
+        "h": 974
     },
     {
         "id": "bbeaa10971d1b115",
@@ -82,7 +82,7 @@
             "648b4d73fc95b99a",
             "2fa62d4638fba7d8"
         ],
-        "x": 314,
+        "x": 334,
         "y": 1239,
         "w": 1052,
         "h": 162
@@ -102,7 +102,7 @@
             "acdd3f9f2262cf24",
             "4465567bbfefb97b"
         ],
-        "x": 314,
+        "x": 334,
         "y": 1419,
         "w": 812,
         "h": 142
@@ -128,11 +128,33 @@
         "h": 82
     },
     {
+        "id": "ca04767b3c1abf5f",
+        "type": "group",
+        "z": "7c7d18610e7fbc38",
+        "name": "Execute (Every Change in P1 meter)",
+        "style": {
+            "label": true
+        },
+        "nodes": [
+            "8588071adf31f756",
+            "2d1d3d7204120630",
+            "2d799e9e070f2216",
+            "8f39226f89ebc18e",
+            "dd76713daf38a475",
+            "bcd7d433ce9eec53",
+            "b969830e0c08f466"
+        ],
+        "x": 334,
+        "y": 39,
+        "w": 1132,
+        "h": 182
+    },
+    {
         "id": "455457d601631b06",
         "type": "group",
         "z": "7c7d18610e7fbc38",
         "g": "43b2231179655cd6",
-        "name": "API call to Data Source (Only when Cache Check NoK)",
+        "name": "API Call to Data Source to Refresh Cache (Only when Cache has been Cleared / Cache Check NoK)",
         "style": {
             "label": true
         },
@@ -150,7 +172,7 @@
             "2c848d9cfc4c474e"
         ],
         "x": 354,
-        "y": 599,
+        "y": 619,
         "w": 672,
         "h": 262
     },
@@ -159,7 +181,7 @@
         "type": "group",
         "z": "7c7d18610e7fbc38",
         "g": "43b2231179655cd6",
-        "name": "Determine strategy (From API or Directly from Cache Check ok)",
+        "name": "Determine strategy (From API Call to Data Source or Directly from Planning)",
         "style": {
             "label": true
         },
@@ -179,9 +201,10 @@
             "e67befb9db793789"
         ],
         "x": 354,
-        "y": 879,
+        "y": 899,
         "w": 1192,
-        "h": 302
+        "h": 302,
+        "info": "Note: Both HBC Dynamic Strategy and Helios Optimizer Strategy are handled in this group.\r\nHBC Dynamic strategy is determined (like in the regular dynamic flow) and is applied to the HBC Price Data and visible on the HBC Dashboard.\r\nHelios Sub Strategy is retrieved from the Helios Entities (HBC Sub Strategy and Net Power).\r\nThe Optimized Energy Plan (including the Strategy per step) is not visible on the HBC Dashboard but only on the Helios Dashboard.\r\nHBC will execute the Helios Sub Strategy and ignore the Dynamic Sub Strategy!"
     },
     {
         "id": "6ad508f885c29506",
@@ -212,42 +235,22 @@
             "d547dc9c9c8ccc38",
             "5e42353d21cab84e",
             "2ed024b0a20c8c25",
-            "f69f641d7fa34af8"
+            "f69f641d7fa34af8",
+            "ce4f00b01bd4d565",
+            "3bb7340754a82325"
         ],
         "x": 354,
         "y": 279,
         "w": 1352,
-        "h": 302
-    },
-    {
-        "id": "ca04767b3c1abf5f",
-        "type": "group",
-        "z": "7c7d18610e7fbc38",
-        "name": "Execute",
-        "style": {
-            "label": true
-        },
-        "nodes": [
-            "8588071adf31f756",
-            "2d1d3d7204120630",
-            "2d799e9e070f2216",
-            "8f39226f89ebc18e",
-            "dd76713daf38a475",
-            "bcd7d433ce9eec53",
-            "b969830e0c08f466"
-        ],
-        "x": 314,
-        "y": 39,
-        "w": 1132,
-        "h": 182
+        "h": 322
     },
     {
         "id": "89bc37c83611b5d1",
         "type": "junction",
         "z": "7c7d18610e7fbc38",
         "g": "6ad508f885c29506",
-        "x": 580,
-        "y": 360,
+        "x": 560,
+        "y": 340,
         "wires": [
             [
                 "d547dc9c9c8ccc38"
@@ -425,7 +428,7 @@
         "finalize": "",
         "libs": [],
         "x": 480,
-        "y": 700,
+        "y": 720,
         "wires": [
             [
                 "27885600b284b2a9"
@@ -446,7 +449,7 @@
         "finalize": "",
         "libs": [],
         "x": 710,
-        "y": 700,
+        "y": 720,
         "wires": [
             [
                 "e83770180cc0e7c0",
@@ -473,7 +476,7 @@
         "to": "",
         "reg": false,
         "x": 440,
-        "y": 820,
+        "y": 840,
         "wires": [
             [
                 "45b8882f935281f4"
@@ -494,7 +497,7 @@
         "finalize": "",
         "libs": [],
         "x": 610,
-        "y": 820,
+        "y": 840,
         "wires": [
             [
                 "0d58bb30dcdf3cca"
@@ -511,7 +514,7 @@
             "327b4d8deecc1e5c"
         ],
         "x": 395,
-        "y": 640,
+        "y": 660,
         "wires": [
             [
                 "bdf9130048912c94"
@@ -529,7 +532,7 @@
             "e998d825de7b9b6a"
         ],
         "x": 745,
-        "y": 820,
+        "y": 840,
         "wires": []
     },
     {
@@ -546,7 +549,7 @@
         "templateLocation": "",
         "templateLocationType": "none",
         "x": 550,
-        "y": 760,
+        "y": 780,
         "wires": [
             [
                 "309335bdd4765bc5"
@@ -563,7 +566,7 @@
         "action": "obj",
         "pretty": false,
         "x": 655,
-        "y": 760,
+        "y": 780,
         "wires": [
             [
                 "2c848d9cfc4c474e"
@@ -592,7 +595,7 @@
         "to": "",
         "reg": false,
         "x": 430,
-        "y": 760,
+        "y": 780,
         "wires": [
             [
                 "57f2e90661838672"
@@ -614,7 +617,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 910,
-        "y": 700,
+        "y": 720,
         "wires": []
     },
     {
@@ -631,7 +634,7 @@
         "finalize": "",
         "libs": [],
         "x": 790,
-        "y": 760,
+        "y": 780,
         "wires": [
             [
                 "592d01b6531643ac"
@@ -653,7 +656,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 1330,
-        "y": 1060,
+        "y": 1080,
         "wires": []
     },
     {
@@ -670,7 +673,7 @@
         "finalize": "",
         "libs": [],
         "x": 1080,
-        "y": 1060,
+        "y": 1080,
         "wires": [
             [
                 "f9337ed990eece76",
@@ -694,7 +697,7 @@
         "statusVal": "",
         "statusType": "auto",
         "x": 1370,
-        "y": 1120,
+        "y": 1140,
         "wires": []
     },
     {
@@ -741,7 +744,7 @@
         "entity_location": "data",
         "override_data": "msg",
         "x": 480,
-        "y": 1000,
+        "y": 1020,
         "wires": [
             [
                 "431a5aba9b580f5b"
@@ -792,7 +795,7 @@
         "entity_location": "data",
         "override_data": "msg",
         "x": 470,
-        "y": 1060,
+        "y": 1080,
         "wires": [
             [
                 "668fdd2e526b1647"
@@ -843,7 +846,7 @@
         "entity_location": "data",
         "override_data": "msg",
         "x": 470,
-        "y": 1140,
+        "y": 1160,
         "wires": [
             [
                 "a0e244296b6453fc"
@@ -861,7 +864,7 @@
             "839285e34e8ec3cd"
         ],
         "x": 425,
-        "y": 940,
+        "y": 960,
         "wires": [
             [
                 "229a341a143af203"
@@ -880,7 +883,7 @@
         "data": "msg.dynamic.data_all",
         "dataType": "jsonata",
         "x": 1340,
-        "y": 980,
+        "y": 1000,
         "wires": [
             []
         ]
@@ -929,7 +932,7 @@
         "entity_location": "data",
         "override_data": "msg",
         "x": 760,
-        "y": 1000,
+        "y": 1020,
         "wires": [
             [
                 "2b68a22ed34f3085"
@@ -980,7 +983,7 @@
         "entity_location": "data",
         "override_data": "msg",
         "x": 760,
-        "y": 1080,
+        "y": 1100,
         "wires": [
             [
                 "ba05b99e7bd7c1d4"
@@ -1031,7 +1034,7 @@
         "entity_location": "data",
         "override_data": "msg",
         "x": 840,
-        "y": 1140,
+        "y": 1160,
         "wires": [
             [
                 "9af1cc364bcfa0b5"
@@ -1051,7 +1054,7 @@
         "resultsLocationType": "msg",
         "templateLocation": "",
         "templateLocationType": "none",
-        "x": 620,
+        "x": 640,
         "y": 1280,
         "wires": [
             [
@@ -1081,7 +1084,7 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 410,
+        "x": 430,
         "y": 1280,
         "wires": [
             [
@@ -1098,7 +1101,7 @@
         "property": "cheapest",
         "action": "obj",
         "pretty": false,
-        "x": 805,
+        "x": 825,
         "y": 1280,
         "wires": [
             [
@@ -1120,7 +1123,7 @@
         "resultsLocationType": "msg",
         "templateLocation": "",
         "templateLocationType": "none",
-        "x": 930,
+        "x": 950,
         "y": 1280,
         "wires": [
             [
@@ -1137,7 +1140,7 @@
         "property": "expensive",
         "action": "obj",
         "pretty": false,
-        "x": 1065,
+        "x": 1085,
         "y": 1280,
         "wires": [
             [
@@ -1162,7 +1165,7 @@
         "targetType": "msg",
         "statusVal": "cheapest.start",
         "statusType": "auto",
-        "x": 1210,
+        "x": 1230,
         "y": 1320,
         "wires": []
     },
@@ -1180,7 +1183,7 @@
         "targetType": "msg",
         "statusVal": "payload",
         "statusType": "auto",
-        "x": 1230,
+        "x": 1250,
         "y": 1360,
         "wires": []
     },
@@ -1198,7 +1201,7 @@
         "targetType": "full",
         "statusVal": "",
         "statusType": "auto",
-        "x": 1240,
+        "x": 1260,
         "y": 1280,
         "wires": []
     },
@@ -1215,7 +1218,7 @@
         "resultsLocationType": "msg",
         "templateLocation": "",
         "templateLocationType": "none",
-        "x": 590,
+        "x": 610,
         "y": 1480,
         "wires": [
             [
@@ -1245,7 +1248,7 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 410,
+        "x": 430,
         "y": 1480,
         "wires": [
             [
@@ -1262,7 +1265,7 @@
         "property": "all_data",
         "action": "obj",
         "pretty": false,
-        "x": 765,
+        "x": 785,
         "y": 1480,
         "wires": [
             [
@@ -1286,7 +1289,7 @@
         "targetType": "msg",
         "statusVal": "",
         "statusType": "auto",
-        "x": 940,
+        "x": 960,
         "y": 1460,
         "wires": []
     },
@@ -1301,7 +1304,7 @@
         "event": "update_energy_prices",
         "data": "msg.all_data",
         "dataType": "jsonata",
-        "x": 980,
+        "x": 1000,
         "y": 1520,
         "wires": [
             []
@@ -1402,7 +1405,7 @@
         "entity_location": "data",
         "override_data": "msg",
         "x": 580,
-        "y": 920,
+        "y": 940,
         "wires": [
             [
                 "e67befb9db793789"
@@ -1453,7 +1456,7 @@
         "entity_location": "data",
         "override_data": "msg",
         "x": 830,
-        "y": 920,
+        "y": 940,
         "wires": [
             [
                 "d9690de733e25ec9"
@@ -1483,7 +1486,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 460,
-        "y": 460,
+        "y": 540,
         "wires": [
             [
                 "6561fd3855c43f10"
@@ -1509,7 +1512,7 @@
         "allowrate": false,
         "outputs": 1,
         "x": 700,
-        "y": 480,
+        "y": 500,
         "wires": [
             [
                 "807afb6704615453"
@@ -1610,7 +1613,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1010,
+        "x": 970,
         "y": 380,
         "wires": [
             [
@@ -1623,7 +1626,7 @@
         "type": "server-state-changed",
         "z": "7c7d18610e7fbc38",
         "g": "6ad508f885c29506",
-        "name": "User input",
+        "name": "User Changes",
         "server": "176d29a.6f648d6",
         "version": 6,
         "outputs": 1,
@@ -1673,7 +1676,7 @@
                 "valueType": "triggerId"
             }
         ],
-        "x": 440,
+        "x": 450,
         "y": 320,
         "wires": [
             [
@@ -1830,7 +1833,7 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 890,
+        "x": 910,
         "y": 500,
         "wires": [
             [
@@ -1860,8 +1863,8 @@
         "topic": "",
         "payload": "",
         "payloadType": "date",
-        "x": 490,
-        "y": 540,
+        "x": 610,
+        "y": 560,
         "wires": [
             [
                 "2c9786aa94eb9334"
@@ -1901,8 +1904,8 @@
         "blockInputOverrides": true,
         "domain": "input_boolean",
         "service": "turn_on",
-        "x": 730,
-        "y": 540,
+        "x": 770,
+        "y": 560,
         "wires": [
             [
                 "807afb6704615453"
@@ -1946,7 +1949,7 @@
         "override_payload": "msg",
         "entity_location": "data",
         "override_data": "msg",
-        "x": 840,
+        "x": 800,
         "y": 380,
         "wires": [
             [
@@ -1977,7 +1980,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 460,
-        "y": 420,
+        "y": 500,
         "wires": [
             [
                 "6561fd3855c43f10"
@@ -2007,7 +2010,7 @@
         "payload": "",
         "payloadType": "date",
         "x": 460,
-        "y": 500,
+        "y": 460,
         "wires": [
             [
                 "6561fd3855c43f10"
@@ -2066,7 +2069,7 @@
                 "valueType": "triggerId"
             }
         ],
-        "x": 700,
+        "x": 720,
         "y": 320,
         "wires": [
             [
@@ -2094,7 +2097,7 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 590,
+        "x": 610,
         "y": 180,
         "wires": [
             [
@@ -2111,7 +2114,7 @@
         "links": [],
         "linkType": "dynamic",
         "timeout": "3",
-        "x": 1350,
+        "x": 1370,
         "y": 160,
         "wires": [
             [
@@ -2124,7 +2127,7 @@
         "type": "switch",
         "z": "7c7d18610e7fbc38",
         "g": "ca04767b3c1abf5f",
-        "name": "Has strategy",
+        "name": "Has strategy (not null and not unknown)",
         "property": "dynamic_strategy",
         "propertyType": "flow",
         "rules": [
@@ -2132,15 +2135,23 @@
                 "t": "null"
             },
             {
+                "t": "eq",
+                "v": "unknown",
+                "vt": "str"
+            },
+            {
                 "t": "else"
             }
         ],
         "checkall": "true",
         "repair": false,
-        "outputs": 2,
-        "x": 410,
-        "y": 160,
+        "outputs": 3,
+        "x": 520,
+        "y": 100,
         "wires": [
+            [
+                "8f39226f89ebc18e"
+            ],
             [
                 "8f39226f89ebc18e"
             ],
@@ -2169,8 +2180,8 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 590,
-        "y": 100,
+        "x": 790,
+        "y": 80,
         "wires": [
             [
                 "dd76713daf38a475"
@@ -2183,14 +2194,14 @@
         "z": "7c7d18610e7fbc38",
         "g": "ca04767b3c1abf5f",
         "name": "Selected Sub Strategy and Power",
-        "func": "// Logger\nconst log = global.get(\"logger\");\n\nlet extraText = 'Power is <b>not</b> applicable for HBC';\nif (msg.target === 'Sell') {\n    extraText = 'HBC will discharge with <b>max. power</b>';\n} else if (msg.target === 'Charge') {\n    extraText = 'HBC will charge <b>max. power</b>';\n} \nlog(this, `HBC Sub-strategy <b>${msg.target}</b> with <b>${msg.power} Watt</b> by Helios (${extraText})`);\n\n// Status\n// For example: msg.target = 'Discharge' (in node: 'Set strategy') and msg.power = 500 (in extra node: 'Set Power')\n// msg.power is not a HBC field it is just ignored by the 'Home Battery Start' flow.\n// Sending target is 'Sell' or 'Charge' works but starts charging or discharging at maximum power\nnode.status({fill:\"green\",shape:\"dot\",text:`${msg.target} with ${msg.power}W`});\n\n// // return msg with solution (directly target the batteries, works but not desired since this is skipping HBC controls):\n// let solution_array = [];\n// solution_array.push({id:\"M1\", mode: 'discharge', power: msg.power}); // per battery\n// solution_array.push({id:\"M2\", mode: 'discharge', power: msg.power}); // per battery\n// msg.solutions = solution_array;\n\nreturn msg; // Return the sub-strategy in msg.target (and msg.power which is not known by HBC)",
+        "func": "// Logger\nconst log = global.get(\"logger\");\n\nlet extraText = 'Power is <b>not</b> applicable for HBC';\nif (msg.target === 'Sell') {\n    extraText = 'HBC will discharge with <b>max. power</b>';\n} else if (msg.target === 'Charge') {\n    extraText = 'HBC will charge <b>max. power</b>';\n} \nlog(this, `HBC Sub-strategy <b>${msg.target}</b> with <b>${msg.power} Watt</b> by Helios (${extraText})`);\n\n// Status\n// For example: msg.target = 'Discharge' (in node: 'Set strategy') and msg.power = 500 (in extra node: 'Set Power')\n// msg.power is not a HBC field it is just ignored by the 'Home Battery Start' flow.\n// Sending target is 'Sell' or 'Charge' works but starts charging or discharging at maximum power\nnode.status({fill:\"green\",shape:\"dot\",text:`${msg.target} with ${msg.power}W`});\n\n// // return msg with solution (directly target the batteries, works but not desired since this is skipping HBC controls):\n// let solution_array = [];\n// solution_array.push({id:\"M1\", mode: 'discharge', power: msg.power}); // per battery\n// solution_array.push({id:\"M2\", mode: 'discharge', power: msg.power}); // per battery\n// msg.solutions = solution_array;\n\nreturn msg; // Return the sub-strategy in msg.target (and msg.power which is not recognized by HBC)",
         "outputs": 1,
         "timeout": 0,
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 1080,
+        "x": 1100,
         "y": 160,
         "wires": [
             [
@@ -2219,7 +2230,7 @@
         "from": "",
         "to": "",
         "reg": false,
-        "x": 770,
+        "x": 790,
         "y": 180,
         "wires": [
             [
@@ -2239,11 +2250,100 @@
         "tostatus": true,
         "complete": "true",
         "targetType": "full",
-        "statusVal": "payload",
-        "statusType": "auto",
-        "x": 1070,
+        "statusVal": "target",
+        "statusType": "msg",
+        "x": 1330,
         "y": 80,
         "wires": []
+    },
+    {
+        "id": "ce4f00b01bd4d565",
+        "type": "inject",
+        "z": "7c7d18610e7fbc38",
+        "g": "6ad508f885c29506",
+        "name": "At 14:00",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "00 14 * * *",
+        "once": false,
+        "onceDelay": "3",
+        "topic": "",
+        "payload": "",
+        "payloadType": "date",
+        "x": 460,
+        "y": 520,
+        "wires": [
+            [
+                "6561fd3855c43f10"
+            ]
+        ]
+    },
+    {
+        "id": "3bb7340754a82325",
+        "type": "server-state-changed",
+        "z": "7c7d18610e7fbc38",
+        "g": "6ad508f885c29506",
+        "name": "Data Src Changed",
+        "server": "176d29a.6f648d6",
+        "version": 6,
+        "outputs": 1,
+        "exposeAsEntityConfig": "",
+        "entities": {
+            "entity": [
+                "input_select.house_battery_strategy_dynamic_data_source"
+            ],
+            "substring": [],
+            "regex": []
+        },
+        "outputInitially": false,
+        "stateType": "str",
+        "ifState": "",
+        "ifStateType": "str",
+        "ifStateOperator": "is",
+        "outputOnlyOnStateChange": true,
+        "for": "0",
+        "forType": "num",
+        "forUnits": "minutes",
+        "ignorePrevStateNull": false,
+        "ignorePrevStateUnknown": false,
+        "ignorePrevStateUnavailable": false,
+        "ignoreCurrentStateUnknown": false,
+        "ignoreCurrentStateUnavailable": false,
+        "outputProperties": [
+            {
+                "property": "payload",
+                "propertyType": "msg",
+                "value": "string",
+                "valueType": "entityState"
+            },
+            {
+                "property": "data",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "eventData"
+            },
+            {
+                "property": "topic",
+                "propertyType": "msg",
+                "value": "",
+                "valueType": "triggerId"
+            }
+        ],
+        "x": 470,
+        "y": 420,
+        "wires": [
+            [
+                "6561fd3855c43f10"
+            ]
+        ]
     },
     {
         "id": "176d29a.6f648d6",
@@ -2260,11 +2360,11 @@
         "enableGlobalContextStore": false
     },
     {
-        "id": "4e4bfb5defca1286",
+        "id": "bbb91f1e037a93f8",
         "type": "global-config",
         "env": [],
         "modules": {
-            "node-red-contrib-home-assistant-websocket": "0.81.0"
+            "node-red-contrib-home-assistant-websocket": "0.82.0"
         }
     }
 ]

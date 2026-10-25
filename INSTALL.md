@@ -4,6 +4,11 @@
 ## Installation
 - **Prerequisites for Helios Optimizer:**
   - HACS installation on your Home Assistant System
+  - Home Battery Control (HBC) installation with an 'active' dynamic price datasource
+    <br>Helios retrieves the dynamic import prices from HBC and uses it to calculate the related market and export prices.
+    <br>Only when a dynamic price strategy (Dynamic or Helios) is 'active' the HBC Price Data will be refreshed!
+  - Forecast.Solar Integration Installation and Configuration 
+    <br>WARNING: Currently ONLY Forecast.Solar is supported as a Solar Forecast!
   - File Editor (or Samba) via HACS: to create folders and upload files
   - PyScript installation via HACS with imports and hass access enabled:
     - Integrations: Pyscript Python scripting - pyscript - [Configurate]
@@ -28,10 +33,12 @@
 ```
   - [HomeAssistant]                     - Already exist for your HA installation (sometimes called: [config]):
   !    [packages]
+  -       house_battery_control.yaml    - Home Battery Control (HBC) package file (must already exist, Helios Strategy will be added)
   V       helios_optimizer.yaml         - Helios Templates, Input Numbers and Selects
-  V       helios_optimizer_config.yaml  - forecast.solar REST API <== configure with your location and solar panels
+  -       helios_optimizer_config.yaml  - forecast.solar REST API and Template <== This file is not needed any more !!!!
   !    [pyscript]
-  V       helios_services.py            - Helios Services file which defines the Helios Services for HA using PyScript
+  V       helios_services.py            - Helios Services file which defines the Helios Optimizer Services 
+  V       helios_forecast.py            - Helios Forecast file which retrieves the Helios Solar Forecast from the Forecast.Solar Integration
   !       [helios_python]
   V          helios_optimizer.py        - Optimizer with the Calculation of the Energy Plan (Pure Python functions)
   V          helios_common.py           - Common Python functions for Helios Optimizer
@@ -80,6 +87,39 @@
   - Alternative for adding to the **HBC** Dashboard: Copy/Paste the content **at the bottom** of the HBC Dashboard yaml 
     but **exclude** the line with 'views:' since it is already at the top of the HBC dashboard!
   - [Save] the Dashboard yaml
+
+- **HBC Helios Strategy:** Add the Helios Strategy to Home Battery Control
+  - Select "Node-RED"in the HA Sidebar
+  - In the Node-RED Menu (right top) - Select "Import"
+  - Press "Select a file to import" 
+  - Goto the Helios download folder "node-red" and select "02 strategy-helios.json" and press [Open]
+  - Select "new flow" (or "current flow" when your updating) and press [Import] 
+  - If you get a message: "Some of the nodes you are importing already exist in your workspace"
+    - Press [View nodes..]
+    - Flows:
+      ```
+      V > Strategy Helios v4.15.1
+      _   Home Assistant  ! _ replace
+      ```
+    - Do **NOT** change the selections/checks (leave Strategy Helios selected and leave Home Assistant NOT selected)  
+      <br>Your existing Home Assistant server connection will be automatically used by the helios nodes.
+    - Press [Import Selected]
+  - Press [Deploy] 
+  - Add Helios to the House Battery Strategy entity
+    - Use the File Editor in Home Assistant
+    - Open the folder:  "packages"
+    - Open the file: "house_battery_control.yaml"
+    - Search for "house_battery_strategy:"
+    - Add an extra option to the existing options:
+      - Helios # Requires a dynamic tariff contract, the Cheapest Hours HACS add-on and the Helios Optimizer Installation
+    - [Save] the file "house_battery_control.yaml"
+    - Refresh the "input selects" (in Settings -> Tools - YAML) or Restart Home Assistant
+  - Select the Helios Strategy in HBC
+    - Goto the HBC Home Page
+    - Under "Master Battery Control" - "Choose strategy" - Select "Helios" from the dropdown
+  - Select "Node-RED"in the HA Sidebar
+  - Select "Strategy Helios v4.15.1"
+  - There should now be activity under the Nodes
   
 - **Helios Optimizer Automation:** Create a new Automation that runs the Helios Optimizer
   - Home Assistant - Settings (Instellingen) - Automations - [Add Automation] from scratch
@@ -95,7 +135,8 @@
   - This automation will now run every 15 minutes and we notify you when an error occurs (see Notificaton menu item)
 
 - **Solar Forecast Configuration:** Adapt the configuration for your location
-  - Edit the helios_optimizer_config.yaml in folder packages (see above)
+  - **VERY IMPORTANT:** This step is optional and NOT NEEDED when you already have installed and configured the Forecast.Solar Integration!
+  - Edit the helios_optimizer_forecast.yaml in folder packages (see above)
   - Adapt the REST API Definition for forecast.solar with your location and setup
   - The example configuration is defined for a setup in Amsterdam with 20 panels and needs to be adapted to your own situation:
   - To configure your own forecast you need the following info:
