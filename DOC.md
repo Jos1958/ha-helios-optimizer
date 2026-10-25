@@ -164,22 +164,15 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>Remark: Round Trip Efficiency (RTE) is Charge Efficiency * Discharge Efficiency (e.g. 0.81 = 0.9 x 0.9)
 
 ### Derived Parameters
-The parameters in this section are retrieved from HBC or Helios and cannot be changed by the user.
+The parameters in this section are retrieved from Helios and cannot be changed by the user.
 They are displayed only for validation purposes:
 - **Helios Version:** Latest installed version of Helios
 
-The following parameters should represent the (total) values for **all** HBC batteries and calculated based on HBC Marstek Entities using Helios Templates:
-- **Maximum Energy (All Batteries):** Total Energy that can be stored in the HBC Batteries (Sum of all batteries)
+The following parameters should represent the (total) values for **all** HBC batteries and calculated based on HBC Marstek Entities using Helios Templates.
+They are used as input for the Helios Optimizer:
+- **Maximum Energy (All Batteries):** Total Energy that can be stored in the HBC Batteries (Sum of all batteries), input for Helios
 - **Remaining Energy (All):** Remaining Energy in the HBC Batteries (Sum of all batteries)
-- **Total SOC (All):** State of Charge for all of the HBC Batteries (Remaining Energy / Maximum Energy)
-- **Max Charge Power (All):** Maximum Charge Power (Sum of Max Charge Power per Battery)
-- **Max Discharge Power (All):** Maximum Discharge Power (Sum of Max Discharge Power per Battery)
-- **HBC Sell Target SOC%:** Overall Target State of Charge when discharging the batteries
-- **HBC Charge Target SOC%:** Overall Target State of Charge when charging the batteries 
-
-The Maximum and Remaining Energy and the derived Total SOC parameters are used as input for the Helios Optimizer. 
-<br>The Max Charge/Discharge and Target SOC-s are **copied** to the Helios Battery Parameters at installation time.
-<br>**Warning:** When these fields are updated in HBC after installation of Helios they will **NOT** be copied again to the Helios Battery Parameters
+- **Total SOC (All):** State of Charge for all of the HBC Batteries (Remaining Energy / Maximum Energy), input for Helios
 
 At the bottom of this section are two Helios Entities for HBC which are **derived** from the Helios Optimal Energy Plan and are used by the Helios Strategy in HBC:
 - **HBC Sub Strategy by Helios:** The current Sub Strategy as calculated by Helios for HBC
@@ -190,6 +183,20 @@ The Helios Strategy Flow in HBC will pickup these field and makes them available
 The Home Battery Start flow will call this executor (in Call "Link in" node) and will further process the selected Sub-Strategy.
 The Net Power value is provided to HBC with a value calculated by Helios (for Charge/Buy and Discharge/Sell) but HBC can only charging and discharge at maximum power. 
 For the other Sub-Strategies (e.g. Self-consumption, Zero import, Standby / peak shave and Charge PV) the Net Power value is not applicable/needed.
+
+### HBC Settings
+The parameters in this section are configured in or calculated by HBC and cannot be changed here.
+Since they are already compensated for the required minimum and maximum state of charge they cannot be used by Helios.
+- **Battery Count**: Number of Batteries available in HBC
+- **Max Available Energy**: Maximum Available Energy (Capacity minus minimum), not used by Helios
+- **Available Energy**: Current Available Energy (Remaining minus minimum), not used by Helios
+
+<br>The Max Charge/Discharge and Target SOC-s are **copied** to the Helios Battery Parameters at installation time.
+<br>**Warning:** When these fields are updated in HBC after installation of Helios they will **NOT** be copied again to the Helios Battery Parameters!
+- **Max Charge Power (All):** Maximum Charge Power (Sum of Max Charge Power per Battery)
+- **Max Discharge Power (All):** Maximum Discharge Power (Sum of Max Discharge Power per Battery)
+- **HBC Sell Target SOC%:** Overall Target State of Charge when discharging the batteries
+- **HBC Charge Target SOC%:** Overall Target State of Charge when charging the batteries 
 
 ## Output
 
@@ -245,8 +252,21 @@ Warning: Occasionally the browser page content with the Helios Energy Plan Graph
 ### Optimization State
 **TODO:**
 
-### Actuals for the Current Step
-**TODO:**
+### Actuals for Current Step
+- **Active Step:** Current Step Number (1..N) based on Current Time which is at or after the start of the current step but before the start of the next step.
+- **Step Start Time:** Start time of the current step.
+- **Per Component:** State and Power for the current step.
+  - **Helios Strategy:** Current Strategy as calculated by the Helios Optimizer.
+  - **HBC Sub Strategy:** Current HBC Sub-Strategy derived from the Helios Strategy.
+  - **Net Battery:** Charge or Discharge or Standby, Net Battery Power (Charge - Discharge)
+  - **Grid Power:** Import or Export or NOM, Net Grid Power (Import - Export)
+  - **Solar Production:** Active or Standby, Solar Inverter Production Power
+  - **House Usage:** Active or Standby, House Demand Power 
+  
+  - **Charge Limit:** Active or Disabled, Maximum Battery Charge Power (step independent)
+  - **Discharge Limit:** Active or Disabled, Maximum Battery Discharge Power (step independent)
+  - **Max Grid Import:** Active or Off-Grid, Maximum Grid Import Power (step independent)
+  - **Max Grid Export:** Active or Disabled, Maximum Grid Export Power (step independent)
 
 ### Solar and Battery Information
 **TODO:**

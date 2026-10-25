@@ -24,9 +24,11 @@
 - **Download and Copy the Helios Optimizer files:**
   - Download on [GitHub](https://github.com/Jos1958/ha-helios-optimizer/releases/tag/0.9.0)
   - Unpack the ha-helios-optimizer-0.9.0.zip file 
-  - Use the File Editor or Samba to copy the following files (with a **V**) to Home Assistant installation.
-  - Create the folders (with a **!**) when they do not exist: packages, pyscript, helios_python (sub-folder), export and www
-  - Remark: The Dashboard and Automation files are only templates for your HA dashboard and automation and do not need to be copied!
+  - Use the File or Samba to create folders and copy files:
+    - Create the folders (with a **!**) on your HA installation when they do not yet exist: 
+<br>  [packages], [pyscript], [helios_python] (sub-folder of [pyscript]), [www] and [export]
+    - Copy the applicable files (with a **V**) to your HA installation.
+  - Remark: Do not copy the Node-Red and Dashboard files (see below for instructions)
 
   - File Structure on GitHub:
 
@@ -57,7 +59,7 @@
   -    helios_dashboard.yaml           - contains the helios dashboard
 ```
 
-- Check the **configuration.yaml:** Include packages and allow external dirs
+- **Check the configuration.yaml:** Include packages and allow external dirs
 <br>Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
 <br>Helios will write output files (for debugging and testing purposes) to the export folder (not sure if this configuration is needed for pyscript).
 ```
@@ -67,7 +69,7 @@
       - /config/export    
 ```
 
-- **Helios Optimizer Dashboard:** Create a **New** or **Add to** the **HBC** Dashboard
+- **Helios Optimizer Dashboard:** Create a **New** Dashboard or **Add to** the **HBC** Dashboard
   - Create a **New** Dashboard:
     - Home Assistant - Settings (Instellingen) - Dashboards - [Add Dashboard] empty dashboard
     - Specify:
@@ -86,7 +88,7 @@
     but **exclude** the line with 'views:' since it is already at the top of the HBC dashboard!
   - [Save] the Dashboard yaml
 
-- **HBC Helios Strategy:** Add the Helios Strategy
+- **Helios Strategy for HBC:** Add the Helios Strategy to the HBC Strategies
   - Create a new Node-RED flow for Helios Strategy:
     - Select "Node-RED"in the HA Sidebar
     - In the Node-RED Menu (right top) - Select "Import"
@@ -115,14 +117,14 @@
       - Helios # Requires a dynamic tariff contract, the Cheapest Hours HACS add-on and the Helios Optimizer Installation
     - [Save] the file "house_battery_control.yaml"
 
-- Restart you Home Assistant after these changes  
+- **Restart** Home Assistant
 
-- Select the Helios Strategy in HBC
+- **Select the Helios Strategy** in **HBC**
   - Goto the HBC Home Page
   - Under "Master Battery Control" - "Choose strategy" - Select "Helios" from the dropdown
 
-- Check the Helios Optimizer Dashboard (within 10s after restart the automation should run).
-- Adapt the Optimization Parameters and the Battery Parameters to your needs
+- **Check the Helios Optimizer Dashboard** (within 10s after restart the automation should run)
+- **Adapt the Optimization Parameters and the Battery Parameters**
   - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
     <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
     <br>Use only a specifiy start step for simulation/test runs!
@@ -134,13 +136,14 @@
   - Battery SOC Min and Max (e.g. 10% and 90%, depending on your battery requirements)
   - Battery Charge and Discharge Limit (e.g. 1.2kWh, total limit, depending on your battery configuration)
   - Battery Charge and Discharge Efficiency (2x 0.9 for a RTE of 81%)
-- Rerun the automation using the green button ("Start Helios Optimizer Task")
+  
+- **Run Helios Optimizer** using the green button ("Start Helios Optimizer Task")
 - The button will turn yellow (at least 1 sec) while the Helios Optimizer is running
 - Check out the results in the Results Overview and the Optimized Energy Plan (as a Graph and as a Table)
   <br>Especially check the 'Result' and the 'Solver Status' boxes on the Results Overview!
   <br>The 'Solver Status' will display an error/exception message if the Optimizer failed.
   <br>Refresh the browser page (Ctrl-F5) if the graph is not yet displayed.
-- The Current Values (for the Active Step) can be found in the 'Actuals' section
+- The *Current* Values (for the Active Step) can be found in the 'Actuals' section
 
 - **Important Remark:** Only when you select the **Helios** or the **Dynamic** Strategy in **HBC** the HBC Price Data will be generated.
 <br>Helios will still run with other strategies selected in HBC but will have no (recent) price data available.
