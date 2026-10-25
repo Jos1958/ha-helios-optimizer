@@ -168,13 +168,13 @@ The parameters in this section are retrieved from Helios and cannot be changed b
 They are displayed only for validation purposes:
 - **Helios Version:** Latest installed version of Helios
 
-The following parameters should represent the (total) values for **all** HBC batteries and calculated based on HBC Marstek Entities using Helios Templates.
+The following parameters should represent the (total) values for **all** HBC batteries and calculated based on HBC Marstek Entities using Helios **Templates**.
 They are used as input for the Helios Optimizer:
-- **Maximum Energy (All Batteries):** Total Energy that can be stored in the HBC Batteries (Sum of all batteries), input for Helios
+- **Maximum Energy (All Batteries):** Total Energy that can be stored in the HBC Batteries (Sum of all batteries)
 - **Remaining Energy (All):** Remaining Energy in the HBC Batteries (Sum of all batteries)
-- **Total SOC (All):** State of Charge for all of the HBC Batteries (Remaining Energy / Maximum Energy), input for Helios
+- **Total SOC (All):** State of Charge for all of the HBC Batteries (Remaining Energy / Maximum Energy)
 
-At the bottom of this section are two Helios Entities for HBC which are **derived** from the Helios Optimal Energy Plan and are used by the Helios Strategy in HBC:
+The following parameters are Helios Entities for HBC which are **derived** from the Helios Optimal Energy Plan and are used by the Helios Strategy in HBC:
 - **HBC Sub Strategy by Helios:** The current Sub Strategy as calculated by Helios for HBC
 - **HBC Net Power for Battery by Helios:**  The current Net Battery Power as calculated by Helios for HBC
 
@@ -187,6 +187,7 @@ For the other Sub-Strategies (e.g. Self-consumption, Zero import, Standby / peak
 ### HBC Settings
 The parameters in this section are configured in or calculated by HBC and cannot be changed here.
 Since they are already compensated for the required minimum and maximum state of charge they cannot be used by Helios.
+Instead the values calculated using templates by helios as described in the above section are used.
 - **Battery Count**: Number of Batteries available in HBC
 - **Max Available Energy**: Maximum Available Energy (Capacity minus minimum), not used by Helios
 - **Available Energy**: Current Available Energy (Remaining minus minimum), not used by Helios
