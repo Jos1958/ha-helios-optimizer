@@ -101,8 +101,8 @@
       V > Strategy Helios v4.15.1
       _   Home Assistant  ! _ replace
       ```
-    - Do **NOT** change the selections/checks (leave Strategy Helios selected and leave Home Assistant NOT selected)  
-      <br>Your existing Home Assistant server connection will be automatically used by the helios nodes.
+    - Do **NOT** change the selections/checks (leave Strategy Helios **selected** and leave Home Assistant **NOT selected**)  
+      Your existing Home Assistant Server connection will be automatically used by the helios nodes!
     - Press [Import Selected]
   - Press [Deploy] 
   - Add Helios to the House Battery Strategy entity
@@ -117,49 +117,12 @@
   - Select the Helios Strategy in HBC
     - Goto the HBC Home Page
     - Under "Master Battery Control" - "Choose strategy" - Select "Helios" from the dropdown
-  - Select "Node-RED"in the HA Sidebar
-  - Select "Strategy Helios v4.15.1"
-  - There should now be activity under the Nodes
-  
-- **Helios Optimizer Automation:** Create a new Automation that runs the Helios Optimizer
-  - Home Assistant - Settings (Instellingen) - Automations - [Add Automation] from scratch
-  - Edit the automation in YAML mode
-  - Open automation/helios_automation.yaml in your local Editor 
-  - Select all content of the helios_automation.yaml file
-  - Copy/Paste all of the content to the Yaml editor (replace all existing lines of the automation)
-  - [Save] the Automation yaml
-  - Check in the settings of the new Automation the Entity-ID of the automation:
-    automation.helios_optimizer_automation_task
-  - Make sure your entity id is exactly the same and if not rename the entity id and press <Update>
-    Warning: The Start Button on the Helios Dashboard will NOT work when the entity id is not correct!
-  - This automation will now run every 15 minutes and we notify you when an error occurs (see Notificaton menu item)
-
-- **Solar Forecast Configuration:** Adapt the configuration for your location
-  - **VERY IMPORTANT:** This step is optional and NOT NEEDED when you already have installed and configured the Forecast.Solar Integration!
-  - Edit the helios_optimizer_forecast.yaml in folder packages (see above)
-  - Adapt the REST API Definition for forecast.solar with your location and setup
-  - The example configuration is defined for a setup in Amsterdam with 20 panels and needs to be adapted to your own situation:
-  - To configure your own forecast you need the following info:
-      - **Peak Power in kW:** e.g. 20 panels x 395 Watt Peak = 8.0 kW 
-      - The direction of your roof: e.g. 175 degrees (Roof at the North=0, East=90, South=180, West=270, almost South=175)
-      - **WARNING:** In the REST API we **subtract 180** degrees: 
-        <br>North: 0->180, East: 90->-90, South: 180->0, West: 270->90, Almost South: 175->-5 !!! 
-      - **Roof Angle/Pitch:** 48 degrees (Usually somewhere between 40 and 60 degrees)
-      - **Location of your house:** e.g. Latitude: 52.370, Longitude: 4.895 (for Amsterdam Center)
-      - See: https://doc.forecast.solar/doku.php?id=find_your_azimuth for details
-      - In Home Assistant you can find the location values: 
-        <br>Settings - Rooms, Labels & Zones - Zones - Home - <Change> -> Latitude and Longitude
-      - Google Maps https://www.google.com/maps?q=52.370216%2C4.895168
-      - Google uses by default a location in degrees but can also show latitude and longitude (below the degrees)
-      - **Scan Interval:** 3600 (minimum every hour or use 86400 for every day and make an automation that executes the REST API using a schedule)
-  - Adapt the values in the REST Example Configuration using the above info:
-      - Example: "https://api.forecast.solar/estimate/52.370/4.895/48/-5/8.0"
-      - Fill your values: "https://api.forecast.solar/estimate/latitude/longitude/roof-angle/roof-direction-180/peak-power-kw"
-  - Save the helios_optimizer_config.yaml
 
 - Reboot you Home Assistant after these changes  
 - Check the Helios Optimizer Dashboard (within 10s after restart the automation should run)
-- Make sure that you select a <b>Dynamic Strategy in HBC</b> since that will generate Price Data used by the Helios Optimizer
+- Make sure that you select the **Helios** Strategy in **HBC** since that will generate HBC Price Data used by the Helios Optimizer
+  Alternatively you can select **Dynamic** Strategy since that will also generate and refresh HBC Price Data.
+  The Calculate Helios Strategy will **only** be used in HBC when you have the **Helios** Strategy selected.
 - Adapt the Optimization Parameters and the Battery Parameters to your needs
   - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
     <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
@@ -179,6 +142,7 @@
   <br>The 'Solver Status' will display an error/exception message if the Optimizer failed.
   <br>Refresh the browser page (Ctrl-F5) if the graph is not yet displayed.
 - The Current Values (for the Active Step) can be found in the 'Actuals' section
+
 ![Helios Optimizer Dashboard](images/HeliosDashboard.jpeg)
 
   
