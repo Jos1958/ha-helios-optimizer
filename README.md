@@ -1,5 +1,6 @@
 # HA Helios Optimizer - Readme
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
+**README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)
 
 ## Intro 
 For an Introduction of the Helios Optimizer: see [Helios Optimizer - Documentation](DOC.md#intro).
@@ -86,5 +87,3 @@ Please raise an issue to report a bug or to request for new functionality.
 # FAQ and Help
 
 **Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home and House Automation, Home Assistant, HBC, Linear Programming, Python, PyScript
-
-**README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)

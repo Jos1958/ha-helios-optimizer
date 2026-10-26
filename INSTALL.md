@@ -1,23 +1,24 @@
 # Helios Optimizer - Installation
 ![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
+[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - **Install** - [Release Notes](RELEASE_NOTES.md)
 
 ## Installation
 - **Prerequisites for Helios Optimizer:**
-  - HACS installation on your Home Assistant System
-  - Home Battery Control (HBC) installation with an 'active' dynamic price datasource
+  - **HACS** installation on your Home Assistant System
+  - **Home Battery Control (HBC)** installation with an 'active' dynamic price datasource
     <br>Helios retrieves the dynamic import prices from HBC and uses it to calculate the related market and export prices.
     <br>Only when a dynamic price strategy (Dynamic or Helios) is 'active' the HBC Price Data will be refreshed!
-  - Forecast.Solar Integration Installation and Configuration 
+  - **Forecast.Solar** Integration Installation and Configuration for your Solar Panels
     <br>WARNING: Currently ONLY Forecast.Solar is supported as a Solar Forecast!
-  - File Editor (or Samba) via HACS: to create folders and upload files
-  - PyScript installation via HACS with imports and hass access enabled:
+  - **File Editor** (or Samba) via HACS: to create folders and upload files
+  - **PyScript** installation via HACS with imports and hass access enabled:
     - Integrations: Pyscript Python scripting - pyscript - [Configurate]
       - V Allow All Imports?
       - V Access hass as a global variable?
       - _ Use legacy decorators? (Not required)
   - For the Helios Dashboard (UI-components)
-    - ApexCharts Card (via HACS)
-    - card-mod (via HACS)
+    - **ApexCharts Card** (via HACS)
+    - **card-mod** (via HACS)
     - Markdown Card (built-in)
     - Picture (built-in) for /local/HeliosOptimizerBanner.jpeg in www-folder
     
@@ -31,7 +32,6 @@
   - Remark: Do not copy the Node-Red and Dashboard files (see below for instructions)
 
   - File Structure on GitHub:
-
 ```
   -[HomeAssistant]                     - Already exist for your HA installation (sometimes called: [config]):
   !  [packages]
@@ -122,6 +122,9 @@
 - **Select the Helios Strategy** in **HBC**
   - Goto the HBC Home Page
   - Under "Master Battery Control" - "Choose strategy" - Select "Helios" from the dropdown
+<br>If you want to start with a test of Helios in read-only mode.
+Select the "Dynamic" strategy in HBC, this will generate the HBC Price Data.
+Now you can continue in the next step but HBC will still apply the dynamic sub-strategies.  
 
 - **Check the Helios Optimizer Dashboard** (within 10s after restart the automation should run)
 - **Adapt the Optimization Parameters and the Battery Parameters**
@@ -149,11 +152,7 @@
 <br>Helios will still run with other strategies selected in HBC but will have no (recent) price data available.
 <br>HBC will only apply the plan calculated by Helios as a Sub-Strategy when you select the **Helios** strategy in HBC!
 
-
 ![Helios Optimizer Dashboard](images/HeliosDashboard.jpeg)
-
   
 - **HACS:** 
   * Not supported yet (see Helios Calculator)
-
-[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - **Install** - [Release Notes](RELEASE_NOTES.md)

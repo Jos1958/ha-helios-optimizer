@@ -1,5 +1,6 @@
 # Helios Optimizer - Documentation
 ![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
+[README](README.md) - **Doc** - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)
 
 ## Intro
 The **HELIOS Optimizer Service** is a **H**ome **A**ssistant **PyScript** application designed to 
@@ -23,9 +24,10 @@ Use the documentation **links** above each section to get more details (as descr
 
 An **important observation** is that Helios Optimizer calculates an Energy Plan 
 but does **not** directly interface with your devices (Batteries and Solar Invertors)!
-It does provide an interface with **Home Battery Control (HBC)*** and includes a Node-Red Helios Strategy Flow to connect
-the Helios Energy Plan with the HBC Battery Management. So all rules that you define in HBC 
-(e.g. SoC Min/Max, Max Power, Peak shaving, Battery Balancing) will still be followed.
+It does provide an interface with **Home Battery Control (HBC)** and includes a **Node-Red** *Helios Strategy Flow* to connect
+the Helios Energy Plan with the HBC Battery Management. 
+As a result all rules that you define in HBC 
+(e.g. SoC Min/Max, Max Power, Peak shaving, Battery Balancing) will always be followed.
 The NR Helios Strategy will just read the Helios Strategy and will activate the related HBC Sub-Strategy.
 Please be aware that due to a restriction in HBC the charging and discharging in HBC is always at maximum power
 which may not always be equal to the optimal power level calculated by Helios Optimizer.
@@ -187,7 +189,7 @@ For the other Sub-Strategies (e.g. Self-consumption, Zero import, Standby / peak
 ### HBC Settings
 The parameters in this section are configured in or calculated by HBC and cannot be changed here.
 Since they are already compensated for the required minimum and maximum state of charge they cannot be used by Helios.
-Instead the values calculated using templates by helios as described in the above section are used.
+Instead the values calculated using Helios templates based on the Marstek entities (as described in the section above) are used by Helios.
 - **Battery Count**: Number of Batteries available in HBC
 - **Max Available Energy**: Maximum Available Energy (Capacity minus minimum), not used by Helios
 - **Available Energy**: Current Available Energy (Remaining minus minimum), not used by Helios
@@ -220,7 +222,7 @@ Export and Market Prices are calculated from the Import Prices using the Energy 
 
 <br>**TODO:** These values will be configurable in the near future, specify a more detailed formula here.
 
-The colour of the Import Price columns represents the selected **HBC Sub-Strategy**:
+The colors of the Import Price columns represent the selected **HBC Sub-Strategy**:
 - **0=Skipped:** Steps in the past (before start step) are skipped
 - **1=Sell:**  Sell Energy **from** the Battery **to** the Grid
 - **2=Charge:** Charge **to** the Battery **from** the **Grid** Energy (and optionally with **Solar** Energy)
@@ -312,5 +314,3 @@ Table with all variables for every step.
 
 ## License
 [Helios Optimizer - License](LICENSE "GitHub Docs")
-
-[README](README.md) - **Doc** - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)
