@@ -1,5 +1,17 @@
 # HA Helios Optimizer - Release Notes
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
+[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
+
+## 0.9.3 (2026-10-26) HBC Output and Prices and Strategy Graph
+- Added Helios Forecast which calls the forecast_solar.get_forecast services to retrieve the forecast solar hours (not available in an entity of the forecast.solar integration), config entry retrieved from hass
+- Added the Prices and Strategy Graph with Prices (Import, Export and Market) and the HBC Sub Strategy per step
+- Timestamp in a Graph is now in the middle of the step (iso start), 
+- Added the Strategy as a Serie to the Prices Graph (now in the popup as a number)
+- Split the Helios Dashboard into two tabs and introduced an "insight" button that shows additional sections (simplified the default dashboard)
+- Added a Helios Strategy to HBC that handles the output from Helios
+- Included error handling in the HBC interface (if Helios fails the sub-strategy will be set to HA "unknown")
+- For errors the Helios Strategy will apply in HBC the "Full stop" strategy
+- Replaced the Helios Automation Task by a PyScript Service that runs every 15-min and retrieves Helios and HBC parameters from HA entities
 
 ## 0.9.2 (2026-10-12) Fixed special characters on dashboard
 - Invalid codepage for helios_dashboard.yaml, changed from ANSI to UTF-8
@@ -120,5 +132,3 @@
 - Initial commit with the first implementation of a LP call in pyscript
 - The functionality is started from an HA automation
 - Errors in the compilation or runtime can be found in the Home Assistant System Log
-
-[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")

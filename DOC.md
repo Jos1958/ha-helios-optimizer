@@ -78,6 +78,21 @@ The resulting Optimized Energy Plan determines the active strategy for the curre
 (e.g., NOM, Buy, Sell, Charge, Discharge, Disabled) and provides real-time setpoints
 to steer the Battery Charge/Discharge, the Solar Production and (in the future) the Deferrable Loads.
 
+Totale energiekosten
+\[
+\boxed{
+C_{\text{totaal}} =
+\sum_{t=1}^{N}
+\left[
+P_{\text{imp},t}\cdot p_{\text{imp},t}
+-
+P_{\text{exp},t}\cdot p_{\text{exp},t}
++
+\lambda\cdot P_{\text{ontl},t}
+\right]\Delta t
+}
+\]
+
 ### How It Works: The Energy Model
 At the core of the optimizer is a physical and financial Energy Model. For each discrete time step in the optimization period (e.g., 15-minute or 1-hour intervals over 24–48 hours), the model solves a system of linear equations and constraints:
 - **Energy Balance:** Ensures that at every time step, Total Power Supply (Grid Import + PV Production + Battery Discharge) equals Total Power Demand (House Load + Grid Export + Battery Charge), accounting for round-trip efficiency (RTE) of the battery.
@@ -122,6 +137,9 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
   <br>All steps before the Start Step are **Skipped** so starting at the current time is the most logical step to start the optimization.
   <br>Other Start Step values are only to be used for (Regression) Testing or Simulation Runs of the Optimizer!
+- **Max Grid Import:** Maximum Grid Import Power in kW
+  <br>Remark: A low maximum grid import (or export) level can make the energy plan infeasible since a power balance must always be maintained.
+- **Max Grid Export:** Maximum Grid Export Power in kW
 - **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
   <br>In the future the House Energy Usage will be retrieved from history data but at the moment you need to make an estimate for the average energy usage in the house. 
   <br>Large energy users (EV, WP and Boiler) will be optimized separately in the future and will have to be excluded from the house usage but for now you may want to **include** them in the house usage. 
@@ -137,9 +155,6 @@ and can be **manually** started with the green **Start Helios** button.<br>
   - Modulating: Solar Production can be from Zero (0kWh) to the Solar Forecast Energy for the step
   - Binary: Solar Production can be ON (=Solar Forecast Energy) or OFF (0kWh) for the step
   - Disabled: Solar Production Disabled (0kWh) in each step
-- **Max Grid Import:** Maximum Grid Import Power in kW
-  <br>Remark: A low maximum grid import (or export) level can make the energy plan infeasible since a power balance must always be maintained.
-- **Max Grid Export:** Maximum Grid Export Power in kW
 - **Sensor with the Forecast Solar Hours:** HA Entity with the Solar Forecast Energy Production (kWh) per hour
   <br>This information is retrieved using a rest api from forecast.solar but you will need to adapt this to your own situation (location, angle, direction and peak-power):
   <br>"https://api.forecast.solar/estimate/latitude/longitude/dak-hoek/dak-richting-180/peak-vermogen"
