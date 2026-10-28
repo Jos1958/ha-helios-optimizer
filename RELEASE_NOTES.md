@@ -2,7 +2,7 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 
-## 0.9.3 (2026-10-26) HBC Output and Prices and Strategy Graph
+## 0.9.3 (2026-10-28) HBC Output and Prices and Strategy Graph
 - Added Helios Forecast PyScript which calls the forecast_solar.get_forecast service to retrieve the forecast solar hours, the required config entry is retrieved from hass
 <br>Hours info is not available via an entity of the forecast.solar integration (only via the service)
 - Added the Prices and Strategy Graph with Prices (Import, Export and Market) and the HBC Sub Strategy per step
