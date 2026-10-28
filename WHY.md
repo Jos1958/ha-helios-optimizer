@@ -1,6 +1,6 @@
 # Why use LP (EN)?
 ![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
-[Readme](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License]
+[Readme](README.md) - [Doc](DOC.md) - **Why LP (EN)** - [Why LP (NL)](WHY.md#waarom-lp-gebruiken-nl) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License]
 
 ## Explanation of Linear Programming (LP) 
 Finding the cheapest way to control a battery might seem simple, but with 24 to 48 hours of fluctuating electricity prices, unpredictable solar production, battery loss, and changing household demand, the number of possible decisions is massive.
