@@ -8,9 +8,9 @@
 - Added the Prices and Strategy Graph with Prices (Import, Export and Market) and the HBC Sub Strategy per step
 - Timestamp in a Graph is now in the middle of the step (iso at the start of a step) 
 - Added the Strategy as a Serie to the Prices Graph (now in the tooltip as a number, added the numbers in the legenda)
-- Split the Helios Dashboard into two tabs and introduced an "insight" button that shows additional sections (simplified the default dashboard)
+- Split the Helios Dashboard into two tabs and introduced optional sections using the (HBC) "insight" button (this simplifies the default dashboard tabs)
 - Improved the Helios Optimizer documentation and added more direct links to the sections on the Helios dashboard
-- Added a Helios Strategy Flow to HBC that handles the output (sub-strategy and power) from the Helios Optimizer
+- Added a Helios Strategy Flow to HBC that handles the Output (Sub-Strategy and Power) from the Helios Optimizer for the current step
 - Included error handling in the HBC interface (if Helios fails the sub-strategy will be set to HA "unknown")
 - For errors the Helios Strategy will apply in HBC the "Full stop" strategy
 - Replaced the Helios Automation Task by a PyScript Service that runs every 15-min and retrieves Helios and HBC parameters from HA entities
