@@ -3,7 +3,7 @@
 **README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)
 
 ## Intro 
-For an Introduction of the Helios Optimizer: see [Helios Optimizer - Documentation](DOC.md#intro).
+For an Introduction to the Helios Optimizer: see [Helios Optimizer - Documentation](DOC.md#intro).
 
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-Integration-3DDC84?logo=home-assistant&logoColor=#03A9F4)](https://www.home-assistant.io/) 
 
@@ -81,8 +81,10 @@ For a detailed specification of the Input Parameters and the Output Results (Opt
 see [Helios Optimizer Documentation](DOC.md).
 
 ## Advanced
+**TODO**
 
 ## Updating
+**TODO**
 
 ## Credits
 
@@ -93,11 +95,12 @@ Only small bug fixes will be accepted.
 Please raise an issue to report a bug or to request for new functionality.
 
 # Interest Poll (Dutch)
-**[Helios Optimizer Interest Poll Results in Dutch](HELIOS_PEILING.md)**
+**[Helios Optimizer Interest Poll Results in Dutch](PEILING_HELIOS.md)**
 
 # License
 **[Helios Optimizer License](https://github.com/Jos1958/ha-helios-optimizer/blob/main/LICENSE)**
 
 # FAQ and Help
+**TODO**
 
 **Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home and House Automation, Home Assistant, HBC, Linear Programming, Python, PyScript
