@@ -6,6 +6,8 @@
 #   2026-09-17: JR  v0.78r Renamed from Class GenericEnergyParser to HeliosEnergyPriceParser (and kept the Old version as HeliosEnergyPriceParserOld in helios_price_parser_old.py)
 #   2026-09-18: JR  v0.78r Added HBC Prices as a generic source (based on different Energy Providers), Convert between different Price Types (Market, Import, Export)
 #   2026-09-10: JR  v0.78s Included Support for Conversion from Source Price to Target Price, Group Steps and Average Price, Expand Steps (Repeat), Fill Gaps in Day(s), Fallback Days, 
+#   2026-09-23: JR  v0.92a Adapted Provider Markups and Energy Tax to more realistic values
+#   2026-10-28: JR  v0.93  First public release with HBC Output (works together with Helios Strategy in HBC)
 #   
 # Warning: In Visual Studio this module exists in the helios_python folder of the Helios Optimizer Project and in Home Assistant in the /config/pyscript/helios_python folder.
 #
@@ -15,7 +17,7 @@
 #  - Extend the number of supported energy providers (includes testing), currently only HBC and Frank Energy are tested with mockup data
 #  - Test with life data with HBC and Frank Energy
 
-import sys                                    # For sys.path.append() to add the Home Assistant Pyscript folder to the path
+import sys # For sys.path.append() to add the Home Assistant Pyscript folder to the path
 
 from collections import defaultdict
 from datetime    import datetime, timedelta, time, timezone
@@ -44,7 +46,6 @@ TARGET_DT_KEY       = 'datetime'
 TARGET_MP_KEY       = 'market_price'
 TARGET_IP_KEY       = 'import_price'
 TARGET_EP_KEY       = 'export_price'
-PROVIDER_KEY_CUSTOM = 'custom' # Used for any invalid/unknown provider key
 NO_TIME_ZONE        = None     # Use Local Timezone in constructor when no timezone is provided
 TARGET_STEP_SIZE    = 15       # Default Step Size of 15 minutes for the Target (Market, Import and Export) Price Arrays
 TS_FORMAT_LIST      = ['iso', 'unix', '%Y%m%d', '%Y-%m-%d', '%Y-%m-%d %H:%M:%S'] # Possible values: 'iso' (Allows for TZ or Zulu), 'unix' (UTC) or a specific local (Without TimeZone) format as understood by ts_type of strptime()
@@ -68,10 +69,11 @@ class HeliosEnergyPriceParser:
     DEFAULT_SRCE_TYPE         = 'import'    # Default Source Price Type is Import Price
     DEFAULT_SRCE_PRICE_FACTOR = 1           # Default Source Price Factor to convert to euro/kWh (e.g. for source price in cents/kWh: 0.01 or for source in euro/MWh: 0.001)
     DEFAULT_SRCE_HAS_VAT      = True        # Default Source Price includes VAT
-    DEFAULT_PROV_MARKUP       = 0.0200      # Default Provider Markup (Opslag) in euro before VAT, Applies to both Import and Export Prices 
+    DEFAULT_PROVIDER          = "custom"    # Default Provider
+    DEFAULT_PROV_MARKUP       = 0.01653     # Default Provider Markup (Opslag) in euro before VAT, Applies to both Import and Export Prices (incl btw 0.0200, excl btw 0.01653)
 
     DEFAULT_VAT_RATE          = 0.21        # Default Dutch VAT (BTW) rate
-    DEFAULT_ENERGY_TAX        = 0.1108      # Default Dutch Energy Tax (Nederlandse Energiebelasting voor 2026) without VAT (incl VAT: 0.134068 euro)
+    DEFAULT_ENERGY_TAX        = 0.09161     # Default Dutch Energy Tax (Nederlandse Energiebelasting voor 2026) excluding VAT (incl VAT 0.1108, excl VAT: 0.09161 euro)
     DEFAULT_TARGET_NEEDS_VAT  = True        # Default Target (Import and Export) Prices need to include VAT (not applicable to Market Price)
     DEFAULT_MAX_FB_DAYS       = 1           # Default Maximum Number of Fallback Days when prices for the Lookup Day are not available in the Source Price
 
@@ -80,22 +82,22 @@ class HeliosEnergyPriceParser:
     PRICE_PROFILES  = { # In future to be loaded from a JSON file (including the local tax rates which a generic for all providers, although overwrite is possible)
         # See above for more detailed descriptions of the profile defaults:
         "data_path"          : "attributes.values"      , # Path in the Dictonary with the Price Information
-        "ts_format"          : DEFAULT_TS_FORMAT        , # ISO        , Standard Format which can include TZ information
-        "ts_key"             : DEFAULT_TS_KEY           , # timestamp  , Standard key for the timestamp
-        "price_key"          : DEFAULT_PRICE_KEY        , # price      , Standard key for the price value 
-        "start_key"          : DEFAULT_KEY_NONE         , # None       , Timestamp of the First Price, Start key is only needed if the input is a simple array of prices without timestamps       
-        "original_provider"  : DEFAULT_ORG_PROV_NONE    , # None       , Retrieve the 'Source Has VAT' and Markup (Opslag) from a different Source Provider (None=n/a)
-        "source_type"        : DEFAULT_SRCE_TYPE        , # import     , Default Source Price Type is Import Price
-        "source_price_factor": DEFAULT_SRCE_PRICE_FACTOR, # 1          , Convert the Source Price using this factor to euro/kWh
-        "source_has_vat"     : DEFAULT_SRCE_HAS_VAT     , # True       , VAT Included in Source Price (Disable for Market Price as Source Type and Enable for Import or Export Prices as Source Type)
-        "markup"             : DEFAULT_PROV_MARKUP      , # 0.02   euro, Provider Markup for Import and Export (only used when no provider markup specified, typically each provider has its own markups)
+        "ts_format"          : DEFAULT_TS_FORMAT        , # ISO         , Standard Format which can include TZ information
+        "ts_key"             : DEFAULT_TS_KEY           , # timestamp   , Standard key for the timestamp
+        "price_key"          : DEFAULT_PRICE_KEY        , # price       , Standard key for the price value 
+        "start_key"          : DEFAULT_KEY_NONE         , # None        , Timestamp of the First Price, Start key is only needed if the input is a simple array of prices without timestamps       
+        "original_provider"  : DEFAULT_ORG_PROV_NONE    , # None        , Retrieve the 'Source Has VAT' and Markup (Opslag) from a different Source Provider (None=n/a)
+        "source_type"        : DEFAULT_SRCE_TYPE        , # import      , Default Source Price Type is Import Price (WARNING: It might be better to keep the source type outside the profile so that the profiles can be used for any source type)
+        "source_price_factor": DEFAULT_SRCE_PRICE_FACTOR, # 1           , Convert the Source Price using this factor to euro/kWh
+        "source_has_vat"     : DEFAULT_SRCE_HAS_VAT     , # True        , VAT Included in Source Price (Disable for Market Price as Source Type and Enable for Import or Export Prices as Source Type)
+        "markup"             : DEFAULT_PROV_MARKUP      , # 0.02   euro , Provider Markup for Import and Export (only used when no provider markup specified, typically each provider has its own markups)
         
         # Following attributes are typically general defaults (not different per provider):
         # VAT Rate and Energy Tax may be defined in the provider profile but will only be used from converting the source prices (not for the target prices)
-        "vat_rate"           : DEFAULT_VAT_RATE         , # 0.21   euro, Dutch Value 
-        "energy_tax"         : DEFAULT_ENERGY_TAX       , # 0.1088 euro, Dutch Value for 2026
-        "target_needs_vat"   : DEFAULT_TARGET_NEEDS_VAT , # True       , Tax included for Import and Export Prices in the Target Price Arrays
-        "max_fallback_days"  : DEFAULT_MAX_FB_DAYS      , # 1          , Prices from 1 day back may be used when the prices for the lookup date are not available
+        "vat_rate"           : DEFAULT_VAT_RATE         , # 0.21    euro, Dutch Value 
+        "energy_tax"         : DEFAULT_ENERGY_TAX       , # 0.09161 euro, Dutch Value for 2026 (EXCL BTW)
+        "target_needs_vat"   : DEFAULT_TARGET_NEEDS_VAT , # True        , Tax included for Import and Export Prices in the Target Price Arrays
+        "max_fallback_days"  : DEFAULT_MAX_FB_DAYS      , # 1           , Prices from 1 day back may be used when the prices for the lookup date are not available
 
         "providers": { 
             "hbc_marks": { # HBC Format (can be from different Original Providers, specify via original_provider)
@@ -117,8 +119,8 @@ class HeliosEnergyPriceParser:
                 "source_type"        : "market"           , # Source Type for the Source Prices of the provider ("market", "import", "export"), determines how to convert to output prices
                 "source_price_factor": 1.0                , # Conversion Factor for the Source Price to euro/kWh
                 "source_has_vat"     : False              , # VAT excluded in the Source Prices of the provider 
-                "markup_import"      : 0.0200             , # Provider Markup (Opslag) for the Import Price 
-                "markup_export"      : 0.0200             , # Provider Markup (Opslag) for the Export Price (sometimes negative value)
+                "markup_import"      : 0.01653            , # Provider Markup (Opslag) for the Import Price 
+                "markup_export"      : 0.01653            , # Provider Markup (Opslag) for the Export Price (sometimes negative value)
             },
             "frank_energie": {
                 "name"               : "Frank Energie (Import)",
@@ -129,22 +131,22 @@ class HeliosEnergyPriceParser:
                 "source_type"        : "import"           ,
                 "source_price_factor": 1.0                , # Prices are in euro/kWh (Note: HBC converts the prices to cents/kWh)
                 "source_has_vat"     : True               ,
-                "markup_import"      : 0.01815            ,
-                "markup_export"      : 0.01271            ,
+                "markup_import"      : 0.01500            , # incl btw: 0.01815
+                "markup_export"      : 0.01050            , # incl btw: 0.01271
             },
             "zonneplan": {
-                "name"               : "Zonneplan"           ,
+                "name"               : "Zonneplan"        ,
                 "source_type"        : "import"           ,
                 "source_has_vat"     : True               ,
-                "markup_import"      : 0.0200             ,
-                "markup_export"      : 0.0200             ,
+                "markup_import"      : 0.01653            , # incl btw: 0.0200 incl btw
+                "markup_export"      : 0.01653            , # incl btw: 0.0200 incl btw
             },
             "tibber": {
                 "name"               : "Tibber"           ,
                 "source_type"        : "import"           ,
                 "source_has_vat"     : True               ,
-                "markup_import"      : 0.0200             ,
-                "markup_export"      : 0.0200             ,
+                "markup_import"      : 0.01653            , # incl btw: 0.0200 incl btw
+                "markup_export"      : 0.01653            , # incl btw: 0.0200 incl btw
             },
             "energy_zero": {
                 "name"               : "EnergyZero / ANWB Energie",
@@ -153,7 +155,7 @@ class HeliosEnergyPriceParser:
                 "markup_import"      : 0.0175             ,
                 "markup_export"      : 0.0175             ,
             },
-            "custom": { # Default Provider (used when the provider key does not exist or when no provider key is specified)
+            DEFAULT_PROVIDER: { # Default Provider (used when the provider key does not exist or when no provider key is specified)
                 "name"               : "Custom Configuration",
                 "source_type"        : "import"           , # Assuming Import Prices as Source Price
                 "source_price_factor": 1.0                , # Assuming Source Prices are in euro/kWh
@@ -163,7 +165,7 @@ class HeliosEnergyPriceParser:
             },
         }
     }
-    def __init__(self, provider_key: str = "custom", config_override: dict = None, target_tz: Any = NO_TIME_ZONE, target_step_size: int = TARGET_STEP_SIZE, round_prices: int = ROUND_PRICES_EURO, raise_error: bool = True):
+    def __init__(self, provider_key: str = DEFAULT_PROVIDER, config_override: dict = None, target_tz: Any = NO_TIME_ZONE, target_step_size: int = TARGET_STEP_SIZE, round_prices: int = ROUND_PRICES_EURO, raise_error: bool = True):
         """Initialize the parser using a provider key and optional custom overrides."""
         # Get the generic defaults for the price profiles (applicable to all providers when not specified in the provider profile):
         default_data_path        = self.PRICE_PROFILES.get('data_path'          , self.DEFAULT_DATA_PATH        )
@@ -183,7 +185,8 @@ class HeliosEnergyPriceParser:
         default_max_fb_days      = self.PRICE_PROFILES.get('max_fallback_days'  , self.DEFAULT_MAX_FB_DAYS      )
 
         providers = self.PRICE_PROFILES.get('providers', {}) # Get all Providers from the Price Profiles Dictionary
-        base_profile = providers.get(provider_key.lower(), providers[PROVIDER_KEY_CUSTOM]) # Get the Price Profile for the specified Provider Key (Or use the Custom Profile when key not found)
+        provider_key = provider_key.lower() if provider_key else self.DEFAULT_PROVIDER
+        base_profile = providers.get(provider_key, providers[self.DEFAULT_PROVIDER]) # Get the Price Profile for the specified Provider Key (Or use the Custom Profile when key not found)
 
         # Determine the Provider Profile (with optional overrrides) and Target Time Zone:
         config_override       = config_override or {} # Optional Provider Config override in the constructor
@@ -200,7 +203,7 @@ class HeliosEnergyPriceParser:
         # Warning: If the current provider (e.g. HBC) has these attributes specified then the original provider attributes are IGNORED (original_provider has no effect)!
         self.original_provider = self.config.get("original_provider", default_org_provider)
         if (self.original_provider != None): # Is another Orginal Provider Applicable (e.g. for HBC)?
-            orginal_profile = providers.get(self.original_provider.lower(), providers[PROVIDER_KEY_CUSTOM]) # Get the Price Profile for the other Provider (or use the Custom)
+            orginal_profile = providers.get(self.original_provider.lower(), providers[self.DEFAULT_PROVIDER]) # Get the Price Profile for the other Provider (or use the Custom)
             if (orginal_profile != None): # Other Provider Found?
                 default_srce_has_vat  = orginal_profile.get("source_has_vat", default_srce_has_vat )
                 default_markup_import = orginal_profile.get("markup_import" , default_markup_import)
@@ -423,7 +426,7 @@ class HeliosEnergyPriceParser:
 
         if (len(bucket_prices) <= 0): # No Price Records found?
             if len(source_price_list) <= 0: # No Price Records in the Source Price List?
-                error_message = f"Source Price List {self.data_path} is Empty!"
+                error_message = f"Source Price Data with price path '{self.data_path} is Empty!"
             else: # No Price Records found after Grouping by Step (all records were invalid)
                 error_message = f"No Valid Price Records found after Grouping by Step (see Warnings for Invalid Records)!"
             if self.raise_error:
@@ -617,19 +620,21 @@ MOCK_HBC_IMPORT_PRICE_RESPONSE = {
     "start": "2026-09-17T00:00:00+02:00",
     "datapoints_per_hour": 1,
     "marks": [ # Marks with the HBC Price Array:
-        {"start": "2026-08-15T22:00:00.000Z", "price": 30.42, "end": "2026-09-16T23:00:00.000Z", "mark": "low", "is_now": False}, # Local 16-aug 00:00, Market: 0.1225, Import: 0.3042, Export: 0.1382 
-        {"start": "2026-08-15T23:00:00.000Z", "price": 16.00}, # Local 16-aug 01:00                                                                   , Market: 0.0033, Import: 0.1600, Export:-0.0114   
-        {"start": "2026-08-16T00:00:00.000Z", "price": 15.60}, # Local 16-aug 02:00                                                                   , Market: 0.0000, Import: 0.1560, Export:-0.0154
-        {"start": "2026-08-16T01:00:00.000Z", "price": 15.20}, # Local 16-aug 03:00                                                                   , Market:-0.0033, Import: 0.1520, Export:-0.0194
-        {"start": "2026-08-16T02:00:00.000Z", "price":  0.00}, # Local 16-aug 04:00                                                                   , Market:-0.1290, Import: 0.0000, Export:-0.1714
-        {"start": "2026-08-16T20:00:00.000Z", "price": -2.40}, # Local 16-aug 22:00                                                                   , Market:-0.1488, Import:-0.0240, Export:-0.1954
-        {"start": "2026-08-17T05:00:00.000Z", "price":-21.96}, # Local 17-aug 31:00                                                                   , Market:-0.3104, Import:-0.2196, Export:-0.3910
-        {"start": "2026-08-17T08:00:00.000Z", "price": 15.00}, # Local 17-aug 34:00, Market Average 10:00-10:45 is 16.50 (4x quarter hours)           , Market: 0.0074, Import: 0.1650, Export:-0.0064 AVERAGE 4Q
-                                                               #                                                                                      , Market:-0.0050, Import: 0.1500, Export:-0.0214 1Q
-        {"start": "2026-08-17T08:15:00.000Z", "price": 16.00}, # Local 17-aug 34:15                                                                   , Market: 0.0033, Import: 0.1600, Export:-0.0114 2Q
-        {"start": "2026-08-17T08:30:00.000Z", "price": 17.00}, # Local 17-aug 34:30                                                                   , Market: 0.0115, Import: 0.1700, Export:-0.0014 3Q
-        {"start": "2026-08-17T08:45:00.000Z", "price": 18.00}, # Local 17-aug 34:45                                                                   , Market: 0.0198, Import: 0.1800, Export: 0.0086 4Q
-        {"start": "2026-08-17T10:00:00.000Z", "price": 16.00}, # Local 17-aug 36:00, Back to 16.00 for 12:00                                          , Market: 0.0033, Import: 0.1600, Export:-0.0114 Hour
+        {"start": "2026-08-15T22:00:00.000Z", "price": 30.42, "end": "2026-09-16T23:00:00.000Z", "mark": "low", "is_now": False}, # Local 16-aug 00:00, Market: 0.1448, Import: 0.3042, Export: 0.1625 
+        {"start": "2026-08-15T23:00:00.000Z", "price": 16.00}, # Local 16-aug 01:00                                                                   , Market: 0.0256, Import: 0.1600, Export: 0.0183   
+        {"start": "2026-08-16T00:00:00.000Z", "price": 12.90}, # Local 16-aug 02:00                                                                   , Market: 0.0000, Import: 0.1290, Export:-0.0127
+        {"start": "2026-08-16T01:00:00.000Z", "price": 12.20}, # Local 16-aug 03:00                                                                   , Market:-0.0058, Import: 0.1220, Export:-0.0197
+        {"start": "2026-08-16T02:00:00.000Z", "price":  0.00}, # Local 16-aug 04:00                                                                   , Market:-0.1066, Import: 0.0000, Export:-0.1417
+        {"start": "2026-08-16T20:00:00.000Z", "price": -2.40}, # Local 16-aug 22:00                                                                   , Market:-0.1264, Import:-0.0240, Export:-0.1657
+        {"start": "2026-08-17T05:00:00.000Z", "price":-21.96}, # Local 17-aug 31:00                                                                   , Market:-0.2881, Import:-0.2196, Export:-0.3613
+        {"start": "2026-08-17T08:00:00.000Z", "price": 14.00}, # Local 17-aug 34:00, Market Average 10:00-10:45 is 16.50 (4x quarter hours)           , Market: 0.0297, Import: 0.1650, Export: 0.0233 AVERAGE 4Q
+                                                               #                                                                                      , Market: 0.0091, Import: 0.1400, Export:-0.0017 1Q
+        {"start": "2026-08-17T08:15:00.000Z", "price": 10.00}, # Local 17-aug 34:15                                                                   , Market:-0.0240, Import: 0.1000, Export:-0.0417 2Q
+        {"start": "2026-08-17T08:30:00.000Z", "price": 17.00}, # Local 17-aug 34:30                                                                   , Market: 0.0339, Import: 0.1700, Export: 0.0283 3Q
+        {"start": "2026-08-17T08:45:00.000Z", "price": 25.00}, # Local 17-aug 34:45                                                                   , Market: 0.1000, Import: 0.2500, Export: 0.1083 4Q
+        {"start": "2026-08-17T10:00:00.000Z", "price": 16.00}, # Local 17-aug 36:00, Back to 16.00 for  2:00                                          , Market: 0.0256, Import: 0.1600, Export: 0.0183 Hour
+
+        {"start": "2026-08-17T12:00:00.000Z", "price": 13.40}, # Local 17-aug 38:00, Back to 18.00 for 10:00                                          , Market: 0.0041, Import: 0.1340, Export:-0.0077 Hour
     ]
 }
 
@@ -642,71 +647,71 @@ MOCK_FRANK_MARKET_60min = { # Let op: 60 min prijzen maar met afwijkingen met 15
         "prices": [
             # Let op UTC: 15-aug 22:00 -> NL Zomertijd: 16-aug 00:00, maar in de winter UTC 15-nov 23:00 -> NL Wintertijd: 16-nov 00:00 !!!!
             # Kwartier prijzen 
-            {"from": "2026-08-15T22:00:00+00:00", "till": "2026-08-15T22:15:00+00:00", "price": 0.0800}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2528 Export: 0.0814, Gemiddelde over 4 prijzen (0.1000, 02770, 0.1056) gebruikt voor uur prijzen
-            {"from": "2026-08-15T22:15:00+00:00", "till": "2026-08-15T22:30:00+00:00", "price": 0.1200}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.3012 Export: 0.1298 
-            {"from": "2026-08-15T22:30:00+00:00", "till": "2026-08-15T22:45:00+00:00", "price": 0.1000}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2770 Export: 0.1056
-            {"from": "2026-08-15T22:45:00+00:00", "till": "2026-08-15T23:00:00+00:00", "price": 0.1000}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2770 Export: 0.1056 
+            {"from": "2026-08-15T22:00:00+00:00", "till": "2026-08-15T22:15:00+00:00", "price": 0.0800}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2258 Export: 0.0841, Gemiddelde over 4 prijzen (0.1000, 02500, 0.0841) gebruikt voor uur prijzen
+            {"from": "2026-08-15T22:15:00+00:00", "till": "2026-08-15T22:30:00+00:00", "price": 0.1200}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2742 Export: 0.1325 
+            {"from": "2026-08-15T22:30:00+00:00", "till": "2026-08-15T22:45:00+00:00", "price": 0.1000}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2500 Export: 0.1083
+            {"from": "2026-08-15T22:45:00+00:00", "till": "2026-08-15T23:00:00+00:00", "price": 0.1000}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2500 Export: 0.1083 
 
             # Half Uur prijzen
-            {"from": "2026-08-15T23:00:00+00:00", "till": "2026-08-16T00:00:00+00:00", "price": 0.0400}, # 16-aug 01:00 - 02:00/01:15      , Import: 0.2044 Export: 0.0330, Gemiddelde over 2 prijzen (0.0800, 02528, 0.0814) gebruikt voor uur prijzen
-            {"from": "2026-08-15T23:30:00+00:00", "till": "2026-08-16T00:00:00+00:00", "price": 0.1200}, # 16-aug 01:30        /02:45      , Import: 0.3012 Export: 0.1298
+            {"from": "2026-08-15T23:00:00+00:00", "till": "2026-08-16T00:00:00+00:00", "price": 0.0400}, # 16-aug 01:00 - 02:00/01:15      , Import: 0.1744 Export: 0.0357, Gemiddelde over 2 prijzen (0.0800, 02528, 0.0814) gebruikt voor uur prijzen
+            {"from": "2026-08-15T23:30:00+00:00", "till": "2026-08-16T00:00:00+00:00", "price": 0.1200}, # 16-aug 01:30        /02:45      , Import: 0.2742 Export: 0.1325
 
             # Uur prijzen maar wel met gaten tussen de uren die door de laatst beschikbare prijs moet worden opgevuld
-            {"from": "2026-08-16T01:00:00+00:00", "till": "2026-08-16T02:00:00+00:00", "price":-0.0500}, # 16-aug 03:00 - 05:00            , Import: 0.0955 Export:-0.0759, Neg Market, Pos Import, Neg Export
-            {"from": "2026-08-16T04:00:00+00:00", "till": "2026-08-16T05:00:00+00:00", "price":-0.3000}, # 16-aug 06:00 - 10:00            , Import:-0.2070 Export:-0.3784, Neg Market, Neg Import, Neg Export
-            {"from": "2026-08-16T09:00:00+00:00", "till": "2026-08-16T10:00:00+00:00", "price": 0.0100}, # 16-aug 11:00 - 22:00            , Import: 0.1681 Export:-0.0033, Pos Market, Pos Import, Neg Export
+            {"from": "2026-08-16T01:00:00+00:00", "till": "2026-08-16T02:00:00+00:00", "price":-0.0500}, # 16-aug 03:00 - 05:00            , Import: 0.0685 Export:-0.0732, Neg Market, Pos Import, Neg Export
+            {"from": "2026-08-16T04:00:00+00:00", "till": "2026-08-16T05:00:00+00:00", "price":-0.3000}, # 16-aug 06:00 - 10:00            , Import:-0.2340 Export:-0.3757, Neg Market, Neg Import, Neg Export
+            {"from": "2026-08-16T09:00:00+00:00", "till": "2026-08-16T10:00:00+00:00", "price": 0.0100}, # 16-aug 11:00 - 22:00            , Import: 0.1411 Export:-0.0006, Pos Market, Pos Import, Neg Export
 
             # Uur prijs voor 23:00 maar ook voor de volgende dag 00:00
-            {"from": "2026-08-16T21:00:00+00:00", "till": "2026-08-16T22:00:00+00:00", "price": 0.1400}, # 16-aug 23:00 - 24:00/24:45 (UTC: 16-aug 21:00), Import: 0.3254 Export: 0.1540
+            {"from": "2026-08-16T21:00:00+00:00", "till": "2026-08-16T22:00:00+00:00", "price": 0.1400}, # 16-aug 23:00 - 24:00/24:45 (UTC: 16-aug 21:00), Import: 0.2984 Export: 0.1567
 
             # Uur prijzen op de volgende dag (maar 00:00 ontbreekt en slecht 2 uren beschikbaar) => telt als een extra dag (voor morgen) en de rest wordt aangevuld
             # Geen prijs voor 00:00, daarvoor wordt de laatste prijs (0.1400) van vorige dag gebruikt, tenzij vorige dag niet wordt meegenomen, dan wordt de eerste prijs (0.04) van deze dag gebruikt
-            {"from": "2026-08-16T23:00:00+00:00", "till": "2026-08-17T00:00:00+00:00", "price": 0.0400}, # 17-aug 25:00 - 29:00/29:45 (UTC: 16-aug 23:00), Import: 0.2044 Export: 0.0330
-            {"from": "2026-08-17T04:00:00+00:00", "till": "2026-08-17T05:00:00+00:00", "price": 0.0800}, # 17-aug 30:00 - 37:00/38:00 (UTC: 17-aug 04:00), Import: 0.2528 Export: 0.0814
+            {"from": "2026-08-16T23:00:00+00:00", "till": "2026-08-17T00:00:00+00:00", "price": 0.0400}, # 17-aug 25:00 - 29:00/29:45 (UTC: 16-aug 23:00), Import: 0.1744 Export: 0.0357
+            {"from": "2026-08-17T04:00:00+00:00", "till": "2026-08-17T05:00:00+00:00", "price": 0.0800}, # 17-aug 30:00 - 37:00/38:00 (UTC: 17-aug 04:00), Import: 0.2258 Export: 0.0841
 
             # 3 Kwartier prijzen op de volgende dag (gemiddelde over 3 prijzen genomen voor uur prijs, begint niet op het hele uur, hiervoor vorige kwartier prijs 0.0800 genomen bij kwartier prijzen) 
-            {"from": "2026-08-17T12:15:00+00:00", "till": "2026-08-17T12:30:00+00:00", "price": 0.1200}, # 17-aug 38:15 - 40:00       (UTC: 16-aug 12:15), Import: 0.3012 Export: 0.1298, Gemiddelde over 3 prijzen (0.1000, 0.2770, 0.1056) gebruikt voor uur prijzen
-            {"from": "2026-08-17T12:30:00+00:00", "till": "2026-08-17T12:45:00+00:00", "price": 0.1000}, # 17-aug 38:30               (UTC: 17-aug 12:30), Import: 0.2770 Export: 0.1056
-            {"from": "2026-08-17T12:45:00+00:00", "till": "2026-08-17T13:00:00+00:00", "price": 0.0800}, # 17-aug 38:45 -      /40:45 (UTC: 17-aug 12:45), Import: 0.2528 Export: 0.0814
+            {"from": "2026-08-17T12:15:00+00:00", "till": "2026-08-17T12:30:00+00:00", "price": 0.1200}, # 17-aug 38:15 - 40:00       (UTC: 16-aug 12:15), Import: 0.2742 Export: 0.1325, Gemiddelde over 3 prijzen (0.1000, 0.2770, 0.1056) gebruikt voor uur prijzen
+            {"from": "2026-08-17T12:30:00+00:00", "till": "2026-08-17T12:45:00+00:00", "price": 0.1000}, # 17-aug 38:30               (UTC: 17-aug 12:30), Import: 0.2500 Export: 0.1083
+            {"from": "2026-08-17T12:45:00+00:00", "till": "2026-08-17T13:00:00+00:00", "price": 0.0800}, # 17-aug 38:45 -      /40:45 (UTC: 17-aug 12:45), Import: 0.2258 Export: 0.0841
 
             # 3 Kwartier prijzen op de volgende dag (gemiddelde over 3 prijzen genomen voor uur prijs, mist het 2e kwartier, hiervoor vorige kwartier prijs 0.1000 genomen bij kwartier prijzen) 
-            {"from": "2026-08-17T15:00:00+00:00", "till": "2026-08-17T15:15:00+00:00", "price": 0.1400}, # 17-aug 41:00 - 47:00/41:15 (UTC: 16-aug 15:00), Import: 0.3254 Export: 0.1540, Gemiddelde over 3 prijzen (0.1200, 0.3012, 0.1298) gebruikt voor uur prijzen
-            {"from": "2026-08-17T15:30:00+00:00", "till": "2026-08-17T15:45:00+00:00", "price": 0.1200}, # 17-aug 41:30               (UTC: 17-aug 15:30), Import: 0.3012 Export: 0.1298
-            {"from": "2026-08-17T15:45:00+00:00", "till": "2026-08-17T16:00:00+00:00", "price": 0.1000}, # 17-aug 41:45 -      /47:45 (UTC: 17-aug 15:45), Import: 0.2770 Export: 0.1056              
+            {"from": "2026-08-17T15:00:00+00:00", "till": "2026-08-17T15:15:00+00:00", "price": 0.1400}, # 17-aug 41:00 - 47:00/41:15 (UTC: 16-aug 15:00), Import: 0.2984 Export: 0.1567, Gemiddelde over 3 prijzen (0.1200, 0.3012, 0.1298) gebruikt voor uur prijzen
+            {"from": "2026-08-17T15:30:00+00:00", "till": "2026-08-17T15:45:00+00:00", "price": 0.1200}, # 17-aug 41:30               (UTC: 17-aug 15:30), Import: 0.2742 Export: 0.1325
+            {"from": "2026-08-17T15:45:00+00:00", "till": "2026-08-17T16:00:00+00:00", "price": 0.1000}, # 17-aug 41:45 -      /47:45 (UTC: 17-aug 15:45), Import: 0.2500 Export: 0.1083              
         ]
     }
 }
 MOCK_FRANK_MARKET_60min_ZULU = { # Zelfde info als hierboven (Zulu is gelijk UTC zone: +00:00) maar alleen uren prijzen (geen kwartier prijzen die gemiddeld worden)
     "attributes": {
         "prices": [
-            {"from": "2026-08-15T22:00:00Z", "till": "2026-08-15T23:00:00Z", "price": 0.1000}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2770 Export: 0.1056
-            {"from": "2026-08-15T23:00:00Z", "till": "2026-08-16T00:00:00Z", "price": 0.0800}, # 16-aug 01:00                    , Import: 0.2528 Export: 0.0814
-            {"from": "2026-08-16T01:00:00Z", "till": "2026-08-16T02:00:00Z", "price":-0.0500}, # 16-aug 03:00                    , Import: 0.0955 Export:-0.0759, Neg Market, Pos Import, Neg Export
-            {"from": "2026-08-16T04:00:00Z", "till": "2026-08-16T05:00:00Z", "price":-0.3000}, # 16-aug 06:00                    , Import:-0.2070 Export:-0.3784, Neg Market, Neg Import, Neg Export
-            {"from": "2026-08-16T09:00:00Z", "till": "2026-08-16T10:00:00Z", "price": 0.0100}, # 16-aug 11:00                    , Import: 0.1681 Export:-0.0033, Pos Market, Pos Import, Neg Export
-            {"from": "2026-08-16T21:00:00Z", "till": "2026-08-16T22:00:00Z", "price": 0.1400}, # 16-aug 23:00 (UTC: 16-aug 21:00), Import: 0.3254 Export: 0.1540
+            {"from": "2026-08-15T22:00:00Z", "till": "2026-08-15T23:00:00Z", "price": 0.1000}, # 16-aug 00:00 (UTC: 15-aug 22:00), Import: 0.2500 Export: 0.1083
+            {"from": "2026-08-15T23:00:00Z", "till": "2026-08-16T00:00:00Z", "price": 0.0800}, # 16-aug 01:00                    , Import: 0.2258 Export: 0.0841
+            {"from": "2026-08-16T01:00:00Z", "till": "2026-08-16T02:00:00Z", "price":-0.0500}, # 16-aug 03:00                    , Import: 0.0685 Export:-0.0732, Neg Market, Pos Import, Neg Export
+            {"from": "2026-08-16T04:00:00Z", "till": "2026-08-16T05:00:00Z", "price":-0.3000}, # 16-aug 06:00                    , Import:-0.2340 Export:-0.3757, Neg Market, Neg Import, Neg Export
+            {"from": "2026-08-16T09:00:00Z", "till": "2026-08-16T10:00:00Z", "price": 0.0100}, # 16-aug 11:00                    , Import: 0.1411 Export:-0.0006, Pos Market, Pos Import, Neg Export
+            {"from": "2026-08-16T21:00:00Z", "till": "2026-08-16T22:00:00Z", "price": 0.1400}, # 16-aug 23:00 (UTC: 16-aug 21:00), Import: 0.2984 Export: 0.1567
                 
-            {"from": "2026-08-16T23:00:00Z", "till": "2026-08-17T00:00:00Z", "price": 0.0400}, # 17-aug 25:00 (UTC: 16-aug 23:00), Import: 0.2044 Export: 0.0330
-            {"from": "2026-08-17T04:00:00Z", "till": "2026-08-17T05:00:00Z", "price": 0.0800}, # 17-aug 30:00 (UTC: 17-aug 04:00), Import: 0.2528 Export: 0.0814
-            {"from": "2026-08-17T12:00:00Z", "till": "2026-08-17T13:00:00Z", "price": 0.1000}, # 17-aug 38:00 (UTC: 17-aug 12:00), Import: 0.2770 Export: 0.1056
-            {"from": "2026-08-17T15:00:00Z", "till": "2026-08-17T16:00:00Z", "price": 0.1200}, # 17-aug 41:00 (UTC: 17-aug 15:00), Import: 0.3012 Export: 0.1298
+            {"from": "2026-08-16T23:00:00Z", "till": "2026-08-17T00:00:00Z", "price": 0.0400}, # 17-aug 25:00 (UTC: 16-aug 23:00), Import: 0.1744 Export: 0.0357
+            {"from": "2026-08-17T04:00:00Z", "till": "2026-08-17T05:00:00Z", "price": 0.0800}, # 17-aug 30:00 (UTC: 17-aug 04:00), Import: 0.2258 Export: 0.0841
+            {"from": "2026-08-17T12:00:00Z", "till": "2026-08-17T13:00:00Z", "price": 0.1000}, # 17-aug 38:00 (UTC: 17-aug 12:00), Import: 0.2500 Export: 0.1083
+            {"from": "2026-08-17T15:00:00Z", "till": "2026-08-17T16:00:00Z", "price": 0.1200}, # 17-aug 41:00 (UTC: 17-aug 15:00), Import: 0.2742 Export: 0.1325
         ]
     }
 }
 MOCK_FRANK_MARKET_60min_LT = { # Zelfde info als hierboven maar zonder timezone info (moet dus lokale tijd zijn)
     "attributes": {
         "prices": [
-            {"from": "2026-08-16T00:00:00", "till": "2026-08-16T01:00:00", "price": 0.1000}, # 16-aug 00:00 (NL Local time), Import: 0.2770 Export: 0.1056
-            {"from": "2026-08-16T01:00:00", "till": "2026-08-16T02:00:00", "price": 0.0800}, # 16-aug 01:00                , Import: 0.2528 Export: 0.0814
-            {"from": "2026-08-16T03:00:00", "till": "2026-08-16T04:00:00", "price":-0.0500}, # 16-aug 03:00                , Import: 0.0955 Export:-0.0759, Neg Market, Pos Import, Neg Export
-            {"from": "2026-08-16T06:00:00", "till": "2026-08-16T07:00:00", "price":-0.3000}, # 16-aug 06:00                , Import:-0.2070 Export:-0.3784, Neg Market, Neg Import, Neg Export
-            {"from": "2026-08-16T11:00:00", "till": "2026-08-16T12:00:00", "price": 0.0100}, # 16-aug 11:00                , Import: 0.1681 Export:-0.0033, Pos Market, Pos Import, Neg Export
-            {"from": "2026-08-16T23:00:00", "till": "2026-08-17T00:00:00", "price": 0.1400}, # 16-aug 23:00                , Import: 0.3254 Export: 0.1540
+            {"from": "2026-08-16T00:00:00", "till": "2026-08-16T01:00:00", "price": 0.1000}, # 16-aug 00:00 (NL Local time), Import: 0.2500 Export: 0.1083
+            {"from": "2026-08-16T01:00:00", "till": "2026-08-16T02:00:00", "price": 0.0800}, # 16-aug 01:00                , Import: 0.2258 Export: 0.0841
+            {"from": "2026-08-16T03:00:00", "till": "2026-08-16T04:00:00", "price":-0.0500}, # 16-aug 03:00                , Import: 0.0685 Export:-0.0732, Neg Market, Pos Import, Neg Export
+            {"from": "2026-08-16T06:00:00", "till": "2026-08-16T07:00:00", "price":-0.3000}, # 16-aug 06:00                , Import:-0.2340 Export:-0.3757, Neg Market, Neg Import, Neg Export
+            {"from": "2026-08-16T11:00:00", "till": "2026-08-16T12:00:00", "price": 0.0100}, # 16-aug 11:00                , Import: 0.1411 Export:-0.0006, Pos Market, Pos Import, Neg Export
+            {"from": "2026-08-16T23:00:00", "till": "2026-08-17T00:00:00", "price": 0.1400}, # 16-aug 23:00                , Import: 0.2984 Export: 0.1567
                 
-            {"from": "2026-08-17T01:00:00", "till": "2026-08-17T02:00:00", "price": 0.0400}, # 17-aug 25:00 / 00:01        , Import: 0.2044 Export: 0.0330
-            {"from": "2026-08-17T06:00:00", "till": "2026-08-17T07:00:00", "price": 0.0800}, # 17-aug 30:00 / 00:06        , Import: 0.2528 Export: 0.0814
-            {"from": "2026-08-17T14:00:00", "till": "2026-08-17T15:00:00", "price": 0.1000}, # 17-aug 38:00 / 14:00        , Import: 0.2770 Export: 0.1056
-            {"from": "2026-08-17T17:00:00", "till": "2026-08-17T18:00:00", "price": 0.1200}, # 17-aug 41:00 / 17:00        , Import: 0.3012 Export: 0.1298
+            {"from": "2026-08-17T01:00:00", "till": "2026-08-17T02:00:00", "price": 0.0400}, # 17-aug 25:00 / 00:01        , Import: 0.1744 Export: 0.0357
+            {"from": "2026-08-17T06:00:00", "till": "2026-08-17T07:00:00", "price": 0.0800}, # 17-aug 30:00 / 00:06        , Import: 0.2258 Export: 0.0841
+            {"from": "2026-08-17T14:00:00", "till": "2026-08-17T15:00:00", "price": 0.1000}, # 17-aug 38:00 / 14:00        , Import: 0.2500 Export: 0.1083
+            {"from": "2026-08-17T17:00:00", "till": "2026-08-17T18:00:00", "price": 0.1200}, # 17-aug 41:00 / 17:00        , Import: 0.2742 Export: 0.1325
         ]
     }
 }
@@ -720,24 +725,25 @@ MOCK_FRANK_MARKET_15min = {
             {"from": "2026-08-15T22:00:00+00:00", "till": "2026-08-15T22:15:00+00:00", "price": 0.1000}, # 16-aug 00:00 (NL Summertime), wordt in de winter 23:00 - 23:15
             {"from": "2026-08-15T22:15:00+00:00", "till": "2026-08-15T22:30:00+00:00", "price": 0.0800}, # 16-aug 00:15 (15 min)
             {"from": "2026-08-15T22:30:00+00:00", "till": "2026-08-15T22:45:00+00:00", "price": 0.1000}, # 16-aug 00:30 (15 min)
-            {"from": "2026-08-15T22:45:00+00:00", "till": "2026-08-15T23:00:00+00:00", "price": 0.1200}, # 16-aug 00:45 (15 min), Average  0.1000, Import: 0.2793 Export: 0.0944 
+            {"from": "2026-08-15T22:45:00+00:00", "till": "2026-08-15T23:00:00+00:00", "price": 0.1200}, # 16-aug 00:45 (15 min), Average  0.1000, Import: 0.2500 Export: 0.1083 
 
             {"from": "2026-08-15T23:00:00+00:00", "till": "2026-08-15T23:15:00+00:00", "price": 0.1000}, # 16-aug 01:00 (15 min), Warning: Missing periods will give an average of less prices (avg of 2 iso 4 prices), also for following periods !!!!!
-            {"from": "2026-08-15T23:45:00+00:00", "till": "2026-08-16T00:00:00+00:00", "price": 0.0600}, # 16-aug 01:45 (45 min), Average  0.0800, Import: 0.2551 Export: 0.0702 
+            {"from": "2026-08-15T23:45:00+00:00", "till": "2026-08-16T00:00:00+00:00", "price": 0.0600}, # 16-aug 01:45 (45 min), Average  0.0800, Import: ?.2551 Export: ?.0702 
 
             {"from": "2026-08-16T01:00:00+00:00", "till": "2026-08-16T01:15:00+00:00", "price":-0.0700}, # 16-aug 03:00 (15 min)
             {"from": "2026-08-16T01:15:00+00:00", "till": "2026-08-16T01:30:00+00:00", "price":-0.0300}, # 16-aug 03:15 (15 min)
             {"from": "2026-08-16T01:30:00+00:00", "till": "2026-08-16T01:45:00+00:00", "price":-0.0400}, # 16-aug 03:30 (15 min)
-            {"from": "2026-08-16T01:45:00+00:00", "till": "2026-08-16T02:00:00+00:00", "price":-0.0600}, # 16-aug 03:45 (15 min), Average -0.0500, Import: 0.0978 Export:-0.0871
+            {"from": "2026-08-16T01:45:00+00:00", "till": "2026-08-16T02:00:00+00:00", "price":-0.0600}, # 16-aug 03:45 (15 min), Average -0.0500, Import: ?.0978 Export:-?.0871
 
-            {"from": "2026-08-16T13:00:00+00:00", "till": "2026-08-16T14:00:00+00:00", "price": 0.0400}, # 16-aug 15:00 (60 min), Average  0.0400, Import: 0.2067 Export: 0.0218 - No Average just using the one price
+            {"from": "2026-08-16T13:00:00+00:00", "till": "2026-08-16T14:00:00+00:00", "price": 0.0400}, # 16-aug 15:00 (60 min), Average  0.0400, Import: ?.2067 Export: ?.0218 - No Average just using the one price
 
-            {"from": "2026-08-16T14:00:00+00:00", "till": "2026-08-16T15:00:00+00:00", "price": 0.0100}, # 16-aug 16:00 (60 min), Average  0.0100, Import: 0.1704 Export:-0.0145 - idem
+            {"from": "2026-08-16T14:00:00+00:00", "till": "2026-08-16T15:00:00+00:00", "price": 0.0100}, # 16-aug 16:00 (60 min), Average  0.0100, Import: ?.1704 Export:-?.0145 - idem
 
             {"from": "2026-08-16T17:00:00+00:00", "till": "2026-08-16T17:15:00+00:00", "price": 0.1400}, # 16-aug 19:00 (15 min)
             {"from": "2026-08-16T17:15:00+00:00", "till": "2026-08-16T17:30:00+00:00", "price": 0.1800}, # 16-aug 19:15 (15 min)
             {"from": "2026-08-16T17:30:00+00:00", "till": "2026-08-16T17:45:00+00:00", "price": 0.1100}, # 16-aug 19:30 (15 min)
-            {"from": "2026-08-16T17:45:00+00:00", "till": "2026-08-16T18:00:00+00:00", "price": 0.1300}, # 16-aug 19:45 (15 min), Average  0.1400, Import: 0.3277 Export: 0.1428
+            {"from": "2026-08-16T17:45:00+00:00", "till": "2026-08-16T18:00:00+00:00", "price": 0.1300}, # 16-aug 19:45 (15 min), Average  0.1400, Import: ?.3277 Export: ?.1428
+            {"from": "2026-08-16T17:45:00+00:00", "till": "2026-08-16T18:00:00+00:00", "price": 0.1300}, # 16-aug 19:45 (15 min), Average  0.1400, Import: ?.3277 Export: ?.1428
         ]
     }
 }

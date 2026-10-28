@@ -78,21 +78,6 @@ The resulting Optimized Energy Plan determines the active strategy for the curre
 (e.g., NOM, Buy, Sell, Charge, Discharge, Disabled) and provides real-time setpoints
 to steer the Battery Charge/Discharge, the Solar Production and (in the future) the Deferrable Loads.
 
-Totale energiekosten
-\[
-\boxed{
-C_{\text{totaal}} =
-\sum_{t=1}^{N}
-\left[
-P_{\text{imp},t}\cdot p_{\text{imp},t}
--
-P_{\text{exp},t}\cdot p_{\text{exp},t}
-+
-\lambda\cdot P_{\text{ontl},t}
-\right]\Delta t
-}
-\]
-
 ### How It Works: The Energy Model
 At the core of the optimizer is a physical and financial Energy Model. For each discrete time step in the optimization period (e.g., 15-minute or 1-hour intervals over 24–48 hours), the model solves a system of linear equations and constraints:
 - **Energy Balance:** Ensures that at every time step, Total Power Supply (Grid Import + PV Production + Battery Discharge) equals Total Power Demand (House Load + Grid Export + Battery Charge), accounting for round-trip efficiency (RTE) of the battery.

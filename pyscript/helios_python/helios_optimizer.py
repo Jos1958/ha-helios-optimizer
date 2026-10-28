@@ -40,6 +40,9 @@
 #   2026-10-01: JR  v0.79s Added Source Price Data parsing to determine the Import and Export Price Arrays (using the Helios Energy Price Parser), added source_type and original_provider to the arguments
 #   2026-10-07: JR  v0.90  First Public Release (Read-only for HBC), Support for HBC Price Data, Updates Helios Optimizer Entities for HBC (Sub-Strategy and Net Power) but has no Helios Strategy yet in HBC
 #   2026-10-12: JR  v0.91  Initializes Helios Optimizer Input Entities depending on the previous helios release version, For some initial values of Input Entities HBC values are used (sell/charge target, max discharge/charge power)
+#   2026-10-15: JR  v0.92a Added Market Prices Array and New Graph with (Import, Export and Market) Prices and the selected Strategy
+#   2026-10-15: JR  v0.92b Adapted the Strategy Calculation, Made it more consistent and easier to follow, Clear difference between Buy/Charge and Sell/Discharge, Conversion Table from Helios to HBC Strategy
+#   2026-10-28: JR  v0.93  First public release with HBC Output (works together with Helios Strategy in HBC)
 #
 #   Remark: For the full helios history see helios_main.py
 #   
@@ -71,9 +74,10 @@ except ImportError: # Mock Logger not found (hopefully we are running in Home As
 from helios_python.helios_common import * # Import the Pure Python Helios Common Functions    (used also by the Helios Main)
 from helios_python.helios_prices import * # Import the Pure Python Helios Energy Price Parser (used also by the Helios Main)
 
-HELIOS_VERSION      = "0.9.1"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
+HELIOS_VERSION      = "0.9.3"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
 HELIOS_CALC_NAME    = "Helios Optimizer Calc Plan"
 MINUTES_PER_HOUR    = 60.0      # Conversion factor (float) from hours to minutes
+SECONDS_PER_MIN     = 60.0      # Conversion factor (float) from minutes to seconds
 PERCENTAGE_FACTOR   = 100.0     # Conversion factor (float) from number to % (e.g. kWh to %)
 K_FACTOR            = 1000      # Conversion factor from kilowatt to watt (Watt is used for current values) or for SEC to MSEC
 STEPS               = 48        # Default Number of Steps (48 steps of 60 minutes is two days)
@@ -83,8 +87,9 @@ PRICE_FACTOR        = 1.0       # Default Price Factor (1.0 = price is in euro p
 MAX_TIME            = 10.0      # Default Maximum Solver Time (seconds) 
 MAX_ITER            = 10000     # Default Maximum Solver Iterations
 
-IMPORT_PRICE_FIXED  = 0.20      # Default Import Price when no import_prices or import_fixed is provided
-EXPORT_PRICE_FIXED  = 0.05      # Default Export Price when no import_prices or import_fixed is provided
+IMPORT_PRICE_FIXED  = 0.20      # Default Import Price when no import_prices or import_price_fixed is provided
+EXPORT_PRICE_FIXED  = 0.05      # Default Export Price when no export_prices or export_price_fixed is provided
+MARKET_PRICE_FIXED  = None      # No Default for Market Price (this array is info only and not mandatory)
 
 MAX_GRID            = 11.0      # Default Maximum Grid Import/Export Capacity (kW)
 HOUSE_POWER_FIXED   = 0.5       # Default House Usage (kW) Power when no house_energy_forecast or house_power_fixed is provided, 0.5 kW is 500 Watt constant usage is 12 kWh per day
@@ -92,7 +97,7 @@ HOUSE_DAY           = 10.0      # Default House Usage for a Day (kWh) when a hou
 HOUSE_DISTR         = '[ 1, 1, 1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 6, 3, 3, 1]' # Default House Distribution
 
 BAT_ON              = True      # Default Battery Enabled
-BAT_CAP             = 10.0      # Default Battery Capacity (kWh)
+BAT_CAP             =  3.0      # Default Battery Capacity (kWh)
 SOC_TARGET          = 45.0      # Default Battery State of Charge (SOC) % Target - Minimum Required SoC at the End of the optimization (when not specified the SOC_MIN will be used)
 SOC_MIN             = 10.0      # Default Battery State of Charge (SOC) % Minimum
 SOC_MAX             = 90.0      # Default Battery State of Charge (SOC) % Maximum
@@ -110,6 +115,9 @@ SOLAR_MOD        = 'modulating' # Solar Mode where Solar Production is Dimmed be
 SOLAR_BIN        = 'binary'     # Solar Mode where Solar Production is Binary: Zero (0) or Full (Solar Forecast)
 SOLAR_DIS        = 'disabled'   # Solar Mode where Solar Production is Zero (0)
 SOLAR_MODE          = SOLAR_ALL # Default Solar Mode is Solar Production is All (Full and equal to Solar Forecast)
+
+FORECAST_FS_INTEGR  = 'Forecast.Solar Integration' # Retrieved from the Integration with a Service and stored into HELIOS_SOLAR_FORECAST2
+FORECAST_FS_REST    = 'Forecast.Solar REST api'    # Retrieved from a REST api and converted with a template  into HELIOS_SOLAR_FORECAST2 (see helios_optimizer_forecast.yaml)
 
 EV_OFF              = False     # Default Electrical Vehicle Disabled
 HP_OFF              = False     # Default Heatpump Disabled
@@ -132,6 +140,44 @@ ROUND_TOTAL_COST    = 2         # Round total costs in euro at 2 decimals (4 to 
 MAX_DELTA_COST      = 0.01      # Allow a difference in total costs (fun and sum of steps) of 0.01 euro
 MAX_DELTA_BALANCE   = 0.02      # Allow a difference in sum of balance variables of 0.02 kWh
 
+# Strategy Constants for Helios and HBC
+POWER_100W = 0.1 # Significant Margin for Power (100 W = 0.1 kWh )
+PCT_0_1    = 0.1 # Significant Percentage       (0.1 %)
+HELIOS_STR_UNK  = 'Unknown'      # No Strategy determined yet 
+HELIOS_STR_SKIP = 'Skipped'      # No Strategy applicable since step in the past
+HELIOS_STR_SELL = 'Sell'         # Sell for a profit
+HELIOS_STR_DIS  = 'Discharge'    # Discharge (when battery SOC is above Maximum)
+HELIOS_STR_BUY  = 'Buy'          # Buy for low prices
+HELIOS_STR_CHG  = 'Charge'       # Charge    (when battery SOC is below Minimum) 
+HELIOS_STR_SOL  = 'Charge Solar' # Charge with Solar only (No Grid / Buy)
+HELIOS_STR_NOM  = 'NOM'          # Prevent Import and Export by Discharging or Charging the Battery
+HELIOS_STR_NOMC = 'NOM-C'        # Zero Export, No Discharge of Battery (Battery Empty)
+HELIOS_STR_NOMD = 'NOM-D'        # Zero Import, No Charge of Battery    (Battery Full )
+HELIOS_STR_OFF  = 'Disabled'     # No Activity (Standby, peak shaving may be applicable)
+
+HBC_SS_UNK  = 'Unknown'          # For Helios Unknown
+HBC_SS_SKIP = 'Skipped'          # For Helios Skipped
+HBC_SS_SELL = 'Sell'             # For Helios Sell and Discharge
+HBC_SS_BUY  = 'Charge'           # For Helios Buy  and Charge
+HBC_SS_SOL  = 'Charge PV'        # For Helios Charge Solar
+HBC_SS_NOM  = 'Self-consumption' # For Helios NOM
+HBC_SS_NOMD = 'Zero import'      # For Helios NOM-D 
+HBC_SS_SBY  = 'Standby / peak shave' # For Helios Disabled and NOM-C (Zero Export)
+
+CONVERT_STRATEGY = {
+    HELIOS_STR_UNK : HBC_SS_UNK , 
+    HELIOS_STR_SKIP: HBC_SS_SKIP,
+    HELIOS_STR_SELL: HBC_SS_SELL,
+    HELIOS_STR_DIS : HBC_SS_SELL, 
+    HELIOS_STR_BUY : HBC_SS_BUY ,
+    HELIOS_STR_CHG : HBC_SS_BUY ,  
+    HELIOS_STR_SOL : HBC_SS_SOL ,
+    HELIOS_STR_NOM : HBC_SS_NOM ,
+    HELIOS_STR_NOMC: HBC_SS_SOL , # No HBC Zero Export exists but Charge PV is simular
+    HELIOS_STR_NOMD: HBC_SS_NOMD,
+    HELIOS_STR_OFF : HBC_SS_SBY
+}
+
 # Helios Optimizer Calculate Plan with a return response 
 # REMARK: This is now a Pure Python Function which is called asynchronous by helios_optimizer_service using the task.executor, common functies called are also pure python
 # @pyscript_compile # Not needed anymore since the helios_optimizer.py is now in /pyscript/helios_python/ (pure python) folder and not in the /pyscript/ or /pyscript/modules/ (pyscript) folders, it is compiled and imported  
@@ -140,10 +186,10 @@ def helios_optimizer_calc_plan(
     step_size=STEP_SIZE,         # 96 steps for 15 minutes is one day, 192 steps is two days
     start_step=STEP_ZERO,        # 0 = Determine start step automatically using current time
 
-    price_size=None,             # None=price_size is equal to step_size (Default), resample price          arrays from price_size to step_size when not none and different
-    house_size=None,             # None=house_size is equal to step_size (Default), resample house forecast arrays from house_size to step_size when not none and different
-    solar_size=None,             # None=solar_size is equal to step_size (Default), resample solar forecast arrays from solar_size to step_size when not none and different
-    price_factor=None,           # Price Factor 1.0 (or None)=Price in euro per kWh, 0.001=Price in euro per Wh, 0.01=Price in cent per kWh (Applicable to Import and Export Prices but not to the Source Price Data)
+    price_size=None,             # None=price_size is equal to step_size (Default), resample price          arrays from price_size to step_size when not None and different
+    house_size=None,             # None=house_size is equal to step_size (Default), resample house forecast arrays from house_size to step_size when not None and different
+    solar_size=None,             # None=solar_size is equal to step_size (Default), resample solar forecast arrays from solar_size to step_size when not None and different
+    price_factor=None,           # Price Factor 1.0 (or None)=Price in euro per kWh, 0.001=Price in euro per Wh, 0.01=Price in cent per kWh (Applicable to Import and Export Prices but NOT applicable to the Source Price Data!)
 
     max_grid_import_kw=MAX_GRID, # Maximum Grid Import Power (kW)
     max_grid_export_kw=MAX_GRID, # Maximum Grid Export Power (kW)
@@ -155,21 +201,22 @@ def helios_optimizer_calc_plan(
     boiler=None,                 # Future Boiler Parameters (dict)
 
     house_energy_forecast=None,  # Array with House Energy Forecast (the house usage in kWh per step)
-    house_daily_usage=None,      # Optional House Daily Usage (kWh) as a total value, alternative for house forecast array, will be spread over the day using house_daily_distr
+    house_daily_usage_kwh=None,  # Optional House Daily Usage (kWh) as a total value, alternative for house forecast array, will be spread over the day using house_daily_distr
     house_daily_distr=None,      # Optional House Daily Distribution over the Day as a list of 24 values (kWh) for each hour of the day (Remark: This field can be a list but also a string with a list of values)
 
     import_prices=None,          # Array with Import Prices (an import price in euro per step)
     export_prices=None,          # Array with Export Prices (an export price in euro per step)
+    market_prices=None,          # Array with Market Prices (a  market price in euro per step, Remark: information only, not used in calculations)
     provider_key=None,           # Provider Key for the Source Price Data (e.g. "hbc_marks" for HBC Energy Prices, "frank_energie" for Frank Energie Import Prices, etc)
     source_price_sensor=None,    # Source Price Sensor (Entity Id) (Info Only, since the Source Price Data is already retrieved from HA in the service) - Used by the Helios Service but not in Calculate Plan Function
     source_price_data=None,      # Source Price Data (alternative to import/export prices)
-    source_type=None,            # Source (Price) Type (Market, Import or Export) for Source Price Data
+#   source_type=None,            # Source (Price) Type (Market, Import or Export) for Source Price Data, removed see Provider Profiles
     original_provider=None,      # Original (Energy) Provider (Only applicable when the Price Provider is not the Original Source for the Price Data) 
 
     # Following fixed values arguments are not provided via the helios service (yet):
     import_price_fixed=IMPORT_PRICE_FIXED, # Fixed Import Price (valid for all steps), only used when no import price array is provided
     export_price_fixed=EXPORT_PRICE_FIXED, # Fixed Export Price (valid for all steps), only used when no export price array is provided
-    house_power_fixed=HOUSE_POWER_FIXED,   # House Fixed Usage  (valid for all steps), only used when no house usage  array is provided (Alternative for house_daily_usage, only used when house_daily_usage and house_energy_forecast are not provided)
+    house_power_fixed=HOUSE_POWER_FIXED,   # House Fixed Usage  (valid for all steps), only used when no house usage  array is provided (Alternative for house_daily_usage_kwh, only used when house_daily_usage and house_energy_forecast_kwh are not provided)
 
     # Solver limitations, Debug and Testing arguments:
     max_time=MAX_TIME,           # Maximum time in seconds for the HiGHS Solver
@@ -227,7 +274,7 @@ def helios_optimizer_calc_plan(
         solar_enabled, bat_enabled, ev_enabled, hp_enabled, boiler_enabled, solar_mode = None, None, None, None, None, None
 
         # Initialize the Strategy, Power (kW) and Sum values for the active step (used later in the Current dictionary in the payload so init in case an exception occurs)
-        active_strategy, active_hbc_sub_strat = 'Unknown', 'Unknown' # No Strategies available yet 
+        active_strategy, active_hbc_sub_strat = HELIOS_STR_UNK, HBC_SS_UNK # No Strategies available yet 
         active_house_usg_w, active_sol_for_w, active_sol_prod_w, active_grid_imp_w, active_grid_exp_w, active_grid_net_w = 0, 0, 0, 0, 0, 0
         active_bat_charge_w, active_bat_disch_w, active_bat_net_w, active_ev_power_w, active_hp_power_w, active_boil_power_w = 0, 0, 0, 0, 0, 0
         active_soc_pct, active_soc_kwh = 0, 0
@@ -236,7 +283,8 @@ def helios_optimizer_calc_plan(
 
         # Initialize the (Output) Plan Arrays (used later in the Plan dictionary in the payload so init in case an exception occurs):
 #       import_prices, export_prices, house_energy_forecast, # input arrays (DO NOT initialize!)
-        solar_energy_forecast = None # Input array but inside solar dictionary so needs to be initialized
+        processed_price_data = None # Not yet applicable
+        solar_energy_forecast = None # Solar Energy is an Input array but inside solar dictionary so needs to be initialized
         timestamps , strategy_plan, hbc_sub_strat_plan = [], [], [] # Timestamps array for the optimization steps (length of 0 indicates that no optimization has been performed)) and Strategy Plan array
         house_for_plan, house_usg_plan, solar_for_plan, solar_prod_plan, grid_imp_plan, grid_exp_plan = [], [], [], [], [], []
         bat_charge_plan, bat_disch_plan, ev_plan, hp_plan, boil_plan = [], [], [], [], []
@@ -276,7 +324,7 @@ def helios_optimizer_calc_plan(
         # Determine Automatically the Start Index (when not specified) from the Optimize Timestamp (usually based on Current Hour and Minutes)
         # When Start Index is -1 (Start Step is 0), the start index is calculated using the Optimize Timestamp (otherwise the specified Start Index/Step is used)
         if start_index < 0:
-            minutes_passed = (optimize_ts - base_ts).total_seconds() / MINUTES_PER_HOUR
+            minutes_passed = (optimize_ts - base_ts).total_seconds() / SECONDS_PER_MIN
             start_index = int(minutes_passed // step_size)
         
         # Make sure the start index is within range [0, T-1]:
@@ -305,8 +353,8 @@ def helios_optimizer_calc_plan(
         
         # Validate the provided import and export price arrays
         # If no import or export array provided then parse the source price dictionary to get the import and export price arrays (using the Helios Energy Price Parser)
-        # Or (when price parsing failed) generate an array with fixed values (import_fixed and export_fixed) for all of the steps in the optimization period
-        if source_price_data is not None and (import_prices is None or export_prices is None): # Source Prices are provided and Import or Export Prices are not?
+        # Or (when price parsing failed) generate an array with fixed values (import_price_fixed and export_price_fixed) for all of the steps in the optimization period
+        if source_price_data is not None and (import_prices is None or export_prices is None or market_prices is None): # Source Prices are provided and Import, Export and/or Market Prices are not?
             # For now when source prices are provided then assume they are from HBC and the source provider is Frank Energie (set in automation):
             energy_price_parser = HeliosEnergyPriceParser(provider_key=provider_key, config_override={"original_provider": original_provider}, target_tz=optimize_off_min) # Default Max Fallback Days is 1, Target timezone from now (+60 or 120min in NL) 
             processed_price_data = energy_price_parser.get_day_prices(price_data=source_price_data, target_step_size=step_size, lookup_ts=optimize_ts) # Get Energy Prices (Market, Import and Export) for the Optimize Day(s)
@@ -315,32 +363,39 @@ def helios_optimizer_calc_plan(
             import_prices = energy_price_parser.get_simple_price_list(processed_prices=processed_price_data, price_key=TARGET_IP_KEY)
             import_price_size = step_size # The import price size is now equal to the step size since the parser has resampled the source prices to the step size
         else: # Import Price Array specified or Source Price Parsing failed!
-            import_prices = [convert_float(p, f"import_price  [{i+1}]", factor=price_factor, decimals=ROUND_PRICES_EURO) for i,p in enumerate(import_prices )] if import_prices  else [convert_float(import_fixed, "import_fixed")] * expected_price_input_len
+            import_prices = [convert_float(p, f"import_price  [{i+1}]", factor=price_factor, decimals=ROUND_PRICES_EURO) for i,p in enumerate(import_prices )] if import_prices  else [convert_float(import_price_fixed, "import_price_fixed")] * expected_price_input_len
             import_price_size =  price_size # The import price size is now equal to the (input price size since no parsing has been done
 
         if export_prices is None and (processed_price_data != None) and (len(processed_price_data) > 0): # No Export Price Array specified but Source Price Parsing succeeded?
             export_prices = energy_price_parser.get_simple_price_list(processed_prices=processed_price_data, price_key=TARGET_EP_KEY)
             export_price_size = step_size # The export price size is now equal to the step size since the parser has resampled the source prices to the step size
         else: # Export Price Array specified or Source Price Parsing failed!
-            export_prices = [convert_float(p, f"export_price  [{i+1}]", factor=price_factor, decimals=ROUND_PRICES_EURO) for i,p in enumerate(export_prices )] if export_prices  else [convert_float(export_fixed, "export_fixed")] * expected_price_input_len
+            export_prices = [convert_float(p, f"export_price  [{i+1}]", factor=price_factor, decimals=ROUND_PRICES_EURO) for i,p in enumerate(export_prices )] if export_prices  else [convert_float(export_price_fixed, "export_price_fixed")] * expected_price_input_len
             export_price_size =  price_size # The export price size is now equal to the (input) price size since no parsing has been done
+
+        if market_prices is None and (processed_price_data != None) and (len(processed_price_data) > 0): # No Market Price Array specified but Source Price Parsing succeeded?
+            market_prices = energy_price_parser.get_simple_price_list(processed_prices=processed_price_data, price_key=TARGET_MP_KEY)
+            market_price_size = step_size # The market price size is now equal to the step size since the parser has resampled the source prices to the step size
+        else: # Market Price Array specified or Source Price Parsing failed!
+            market_prices = [convert_float(p, f"market_price  [{i+1}]", factor=price_factor, decimals=ROUND_PRICES_EURO) for i,p in enumerate(market_prices )] if market_prices  else None 
+            market_price_size = price_size if (market_prices != None) else 0 # The export price size is now equal to the (input) price size since no parsing has been done
 
         # Validate the provided simple house energy forecast array
         # If no forecast array provided then generate a forecast array using the house daily distributon and the house daily usage (or house power fixed)
         # Or (when no daily usage distribution available) an array with fixed values:
-        if (house_daily_usage != None): # House Daily (Energy) Usage (kWh) is specified?
-            house_energy_fixed_per_step = round(convert_float(house_daily_usage, "house_daily_usage") / steps_per_day                     , ROUND_ENERGY_KWH2) # Fixed House Energy per step (converted from House Usage Energy)
+        if (house_daily_usage_kwh != None): # House Daily (Energy) Usage (kWh) is specified?
+            house_energy_fixed_per_step_kwh = round(convert_float(house_daily_usage_kwh, "house_daily_usage_kwh") / steps_per_day, ROUND_ENERGY_KWH2) # Fixed House Energy per step (converted from House Usage Energy)
         else: # House Daily Usage is not specified so use House Fixed Power (in kW)
-            house_energy_fixed_per_step = round(convert_float(house_power_fixed, "house_power_fixed"  ) / (MINUTES_PER_HOUR / house_size ), ROUND_ENERGY_KWH2) # Fixed House Energy per step (converted from Fixed House Power )
+            house_energy_fixed_per_step_kwh = round(convert_float(house_power_fixed, "house_power_fixed"  ) / (MINUTES_PER_HOUR / house_size ), ROUND_ENERGY_KWH2) # Fixed House Energy per step (converted from Fixed House Power )
 
         if (house_energy_forecast != None): # House Energy Forecast array specified?
             house_energy_forecast = [convert_float(h, f"house_energy_forecast[{i+1}]", min=0, decimals=ROUND_ENERGY_KWH2) for i,h in enumerate(house_energy_forecast)] # Convert House Energy Forecast to floats
         elif (house_daily_distr != None): # House Energy Usage Distribution array specified (defines how to spread the daily energy usage over the hours of the day)
             # Generate a House Energy Forecast from the Daily Usage and the Distribution over the day (Remark: Distribution can be a list of a string of separated values and will be converted to floats in the generate function)
-            house_energy_forecast = generate_forecast_for_distribution(steps_per_day * house_energy_fixed_per_step, house_daily_distr, name="house_daily_distr", decimals=ROUND_ENERGY_KWH2) # Generate a forecast array using the distribution of the energy over the hours of the day
+            house_energy_forecast = generate_forecast_for_distribution(steps_per_day * house_energy_fixed_per_step_kwh, house_daily_distr, name="house_daily_distr", decimals=ROUND_ENERGY_KWH2) # Generate a forecast array using the distribution of the energy over the hours of the day
             house_size = int((24 * MINUTES_PER_HOUR) / len(house_energy_forecast)) # The length of the house usage distribution array determines the step size of the house energy forecast (not the general step size or the specified house step size)
         else: # No forecast and no spread over the day provided so use a fixed energy per step
-           house_energy_forecast = [house_energy_fixed_per_step] * expected_house_input_len # Generate a forecast array with a fixed value for all of the hours of the day
+           house_energy_forecast = [house_energy_fixed_per_step_kwh] * expected_house_input_len # Generate a forecast array with a fixed value for all of the hours of the day
 
         solar_energy_forecast = solar.get("energy_forecast", [SOLAR_ZERO] * expected_price_input_len) if solar_enabled else None # Get the forecast for solar (one level deeper in the parameters then the other arrays)
         solar_energy_forecast = [convert_float(s, f"solar_energy_forecast[{i+1}]", min=0, decimals=ROUND_ENERGY_KWH2) for i,s in enumerate(solar_energy_forecast)] if solar_enabled else [SOLAR_ZERO] * expected_solar_input_len # Without solar forecast the solar array has 0.0 values
@@ -354,10 +409,12 @@ def helios_optimizer_calc_plan(
 
         # Resample the input arrays when step size is not equal to the step size of the input array-s:
         # Note: For import and export price arrays that are based on the source price data the price step size is already equal to the step size (parsed and resampled in the Helios Energy Price Parser)
-        if (import_price_size != step_size): # Resample of import price arrays required?
-            import_prices  = resample(import_prices , import_price_size, step_size, "import prices" , kind="zero"  , dtype=float, decimals=2) # Resample import prices  from 60 to 15 min, repeat values 4x
-        if (export_price_size != step_size): # Resample of export price arrays required?
-            export_prices  = resample(export_prices , export_price_size, step_size, "export prices" , kind="zero"  , dtype=float, decimals=4) # Resample export prices  from 60 to 15 min, repeat values 4x 
+        if (import_price_size != step_size): # Resample of import prices array required?
+            import_prices = resample(import_prices , import_price_size, step_size, "import prices" , kind="zero"  , dtype=float, decimals=2) # Resample import prices  from 60 to 15 min, repeat values 4x
+        if (export_price_size != step_size): # Resample of export prices array required?
+            export_prices = resample(export_prices , export_price_size, step_size, "export prices" , kind="zero"  , dtype=float, decimals=4) # Resample export prices  from 60 to 15 min, repeat values 4x 
+        if (market_price_size != step_size) and (market_prices != None): # Resample of market prices array required (only when available)?
+            market_prices = resample(market_prices , market_price_size, step_size, "market prices" , kind="zero"  , dtype=float, decimals=4) # Resample market prices  from 60 to 15 min, repeat values 4x 
         if (house_size != step_size): # Resample of house forecast input array required?
             house_energy_forecast = resample(house_energy_forecast, house_size, step_size, "house forecast", kind="linear", conserve_sum=True, dtype=float, decimals=ROUND_POWER_KW) # Resample house energy forecast (e.g. from 60 to 15 min), linear interpolation of forecasts (conserve sum of energy)
         if (solar_size != step_size): # Resample of solar forecast input array required?
@@ -372,6 +429,8 @@ def helios_optimizer_calc_plan(
         # This means that at least one day of data must be provided which can be extended to the number of days
         import_prices         = check_and_extend_size(import_prices , T, "import_prices" , True, steps_per_day, days_in_period-1) # Check that the length of the import_prices   array is equal to T (number of steps)
         export_prices         = check_and_extend_size(export_prices , T, "export_prices" , True, steps_per_day, days_in_period-1) # Check that the length of the export_prices   array is equal to T (number of steps)
+        if (market_prices != None): # Only check market prices when specified (market prices are not mandatory)
+            market_prices     = check_and_extend_size(market_prices , T, "market_prices" , True, steps_per_day, days_in_period-1) # Check that the length of the market_prices   array is equal to T (number of steps)
         house_energy_forecast = check_and_extend_size(house_energy_forecast, T, "house_energy_forecast", True, steps_per_day, days_in_period-1) # Check that the length of the hourse forecast array is equal to T (number of steps)
         solar_energy_forecast = check_and_extend_size(solar_energy_forecast, T, "solar_energy_forecast", True, steps_per_day, days_in_period-1) # Check that the length of the solar forecast array is equal to T (number of steps) or multiply with a max of days
 
@@ -381,7 +440,7 @@ def helios_optimizer_calc_plan(
 
         if (solar_enabled):
             solar_mode     = solar.get("mode", SOLAR_ALL).lower() if solar_enabled else "disabled" # Mode: all (default, no dimming or switch), modulating (dimming), binary (on/off)
-            solar_mode     = solar_mode if (solar_mode in [SOLAR_ALL,SOLAR_MOD, SOLAR_BIN]) else SOLAR_ALL if solar_enabled else SOLAR_DIS # prevent invalid solar modes
+            solar_mode     = solar_mode if (solar_mode in [SOLAR_ALL, SOLAR_MOD, SOLAR_BIN]) else SOLAR_ALL if solar_enabled else SOLAR_DIS # prevent invalid solar modes
         
         # JR2026-09-11: Conversion from Solar and House Energy Forecasts to Power Forecasts,
         # This requires a conversion from Energy (kWh) to Power (kW) by multiplying with steps per hour (Power = steps_per_hour * Energy or Power = Energy / delta_time):
@@ -397,29 +456,33 @@ def helios_optimizer_calc_plan(
             bat_charge_eff= convert_float(battery.get("charge_efficiency"   , BAT_EFF), "battery.charge_efficiency"   , decimals=ROUND_EFFICIENCY)
             bat_disch_eff = convert_float(battery.get("discharge_efficiency", BAT_EFF), "battery.discharge_efficiency", decimals=ROUND_EFFICIENCY)
 
-            # Get the Battery Soc Start value in % and Determine kWH:
-            soc_start_pct = convert_float(battery.get("soc_start_pct", SOC_START), "battery.soc_start_pct", decimals=ROUND_ENERGY_PCT)
-            soc_start_kwh = (soc_start_pct / PERCENTAGE_FACTOR) * capacity_kwh
+            if (capacity_kwh > 0):
+                # Get the Battery Soc Start value in % and Determine kWH:
+                soc_start_pct = convert_float(battery.get("soc_start_pct", SOC_START), "battery.soc_start_pct", decimals=ROUND_ENERGY_PCT)
+                soc_start_kwh = (soc_start_pct / PERCENTAGE_FACTOR) * capacity_kwh
 
-            # Get the Battery SoC Min and Max values in %:
-            soc_min_pct = convert_float(battery.get("soc_min_pct", SOC_MIN), "battery.soc_min_pct", decimals=ROUND_ENERGY_PCT)
-            soc_max_pct = convert_float(battery.get("soc_max_pct", SOC_MAX), "battery.soc_max_pct", decimals=ROUND_ENERGY_PCT)
+                # Get the Battery SoC Min and Max values in %:
+                soc_min_pct = convert_float(battery.get("soc_min_pct", SOC_MIN), "battery.soc_min_pct", decimals=ROUND_ENERGY_PCT)
+                soc_max_pct = convert_float(battery.get("soc_max_pct", SOC_MAX), "battery.soc_max_pct", decimals=ROUND_ENERGY_PCT)
 
-            # Determine the Battery SoC Min and Max values in kWh
-            soc_min_kwh = (soc_min_pct / PERCENTAGE_FACTOR) * capacity_kwh
-            soc_max_kwh = (soc_max_pct / PERCENTAGE_FACTOR) * capacity_kwh
+                # Determine the Battery SoC Min and Max values in kWh
+                soc_min_kwh = (soc_min_pct / PERCENTAGE_FACTOR) * capacity_kwh
+                soc_max_kwh = (soc_max_pct / PERCENTAGE_FACTOR) * capacity_kwh
 
-            # Get the Maximum Battery Charge and Discharge Power:
-            max_bat_charge_kw = convert_float(battery.get("max_charge_power_kw"   , MAX_CHARGE), "battery.max_charge_power_kw"   , decimals=ROUND_ENERGY_KWH2)
-            max_bat_disch_kw  = convert_float(battery.get("max_discharge_power_kw", MAX_DISCH ), "battery.max_discharge_power_kw", decimals=ROUND_ENERGY_KWH2)
+                # Get the Maximum Battery Charge and Discharge Power:
+                max_bat_charge_kw = convert_float(battery.get("max_charge_power_kw"   , MAX_CHARGE), "battery.max_charge_power_kw"   , decimals=ROUND_ENERGY_KWH2)
+                max_bat_disch_kw  = convert_float(battery.get("max_discharge_power_kw", MAX_DISCH ), "battery.max_discharge_power_kw", decimals=ROUND_ENERGY_KWH2)
 
-            # Get the Battery Soc Target value in % and Determine kWh:
-            soc_target_pct  = convert_float(battery.get("soc_target_pct", soc_min_pct), "battery.soc_target_pct", ROUND_ENERGY_PCT) # Use the SOC Min when no SOC Target (Min) is specified
-            soc_target_kwh = (soc_target_pct / PERCENTAGE_FACTOR) * capacity_kwh # Requested Minium SOC Target at the end of the optimization period
+                # Get the Battery Soc Target value in % and Determine kWh:
+                soc_target_pct  = convert_float(battery.get("soc_target_pct", soc_min_pct), "battery.soc_target_pct", ROUND_ENERGY_PCT) # Use the SOC Min when no SOC Target (Min) is specified
+                soc_target_kwh = (soc_target_pct / PERCENTAGE_FACTOR) * capacity_kwh # Requested Minium SOC Target at the end of the optimization period
 
-            # Get the Battery Charge and Discharge Cost:
-            charge_cost    = convert_float(battery.get("charge_cost"   , CHARGE_COST), "battery.charge_cost"   , decimals=ROUND_PRICES_EURO)
-            discharge_cost = convert_float(battery.get("discharge_cost", DISCH_COST ), "battery.discharge_cost", decimals=ROUND_PRICES_EURO)
+                # Get the Battery Charge and Discharge Cost:
+                charge_cost    = convert_float(battery.get("charge_cost"   , CHARGE_COST), "battery.charge_cost"   , decimals=ROUND_PRICES_EURO)
+                discharge_cost = convert_float(battery.get("discharge_cost", DISCH_COST ), "battery.discharge_cost", decimals=ROUND_PRICES_EURO)
+            
+            else: # No capacity (zero)
+                bat_enabled: false # Battery requires capacity larger than zero
         
         # Optional Smart Deferrable Devices:
         if ev_enabled: # Electrical Vehicle enabled?
@@ -756,7 +819,8 @@ def helios_optimizer_calc_plan(
 
 #       test = 7 / 0 # Test an error in phase 7
         if (res != None) and res.success: # Solution Found (not Infeasible)?
-            current_soc_kwh = soc_start_kwh if bat_enabled else 0.0 # Current State of Charge for the Battery (kWh)
+            current_soc_kwh  = soc_start_kwh if bat_enabled else 0.0                # Determine the Battery SoC in kWh     at the Start of the Optimization Run
+            current_soc_pct  = (current_soc_kwh * PERCENTAGE_FACTOR) / capacity_kwh if bat_enabled else 0.0 # Determine the Battery SoC Percentage at the Start
             step_ts, step_index = base_ts, 0 # Start at 00:00 today
 
             # Vectorized assignments and functions (for all steps in one go):
@@ -797,18 +861,19 @@ def helios_optimizer_calc_plan(
 
             step_index = base_index # Start at the first (=0) interval in the optimization period
             for t in range(T): # for each step get variables from the optimization:
+                previous_soc_kwh, previous_soc_pct = current_soc_kwh, current_soc_pct # Keep the Current SoC as the Previous SoC in kwh and percentage (at each new step)
                 bat_charge_kw, bat_disch_kw, house_usg_kw, sol_for_kw, sol_prod_kw = bat_charge_kw_arr[t], bat_disch_kw_arr[t], house_usg_kw_arr[t], sol_for_kw_arr[t], sol_prod_kw_arr[t] # Step values for Battery Charge, Discharge, House and Solar Forecast and Solar Production Power
                 grid_exp_kw, grid_imp_kw = grid_exp_kw_arr[t], grid_imp_kw_arr[t] # Step values for Grid Import and Export Power
                 ev_charge_kw, hp_power_kw, boil_power_kw = ev_charge_kw_arr[t], hp_power_kw_arr[t], boil_power_kw_arr[t] # Step values for EV, Heatpump and Boiler Power
-                import_price, export_price = import_prices[t], export_prices[t] # Step values for Import and Export Price
+                import_price, export_price, market_price = import_prices[t], export_prices[t], market_prices[t] if (market_prices != None) else None # Step values for Import, Export and (optional) Market Prices
 
                 # Calculate Battery SoC % and KWh per step:
                 if bat_enabled: # Is battery enabled?
                     # bat_charge_kw and bat_disch_kw are the values used in the balance, the delta needs to be compensated for the charge and discharge efficiency, 
                     # The battery is less charged (* efficiency) and more discharged (/ efficiency) than the values used in the balance
                     delta_kwh = float(((bat_charge_kw * bat_charge_eff) - (bat_disch_kw / bat_disch_eff)) * delta_time) # JR2026-09-05: Calculate delta kWh (convert to float since bat_charge_kw and bat_disch_kw have np.float values)
-                    current_soc_kwh = max(0.0, min(capacity_kwh, current_soc_kwh + delta_kwh))
-                    current_soc_pct = (current_soc_kwh * PERCENTAGE_FACTOR) / capacity_kwh # JR2026-09-13: No rounding necessary here (duplicate)
+                    current_soc_kwh = max(0.0, min(capacity_kwh, current_soc_kwh + delta_kwh)) # Determine the Battery SoC in kWh     after the Current Step
+                    current_soc_pct = (current_soc_kwh  * PERCENTAGE_FACTOR) / capacity_kwh    # Determine the Battery SoC percentage after the Current Step # JR2026-09-13: No rounding necessary here (duplicate)
                 else: # battery not enabled
                     current_soc_pct = 0.0
 
@@ -819,39 +884,88 @@ def helios_optimizer_calc_plan(
 
                 # Determine the (Battery) Strategy for the Step from the Power levels (for skipped steps strategy is 'Skipped')
                 if t < start_index: # Step in the Past?
-                    strat = 'Skipped' # Step is in the Past: always use 'Skipped'
-                    hbc_sub_strat = "Skipped"
+                    strat = HELIOS_STR_SKIP # Step is in the Past: always use 'Skipped'
                 else: # Current or Future Step!
                     # Determine House Demand or Solar Surplus (only one of the two will have a value and the other is zero)
                     net_house_demand_kw  = max(0.0, house_usg_kw - sol_prod_kw) # House needs more than Sun is producing
                     net_solar_surplus_kw = max(0.0, sol_prod_kw - house_usg_kw) # Sun is producing more than House needs
+                    net_grid_kw = grid_imp_kw - grid_exp_kw                     # Net Grid is Import - Export
+                    battery_low      = previous_soc_pct <= soc_min_pct + PCT_0_1
+                    battery_high     = previous_soc_pct >= soc_max_pct - PCT_0_1
+                    battery_too_low  = previous_soc_pct <  soc_min_pct - PCT_0_1 # Model starts charging
+                    battery_too_high = previous_soc_pct >  soc_max_pct + PCT_0_1 # Model starts discharging
 
-                    if bat_charge_kw > (net_solar_surplus_kw + 0.1): # Battery charges more than Sun Surplus?
-                        if import_price < 0 or sol_prod_kw < 0.05: # Negative prices or No Sun?
-                            strat = 'Buy' # Buying for selling later
-                            hbc_sub_strat = 'Charge'
-                        elif sol_prod_kw >= bat_charge_kw: # Charging only with Sun Production 
-                            strat = 'Charge Solar'
-                            hbc_sub_strat = 'Charge PV'
-                        else: # Charging more than Sun Production / Surplus?
-                            strat = 'Charge'
-                            hbc_sub_strat = 'Charge'
-                    elif bat_disch_kw > (net_house_demand_kw + 0.1): # Battery discharges more than House Demand?
-                        if grid_exp_kw_arr[t] > 0.05: # Profit on Discharge
-                            strat = 'Sell'
-                            hbc_sub_strat = 'Sell'
-                        else: # Discharge without or with little Profit
-                            strat = 'Discharge'
-                            hbc_sub_strat = 'Sell'
-                    elif bat_charge_kw > 0.05 or bat_disch_kw > 0.05: # Significant Charge or Discharge without Sun Surplus or House Demand
-                        strat = 'NOM' # Self Consumption
-                        hbc_sub_strat = 'Self-consumption'
-                    else: # No Significant Battery Activity
-                        strat = 'Disabled' # User may decide: Self Consumption, Zero Import, Standby
+#                   if bat_charge_kw > (net_solar_surplus_kw + 0.1): # Battery charges more than Sun Surplus?
+#                       if import_price < 0 or sol_prod_kw < 0.05: # Negative prices or No Sun?
+#                           strat = 'Buy' # Buying (for Selling later) with Negative Prices or No Sun
+#                           hbc_sub_strat = 'Charge'
+#                       elif sol_prod_kw >= bat_charge_kw: # Charging only with Sun Production 
+#                           strat = 'Charge Solar' # Charging Only With Solar
+#                           hbc_sub_strat = 'Charge PV'
+#                       else: # Charging more than Sun Production / Surplus?
+#                           strat = 'Charge' # Additional Charging on top of Solar Production
+#                           hbc_sub_strat = 'Charge'
+#                   elif bat_disch_kw > (net_house_demand_kw + 0.1): # Battery discharges more than House Demand?
+##                      if grid_exp_kw_arr[t] > 0.05: # Profit on Discharge
+#                       if export_price > 0.05: # Significant Profit (Not Little) on Discharge
+#                           strat = 'Sell'
+#                           hbc_sub_strat = 'Sell'
+#                       else: # Discharge without or with little Profit
+#                           strat = 'Discharge'
+#                           hbc_sub_strat = 'Sell'
+#                   elif bat_charge_kw > 0.05 or bat_disch_kw > 0.05: # Significant Charge or Discharge (but not larger than Sun Surplus or House Demand, these are already handled above) 
+#                       strat = 'NOM' # Self Consumption
 #                       hbc_sub_strat = 'Self-consumption'
+#                   else: # No Significant Battery Activity (both Charge and Discharge are small), Battery can be empty or full but could also be cheaper to do nothing
+#                       strat = 'Disabled' # User may decide: Self Consumption, Zero Import, Standby
+##                      hbc_sub_strat = 'Self-consumption'
 #                       hbc_sub_strat = 'Standby / peak shave'
-                        hbc_sub_strat = 'Zero import'
+##                      hbc_sub_strat = 'Zero import'
 
+                    # Discharging the Battery:
+                    if bat_disch_kw >= POWER_100W: # Battery charges significant
+                        if bat_disch_kw > net_house_demand_kw + POWER_100W:
+                            if not battery_too_high: # No High Battery? 
+                                strat = HELIOS_STR_SELL # Selling (for a profit) (hbc: 'Sell' Sell and Discharge are the same)
+                            else: # Battery High!
+                                strat = HELIOS_STR_DIS # Discharge (to get below SOC Maximum) (hbc: 'Sell')
+                        else: # bat_discharge_kw <= net_house_demand + POWER_100W
+                            strat = HELIOS_STR_NOM # Charging to prevent Import (hbc: 'Self-consumption')
+
+                    # Charging the Battery:
+                    # Todo/Question: When battery is charging and enough sun is available for maximum charge but battery is not charging at the maximum, what is the correct strategy (not Charge PV? but Charge xxx W?)
+                    elif bat_charge_kw >= POWER_100W: # Battery charges significant?
+                        if bat_charge_kw > net_solar_surplus_kw + POWER_100W:
+                            if not battery_too_low: # No Low Battery?
+                                strat = HELIOS_STR_BUY # Buying (for Selling with profit later or Cheaper Grid Price than later) (hbc: 'Charge' Buy and Charge are the same)
+                            else: # Battery Low 
+                                strat = HELIOS_STR_CHG # Charge (to get above SOC Minimum) (hbc: 'Charge')
+                        elif bat_charge_kw < net_solar_surplus_kw - POWER_100W: # Charging only with Sun Production?
+                            strat = HELIOS_STR_SOL # Charging Only With Solar (hbc: 'Charge PV'), Todo/Question: NOM might be better when the Sun unexpected disappears behind a cloud
+                        else: # bat_charge_kw ± net_solar_surplus_kw 
+                            # net_solar_surplus - POWER_100W < bat_charge_kw < net_solar_surplus + POWER_100W
+                            strat = HELIOS_STR_NOM # Charging to prevent Export (hbc: 'Self-consumption')
+            
+                    # No Battery Activity but there is Grid Activity:
+                    # Todo/Question: No Significant Battery Activity can be caused by a Full or Empty Battery (should NOMC for empty and NOMD for full battery be used here aswell, see also no battery and grid activity)
+                    elif abs(net_grid_kw) >= POWER_100W: # No Significant Battery Activity but Net Grid Activity is significant
+                        if battery_low and (net_grid_kw > 0): # Grid Import due to low Battery?
+                            strat = HELIOS_STR_NOMC # Only Charge for Zero Export (Discharge is not possible for empty batttery) (hbc: 'Charge PV' HBC has no Zero Export)
+                        elif battery_high and (net_grid_kw < 0): # Grid Export due to high Battery?
+                            strat = HELIOS_STR_NOMD # Only Discharge for Zero Import (Charge is not possible for full battery) (hbc: 'Zero import')
+                        else: # Grid Import or Export due to decision by the Optimizer to disable the battery for cost reasons (not for full or empty battery)!
+                            strat = HELIOS_STR_OFF # Disabled Battery, Assume cost are lower when Grid is used instead of Battery (hbc: 'Standby / peak shave')
+
+                    # No Battery and Grid Activity:
+                    else: # No Significant Activity at All (both Net Grid and Net Battery are (almost) zero), Assume NOM is the strategy
+                        if battery_low: # Battery (almost) empty?
+                            strat = HELIOS_STR_NOMC # Only Charge for Zero Export (Discharge is not possible for empty batttery) (hbc: 'Charge PV' HBC has no Zero Export)
+                        elif battery_high: # Battery (almost) full?
+                            strat = HELIOS_STR_NOMD # Only Discharge for Zero Import (Charge is not possible for full battery) (hbc: 'Zero import')
+                        else : # Battery is not Low or Full
+                            strat = HELIOS_STR_NOM # Assume Null on the Meter (Battery becomes active when power balance changes) (hbc: 'Self-consumption')
+                
+                hbc_sub_strat = CONVERT_STRATEGY.get(strat, None) # Convert the Helios (Battery) Strategy in a HBC Battery Sub-Strategy (None is the default but should not occur)
                 strategy_plan.append(strat)
                 hbc_sub_strat_plan.append(hbc_sub_strat)
 
@@ -909,7 +1023,7 @@ def helios_optimizer_calc_plan(
     
             # Vectorized Cost for Battery Charging and Discharging:
             charging_cost_arr    = (bat_charge_kw_arr * delta_time * charge_cost   ) if bat_enabled else np.zeros(T)
-            discharging_cost_arr = (bat_disch_kw_arr * delta_time * discharge_cost) if bat_enabled else np.zeros(T)
+            discharging_cost_arr = (bat_disch_kw_arr  * delta_time * discharge_cost) if bat_enabled else np.zeros(T)
 
             # Vectorized Net cost for this specific step:
             net_grid_cost_arr = import_cost_arr - export_revenue_arr
@@ -1028,9 +1142,8 @@ def helios_optimizer_calc_plan(
         "success"         : res.success if (res != None) else False,
         "calc_code"       : calc_code,    # 0=Success (see above for other values)
         "calc_result"     : calc_result,  # Result of optimizer (solver), processing, exceptions and validation
-        "optimize_time"   : datetime_string(optimize_ts) if (optimize_ts != None) else None, # Optimize Time (YYYY-MM-DD HH:MM) - Usually (HA) Current Timestamp but can be different for (Regression) Testing/Debugging
-        "optimize_tz"     : str(now_tz),  # Timezone (as string) used to create the naive optimize timestamp (optimize_ts), may be needed for lookup in arrays that do not use a naive timestamp (e.g. price or forecast arrays)
-        "optimize_off_min": now_off_min,  # Timezone offset in minutes compared to UTC
+        "optimize_ts_str" : datetime_string(optimize_ts) if (optimize_ts != None) else None, # Optimize Time (YYYY-MM-DD HH:MM) - Usually (HA) Current Timestamp but can be different for (Regression) Testing/Debugging
+        "optimize_off_min": optimize_off_min,  # Timezone offset in minutes compared to UTC applicable for optimize_time
 
         "total_fun_cost"  : round(total_fun_cost , ROUND_TOTAL_COST) if total_fun_cost  else None, 
         "total_step_cost" : round(total_step_cost, ROUND_TOTAL_COST) if total_step_cost else None,    
@@ -1072,13 +1185,15 @@ def helios_optimizer_calc_plan(
         # Remark: Plan is in kW but Current is in Watt
         "current": { # for active_index and active_ts (see above)
             "battery_strategy"    : active_strategy, # Battery Strategy (current_strategy)
-            "hbc_sub_strategy"    : active_hbc_sub_strat,                                    # Active Strategy translated to a HBC Battery Sub Strategy to be used by the Helios Strategy Flow in HBC     
-            "battery_net_power_w" : a_b_net_w_rounded,                                       # Net Battery Power in W: Charge is Positive (+), Discharge is Negative (-) (bat_net_w)
-            "battery_power_w"     : abs(a_b_net_w_rounded),                                  # Battery Power in Watt is always positive (for Charging and Discharging), absolute value of net (bat_net_w)
-            "battery_charge_w"    : (a_b_net_w_rounded   if (a_b_net_w_rounded > 0) else 0), # Charge    is only applicable when net battery power is positive (bat_net_w)
-            "battery_discharge_w" : (-a_b_net_w_rounded  if (a_b_net_w_rounded < 0) else 0), # Discharge is only applicable when net battery power is negative (bat_net_w)
+            "hbc_sub_strategy"    : active_hbc_sub_strat,                                      # Active Strategy translated to a HBC Battery Sub Strategy to be used by the Helios Strategy Flow in HBC     
+            "battery_net_power_w" : a_b_net_w_rounded,                                         # Net Battery Power in W: Charge is Positive (+), Discharge is Negative (-) (bat_net_w)
+            "battery_power_w"     : abs(a_b_net_w_rounded),                                    # Battery Power in Watt is always positive (for Charging and Discharging), absolute value of net (bat_net_w)
+            "battery_charge_w"    : (a_b_net_w_rounded   if (a_b_net_w_rounded > 0) else 0.0), # Charge    is only applicable when net battery power is positive (bat_net_w)
+            "battery_discharge_w" : (-a_b_net_w_rounded  if (a_b_net_w_rounded < 0) else 0.0), # Discharge is only applicable when net battery power is negative (bat_net_w)
 
             "house_usage_w"       : round(active_house_usg_w , ROUND_POWER_W), # House Usage (= House Forecast) in Watt 
+            "solar_forecast_w"    : round(active_sol_for_w   , ROUND_POWER_W), # Solar Forecastin Watt 
+            "solar_production_w"  : round(active_sol_prod_w  , ROUND_POWER_W), # Solar Production in Watt 
             "grid_power_w"        : round(active_grid_net_w  , ROUND_POWER_W), # Net Grid Power in Watt (grid_w)
             "ev_power_w"          : round(active_ev_power_w  , ROUND_POWER_W), # EV Power in Watt (ev_w)
             "hp_power_w"          : round(active_hp_power_w  , ROUND_POWER_W), # Heat Pump Power in Watt (hp_w)
@@ -1096,6 +1211,9 @@ def helios_optimizer_calc_plan(
         "python_info"             : PYTHON_INFO    if (insight >= INSIGHT_MAX) else None,
         "scipy"                   : SCIPY_VERSION,
 
+        "now_ts"                  : datetime_isoformat_msec(now_ts) if (now_ts != None) else None, # Now (=last_service_begin) as provided in the call by the Helios Service
+        "now_tz"                  : str(now_tz), # Now Related Timezone String
+        "now_offset_min"          : now_off_min, # Now Related Timezone Offset in Minutes
         "last_service_begin"      : None, # Begin of the Service will be set by the Service itself
         "last_calc_started"       : datetime_isoformat_msec(start_ts) if (start_ts != None) else None, # Start of the Calculation (YYYY:MM:DD HH:MM:SS:TTT)
         "last_calc_stopped"       : datetime_isoformat_msec(stop_ts ) if (stop_ts  != None) else None, # End   of the Calculation (YYYY:MM:DD HH:MM:SS:TTT)
@@ -1149,6 +1267,7 @@ def helios_optimizer_calc_plan(
             "timestamp"           : timestamps,
             "import_prices"       : import_prices,
             "export_prices"       : export_prices,
+            "market_prices"       : market_prices,
             "step_costs"          : step_costs,
             "house_forecast_kw"   : house_for_plan, # House Forecast is the House Usage    but filled in the skipped period
             "house_usage_kw"      : house_usg_plan, # House Usage    is the House Forecast but trimmed to zero in the skipped period

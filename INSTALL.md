@@ -23,8 +23,8 @@
     - Picture (built-in) for /local/HeliosOptimizerBanner.jpeg in www-folder
     
 - **Download and Copy the Helios Optimizer files:**
-  - Download on [GitHub](https://github.com/Jos1958/ha-helios-optimizer/releases/tag/0.9.0)
-  - Unpack the ha-helios-optimizer-0.9.0.zip file 
+  - Download the lastest version on [GitHub](https://github.com/Jos1958/ha-helios-optimizer/releases)
+  - Unpack the ha-helios-optimizer-x.x.x.zip file 
   - Use the File or Samba to create folders and copy files:
     - Create the folders (with a **!**) on your HA installation when they do not yet exist: 
 <br>  [packages], [pyscript], [helios_python] (sub-folder of [pyscript]), [www] and [export]
@@ -113,9 +113,10 @@
     - Open the folder:  "packages"
     - Open the file: "house_battery_control.yaml"
     - Search for "house_battery_strategy:"
-    - Add an extra option to the existing options of the house battery strategy entity:
+    - Add an extra option to the existing options of the input_select.house_battery_strategy entity:
       - Helios # Requires a dynamic tariff contract, the Cheapest Hours HACS add-on and the Helios Optimizer Installation
     - [Save] the file "house_battery_control.yaml"
+    - **WARNING:** Repeat this step after a new installation of the HBC!
 
 - **Restart** Home Assistant
 

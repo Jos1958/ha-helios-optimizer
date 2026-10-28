@@ -1,8 +1,11 @@
 alias: HELIOS Optimizer Automation Task
 description: >-
-  A Home Assistant Automatioin Task that Configures and Starts the Helios
-  Optimizer Service
+  A Home Assistant Automation Task that Configures and Starts the Helios
+  Optimizer PyScript Service
 
+  This automation is by default DISABLED since there is now a Helios Optimizer PyScript Task
+  which is scheduled every 15 minutes and this automation is obsolete.
+  
   This Task runs (every quarter of an hour and at HA startup) the Helios
   Optimizer Service  which uses the SciPy (LP/MILP) HiGHS Solver to Optimize the
   Energy Plan.  Inputs are the Import and Export Price arrays, the House Energy
@@ -24,7 +27,7 @@ description: >-
 triggers:
   - trigger: time_pattern
     alias: Triggers the Automation at the Quarter of an Hour
-    id: HA-Hourly
+    id: HA-15Min
     minutes: /15
   - trigger: homeassistant
     alias: Triggers the Automation at Startup of Home Assistant
@@ -70,12 +73,9 @@ actions:
       default_discharge_cost: 0.01
       default_house_daily_usage: 12
       default_house_daily_distr_str: '[1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8,3, 1]'
-      default_import_prices_str: >-
-        [0.25,0.2,0.18,0.15,0.14,0.18,0.28,0.35,0.3,0.22,0.15,0.1,0.05,0.08,0.12,0.2,0.32,0.4,0.35,0.28,0.25,0.22,0.2,0.18]
-      default_export_prices_str: >-
-        [0.01,0.05,0.03,0.01,0,0.02,0.1,0.15,0.12,0.05,0,-0.02,-0.05,-0.02,0.01,0.05,0.12,0.18,0.15,0.1,0.08,0.06,0.05,0.04]
-      default_house_energy_forecast_str: >-
-        [0.4,0.3,0.3,0.4,0.5,0.8,1.2,1,0.8,0.6,0.5,0.5,0.4,0.4,0.5,0.6,0.9,1.5,1.2,1,0.8,0.6,0.5,0.4]
+      default_import_prices_str: '[0.25,0.2,0.18,0.15,0.14,0.18,0.28,0.35,0.3,0.22,0.15,0.1,0.05,0.08,0.12,0.2,0.32,0.4,0.35,0.28,0.25,0.22,0.2,0.18]'
+      default_export_prices_str: '[0.01,0.05,0.03,0.01,0,0.02,0.1,0.15,0.12,0.05,0,-0.02,-0.05,-0.02,0.01,0.05,0.12,0.18,0.15,0.1,0.08,0.06,0.05,0.04]'
+      default_house_energy_forecast_str: '[0.4,0.3,0.3,0.4,0.5,0.8,1.2,1,0.8,0.6,0.5,0.5,0.4,0.4,0.5,0.6,0.9,1.5,1.2,1,0.8,0.6,0.5,0.4]'
       default_solar_energy_forecast_str: '[0,0,0,0,0,0.1,0.8,2,3.5,4.8,5.5,5.8,5.6,4.9,3.8,2.2,1,0.2,0,0,0,0,0,0]'
       default_write_files: true
       default_output_folder: null
@@ -115,7 +115,7 @@ actions:
       helios_template_hbc_total_soc: sensor.helios_template_hbc_total_soc
       helios_template_hbc_max_charge_power: sensor.helios_template_hbc_max_charge_power
       helios_template_hbc_max_discharge_power: sensor.helios_template_hbc_max_discharge_power
-      helios_template_solar_forecast: sensor.helios_optimizer_forecast_solar_hours
+      helios_template_solar_forecast: pyscript.helios_optimizer_forecast_solar_hours
       helios_solar_result: result
       helios_solar_hours: hours_kwh
   - alias: Retrieve the Helios Optimizer Parameters (from the UI)
@@ -244,7 +244,6 @@ actions:
       price_size: '{{ hbc_prices_interval }}'
       house_size: '{{ default_input_size }}'
       solar_size: '{{ default_input_size }}'
-      price_factor: '{{ hbc_price_factor }}'
       max_grid_import_kw: '{{ helios_max_grid_import_kw }}'
       max_grid_export_kw: '{{ helios_max_grid_export_kw }}'
       battery:
@@ -252,8 +251,8 @@ actions:
         capacity_kwh: '{{ hbc_helios_maximum_kwh }}'
         soc_start_pct: '{{ hbc_helios_soc_start_pct }}'
         soc_target_pct: '{{ helios_soc_target_pct }}'
-        soc_min_pct: '{{ hbc_soc_min_pct }}'
-        soc_max_pct: '{{ hbc_soc_max_pct }}'
+        soc_min_pct: '{{ helios_soc_min_pct }}'
+        soc_max_pct: '{{ helios_soc_max_pct }}'
         max_charge_power_kw: '{{ helios_charge_limit_kw }}'
         max_discharge_power_kw: '{{ helios_discharge_limit_kw }}'
         charge_efficiency: '{{ helios_charge_eff }}'
@@ -265,14 +264,13 @@ actions:
         mode: '{{ helios_solar_mode }}'
         energy_forecast: '{{ helios_solar_energy_forecast_rest }}'
       house_energy_forecast: '{{ helios_house_energy_forecast_null }}'
-      house_daily_usage: '{{ helios_house_daily_usage }}'
+      house_daily_usage_kwh: '{{ helios_house_daily_usage }}'
       house_daily_distr: '{{ helios_house_daily_distr }}'
       import_prices: '{{ hbc_prices_null }}'
       export_prices: '{{ hbc_prices_null }}'
       provider_key: hbc_marks
       source_price_sensor: '{{ hbc_sensor_prices }}'
       source_price_data: '{{ hbc_prices_null }}'
-      source_type: import
       original_provider: frank_energie
       insight: 9
       write_files: '{{ default_write_files }}'
@@ -342,4 +340,5 @@ actions:
             executed with an 'Action script.error not found' error! See the
             notification in the previous step for details about the problems in
             the Helios Optimizer.
+        enabled: false
 mode: single

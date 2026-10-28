@@ -15,6 +15,7 @@
 #   2026-09-09: JR  v0.79o Moved the raw file handling functions from helios_services.py to this module (disabled @pyscript_compile directive), Adapted all functions to use the Python _LOGGER instead of the PyScript log
 #   2026-09-15: JR  v0.79q Improved Input Validation and Error Checking for check_and_extend_size function in helios_common.py, testing in EnergyPriceConversion VS Main
 #   2026-10-01: JR  v0.79s Moved Input Chars and Press Any Key (although CLI) functions from helios_main.py to this module (helios_common.py) so they can be used by other Visual Studio test modules (like EnergyPriceConversion.py) 
+#   2026-10-28: JR  v0.93  First public release with HBC Output (works together with Helios Strategy in HBC)
 #
 #   Remark: For the full helios history see helios_main.py
 #   
@@ -177,7 +178,7 @@ def get_single_char() -> str:
 # Parse the version number string into a tuple of integers for correct numerical comparison (e.g., '1.2.13' becomes (1, 2, 13)).
 def parse_version(version_str: str) -> tuple[int, ...]:
     """Convert the version from '1.2.13' to (1, 2, 13) for correct numerical comparison."""
-    clean_str = version_str.lstrip("vV").strip()
+    clean_str = version_str.lstrip("vV").rstrip('abcdefghijklmnopqrstuvwxyz').strip() # Remove leading'v' or 'V' (for Version), trailing sub-versions (a..z) and strip leading and trailing spaces
     return tuple(map(int, clean_str.split(".")))
 
 def performance_count(t_prev: float = None, t_begin: float = None, phase: any = '?') -> tuple[float, int, int]: 
@@ -231,7 +232,7 @@ def convert_int(value, field: str = 'unknown', default_int: int = 0, raise_error
     """Validate an integer value and raise an error if invalid. When specified check the minimum and maxium value and/or the allowed values."""
     if (allow_none) and value is None:
         return None # Default None allowed
-    elif not str(value).isdecimal(): 
+    elif not is_int(value): 
         error_message = f"Invalid integer value={value} for field='{field}'!"
     else: # integer provided (as string or as integer)
         int_value = int(value) # Convert to integer
@@ -274,6 +275,10 @@ def convert_float(value, field: str = 'unknown', default_float: float = 0.0, rai
     else: # Log an error and return the default
         _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Convert-Float]: {error_message}")
         return default_float # Conversion failed so returning the default float value
+
+def is_int(value):
+    """Validate an integer value."""
+    return str(value).isdecimal() 
 
 def is_float(value):
     """Validate a float value."""
@@ -485,14 +490,17 @@ def generate_forecast_for_distribution(total_usage: float, usage_distr: any, exp
     # Convert a string to a list using the separator after removing the optional brackets:
     if isinstance(usage_distr, str): # If the usage distribution is provided as a string, convert it to a list of floats)
         clean_usage_distr = usage_distr.strip(BRACKETS + ' ')
-        usage_distr_tokens = SPLIT_PATTERN.split(clean_usage_distr)
-        usage_distr = [x.strip() if x.strip() else '0' for x in usage_distr_tokens] # Remove brackets, split with separators
+        if len(clean_usage_distr) > 0:
+            usage_distr_tokens = SPLIT_PATTERN.split(clean_usage_distr)
+            usage_distr = [x.strip() if x.strip() else '0' for x in usage_distr_tokens] # Remove brackets, split with separators
+        else:
+            usage_distr = [] # No distribution items found (for empty string after strip)
  
     if not isinstance(usage_distr, list): # Is the usage distribution (now) a list
         error_message = f"Invalid '{name}' Distribution {str(usage_distr)}, NOT a valid List!"
 
     elif (expected_sizes != None) and not (len(usage_distr) in expected_sizes): # Does the usage distribution have an expected size?
-        error_message = f"Invalid '{name}' Distribution Size {len(usage_distr)}, Expected {expected_sizes}!"
+        error_message = f"Invalid '{name}' Distribution Size {len(usage_distr)}, Expected as size in {expected_sizes}!"
 
     else: # Found a usage distribution list with an expected size!
         # Convert the distribution list items to floats
@@ -531,6 +539,7 @@ def generate_forecast_for_distribution(total_usage: float, usage_distr: any, exp
     return [] # Return empty forecast (generation failed)
 
 # Compare difference between 2 Lists using the List INDEX to compare
+# Remark: In the difference structure a index starting at 1 (instead of 0) is used!
 # WARNING: For now nesting in lists is not supported!
 def list_index_diff(old_list1, new_list2, path = None):
     _LOGGER.warning("Comparing Index List" + (f" for {path}:" if path else ":"))
@@ -539,11 +548,11 @@ def list_index_diff(old_list1, new_list2, path = None):
     max_len = max(len(old_list1), len(new_list2))
     for i in range(max_len):
         if i >= len(new_list2): # not in new_list2:
-            diff[i] = ("Removed from List", old_list1[i])
+            diff[i+1] = ("Removed from List", old_list1[i])
         elif i >= len(old_list1): # not in old_list1
-            diff[i] = ("Added in List", new_list2[i])
+            diff[i+1] = ("Added in List", new_list2[i])
         elif old_list1[i] != new_list2[i]:
-            diff[i] = ("Changed List Value", old_list1[i], "->", new_list2[i])
+            diff[i+1] = ("Changed List Value", old_list1[i], "->", new_list2[i])
 #   if diff != {}: _LOGGER.debug(diff)
     return diff
 
@@ -590,6 +599,19 @@ def dict_diff(old_dict1, new_dict2, excluded_keys = [], list_type = "list", path
     
 #   if diff != {}: _LOGGER.debug(diff)
     return diff
+
+def len_diff_levels(differences: list = None) -> int:
+    count = 0
+    if differences and isinstance(differences, dict):
+        for key in differences: # for each key in the Dictionary
+            if isinstance(differences[key], dict): # Level below is a dictionary (of lists)
+                count += len_diff_levels(differences[key]) # Nest the call
+            else: # At the lowest level (a list for the real difference)
+                count += 1 # Count the differences at this level (no sub levels exist)
+    else: # Not a Dictionary 
+        _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Len-Diff-Levels]: Invalid Differences Structure")
+        
+    return count # return length of the dict1 (including sub-levels)
 
 # Check if the file with the specified file name already exists
 def exist_file(file_name: str) -> bool:
