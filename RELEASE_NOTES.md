@@ -3,15 +3,17 @@
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 
 ## 0.9.3 (2026-10-26) HBC Output and Prices and Strategy Graph
-- Added Helios Forecast which calls the forecast_solar.get_forecast services to retrieve the forecast solar hours (not available in an entity of the forecast.solar integration), config entry retrieved from hass
+- Added Helios Forecast PyScript which calls the forecast_solar.get_forecast service to retrieve the forecast solar hours, the required config entry is retrieved from hass
+<br>Hours info is not available via an entity of the forecast.solar integration (only via the service)
 - Added the Prices and Strategy Graph with Prices (Import, Export and Market) and the HBC Sub Strategy per step
-- Timestamp in a Graph is now in the middle of the step (iso start), 
-- Added the Strategy as a Serie to the Prices Graph (now in the popup as a number)
+- Timestamp in a Graph is now in the middle of the step (iso at the start of a step) 
+- Added the Strategy as a Serie to the Prices Graph (now in the tooltip as a number, added the numbers in the legenda)
 - Split the Helios Dashboard into two tabs and introduced an "insight" button that shows additional sections (simplified the default dashboard)
-- Added a Helios Strategy to HBC that handles the output from Helios
+- Added a Helios Strategy Flow to HBC that handles the output (sub-strategy and power) from the Helios Optimizer
 - Included error handling in the HBC interface (if Helios fails the sub-strategy will be set to HA "unknown")
 - For errors the Helios Strategy will apply in HBC the "Full stop" strategy
 - Replaced the Helios Automation Task by a PyScript Service that runs every 15-min and retrieves Helios and HBC parameters from HA entities
+- Allow only a single running instance of the Helios Automation Task and the Helios Automation Service 
 
 ## 0.9.2 (2026-10-12) Fixed special characters on dashboard
 - Invalid codepage for helios_dashboard.yaml, changed from ANSI to UTF-8
