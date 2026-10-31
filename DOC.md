@@ -117,7 +117,8 @@ and can be **manually** started with the green **Start Helios** button.<br>
 ### Optimization Parameters
 - **Steps:** Optimization Steps (24-192)
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
-  <br>Remark: Advised Optimization Period is 2 Days (48 steps of 60 minutes or 192 steps of 15 minutes)
+  <br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
+  <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
 - **Start Step:** Start the Optimization in the specified step (0..Steps). 
   <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
   <br>All steps before the Start Step are **Skipped** so starting at the current time is the most logical step to start the optimization.
@@ -147,13 +148,13 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>Current Limitation: Only forecast.solar is supported and only for a single roof.
 
 ### Battery Parameters
-- **Battery Enabled:** Enabled or Disabled Batteries
-- **Battery SOC Target:** Target Battery State of Charge Level at the END of the optimization period.
+- **Battery Enabled:** Enabled or Disabled Batteries, when disabled the battery will not be used by optimizer
+- **Battery SoC Target:** Target Battery State of Charge Level at the END of the optimization period.
   <br>Pick a reasonable target percentage (40%-50%) that is needed at the end of a two day optimization period.
   <br>This value is only valid for the end of the optimization period (not for the end of the first day) and will 
   make sure that the optimizer does not empty your battery to maximize the profit.
-- **Battery SOC Min:** Minimum Battery State of Charge Level which is valid at EACH step  
-- **Battery SOC Max:** Maximum Battery State of Charge Level which is valid at EACH step  
+- **Battery SoC Min:** Minimum Battery State of Charge Level which is valid at EACH step  
+- **Battery SoC Max:** Maximum Battery State of Charge Level which is valid at EACH step  
 - **Battery Charge Limit:** Maximum Power that can be used to Charge the Battery or Batteries (Limit applies to **all** batteries together)
 - **Battery Charge Limit:** Maximum Power that can be used to Discharge the Battery or Batteries (Limit applies to **all** batteries together)
 - **Battery Discharge Limit:** Maximum Discharge Limit for **all** of the batteries together
@@ -164,6 +165,34 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>This factor 0.70-1.00) determines how much energy is lost while discharging the battery.
   <br>For example: 4kWh is retrieved from the battery, discharge factor of 0.9, SOC is decreased with 4.44kWh (=4kWh / 0.9).
   <br>Remark: Round Trip Efficiency (RTE) is Charge Efficiency * Discharge Efficiency (e.g. 0.81 = 0.9 x 0.9)
+
+### Why a horizon of 48 hours and a SoC Target
+When running an Energy Optimization Model it is important to use a least a **48-hour horizon**
+and a **State of Charge (SoC) Target** for several mathematical and operational reasons:
+
+1. **Mathematical Boundary Conditions (Preventing Edge Effects):**
+A linear programming (LP) solver optimizes decisions across a finite time window (48 hours). 
+Because the solver's world abruptly ends at hour 48, it suffers from a "finite horizon effect" at the edge of the window:
+Without a terminal SoC target, the optimizer treats the final hour of the period as the absolute end of the battery's lifecycle.
+To maximize short-term financial gain within the window, 
+the solver might aggressively empty the battery completely by hour 48, leaving you with a depleted battery for hour 49 (which falls outside the current optimization scope).
+
+2. **Ensuring Operational Continuity:**
+Energy optimization is a rolling, continuous process (re-calculated as new price data becomes available). A
+target SoC at the end of the horizon acts as a vital bridge to the next optimization cycle. 
+It ensures that the battery transitions smoothly into the subsequent hours without unexpected depletion or erratic jumps in state.
+
+3. **Balancing Present Savings Against Future Needs:**
+A 48-hour horizon gives the algorithm the foresight to plan across today and tomorrow's market peaks and valleys. 
+However, without an end-SoC constraint or target:
+The model might consume all stored cheap energy today, ignoring that 
+tomorrow morning might feature even higher grid prices or a delayed solar startup.
+ etting a target allows you to dictate the desired energy reserve at the end of the window, ensuring the system leaves enough buffer for upcoming morning loads or reserves capacity for tomorrow midday's solar surplus.
+
+**Summary:**
+While the 48-hour horizon provides the necessary foresight to exploit price fluctuations, the SoC target acts as the anchor. 
+It prevents the optimizer from draining the battery prematurely at the edge of the calculation window and guarantees a safe, 
+predictable transition into the next optimization run.
 
 ### Derived Parameters
 The parameters in this section are retrieved from Helios and cannot be changed by the user.
@@ -248,6 +277,7 @@ The Optimal Energy Plan Graph displays the most important Output of the Helios O
 <br>The **left** Y-as is for the Power values (kW) and the **right** Y-as is for the SOC Percentages (0-100%). 
 <br>
 Warning: Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
+Tips how to fix this are welcome.
 <br><br>
 
 ## Output Details

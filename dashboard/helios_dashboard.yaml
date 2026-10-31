@@ -189,7 +189,7 @@
               rows: auto
             entity: input_number.helios_optimizer_energy_plan
             name: Helios, Python & SciPy Version
-            icon: mdi:program
+            icon: mdi:numeric
             show_entity_picture: false
             hide_state: false
             state_content:
