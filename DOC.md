@@ -136,17 +136,26 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>Each value represents only the relative energy usage for a specific hour during the day and not the exact energy usage.
   <br>If you specify 1 for the first hour (00:00-01:00) and 3 for the 7th hour (06:00-07:00) this only means that you are using 3x times more energy in the 7th hour.
   <br>Remark: The sum of the 24 numbers does not have to be the same as the daily usage.
+- **Price Type used in HBC:** Specify which price type is applicable for the the Tarif Data Source in HBC.
+  <br>Helios will derive the other prices from the HBC Price Data and needs to now which price type is retrieved by HBC.
+  - **Import** Prices: Price applicable for importing energy from the grid (ct/kWh) 
+  - **Export** Prices: Price applicable for exporting energy from the grid (ct/kWh) 
+  - **Market** Prices: Import and Export Prices are based on the Market Price which does not contain taxes, provider markup etc..
+- **Source Provider:** Specify for which Data Provider has been used to retrieve the HBC Price Data.
+Usually this will be the (Price/Tariff) Data Source as selected in HBC but you may want to manually overwrite the Source (Data) Provider.
+- **Target Provider:** Specify for which Energy Provider you want the prices to be calculated.
+Usually this will be the HBC (Price/Tariff) Data Source as selected in HBC but you may want to manually overwrite the Target (Energy) Provider.
 - **Solar Mode:** Solar Panel Inverter Mode 
   - All: Solar Production Energy in a step is equal to the Solar Forecast Energy for the step
   - Modulating: Solar Production can be from Zero (0kWh) to the Solar Forecast Energy for the step
   - Binary: Solar Production can be ON (=Solar Forecast Energy) or OFF (0kWh) for the step
   - Disabled: Solar Production Disabled (0kWh) in each step
-- **Sensor with the Forecast Solar Hours:** HA Entity with the Solar Forecast Energy Production (kWh) per hour
-  <br>This information is retrieved using a rest api from forecast.solar but you will need to adapt this to your own situation (location, angle, direction and peak-power):
-  <br>"https://api.forecast.solar/estimate/latitude/longitude/dak-hoek/dak-richting-180/peak-vermogen"
-  <br>Configure the solar panel information in helios_optimizer_config.yaml
-  <br>Current Limitation: Only forecast.solar is supported and only for a single roof.
-
+- **Solar Forecast Source:**
+  - **Forecast.Solar Integration** (**Preferred**): Use this option if you have the Forecast.Solar Integration installed and configured.
+  <br>Helios will retrieve the Solar Forecast Array using a service provided by the Forecast.Solar Integration!
+  - **Forecast.Solar REST api** (Alternative): Use this option if you want to retrieve the Solar Forecast Array directly from the internet using a REST api.
+  <br>See [Solar Forecast Configuration](#solar-forecast-configuration) for more information.
+  
 ### Battery Parameters
 - **Battery Enabled:** Enabled or Disabled Batteries, when disabled the battery will not be used by optimizer
 - **Battery SoC Target:** Target Battery State of Charge Level at the END of the optimization period.
@@ -252,13 +261,13 @@ Export and Market Prices are calculated from the Import Prices using the Energy 
 <br>**TODO:** These values will be configurable in the near future, specify a more detailed formula here.
 
 The colors of the Import Price columns represent the selected **HBC Sub-Strategy**:
-- **0=Skipped:** Steps in the past (before start step) are skipped
-- **1=Sell:**  Sell Energy **from** the Battery **to** the Grid
-- **2=Charge:** Charge **to** the Battery **from** the **Grid** Energy (and optionally with **Solar** Energy)
-- **3=Charge PV:** Charge the Battery with **Solar** Energy **only**
-- **4-Self-consumption:** Use the Battery to **prevent** **Import** from and **Export** to the Grid (is the same as **N**ull **O**n **M**eter)
-- **5=Zero import:** Use the Battery to **prevent Import** from the Grid but do not Charge the Battery
-- **8=Standby / peak shave:** Battery is on **Stand-by** but will try to **prevent peaks** 
+- **0=Skipped:** Steps in the past (before start step) are skipped.
+- **1=Sell:**  Sell Energy **from** the Battery **to** the Grid.
+- **2=Charge:** Charge **to** the Battery **from** the **Grid** Energy (and optionally with **Solar** Energy).
+- **3=Charge PV:** Charge the Battery with **Solar** Energy **only**. Use the battery to prevent export to the Grid where possible but do not Discharge the Battery. Can be used even during the night when the Battery is below the minimum SoC (and Self-consumption is not an option).
+- **4-Self-consumption:** Use the Battery to **prevent** **Import** from and **Export** to the Grid (is the same as **N**ull **O**n **M**eter).
+- **5=Zero import:** Use the Battery to **prevent Import** from the Grid where possible but do not Charge the Battery.
+- **8=Standby / peak shave:** Battery is on **Stand-by** but will try to **prevent power peaks** when peak shaving is enabled.
 
 ### Optimal Energy Plan Graph
 ![Helios Optimizer: Optimal Energy Plan Graph](images/HeliosGraphs2b-OptimalEnergyPlan.jpeg)
@@ -266,7 +275,7 @@ The Optimal Energy Plan Graph displays the most important Output of the Helios O
 <br>It represents the optimizer results for each step of a two day horizon:
 - **SOC Percentages** (the black line) for the Battery (or for the sum of All Batteries)
 <br>The **State of Charge** of the Battery at the **END** of each **Step**!
-- **Power** values per step:
+- **Power** values during the step:
   - **Battery** (Discharge - Charge) 
   - **Solar** Forecast and Production
   - **House** Usage 
@@ -320,7 +329,7 @@ Table with all variables for every step.
 - **Solar Production:** Power produced by the Solar Panels (usually same as forecasted but 0 for skipped steps, when solar turned off or less when solar production dimmed)
 - **Strategy:** Strategy as calculated by the Helios Optimizer
 - **HBC Sub-Strategy:** Home Battery Control Sub Strategy derived from the Helios Strategy (HBC has less strategies and strategies with different names)
-- **SoC%:** State of Charge Percentage at the **end** of the step
+- **SoC%:** State of Charge Percentage at the **END** of the step
 - **SoC (kWH):** State of Charge in kilo Watt Hours (Battery Remaining Energy derived from the battery capacity and SoC%)
 - **Grid Net (kW):** Grid Import Power minus Grid Export Power in kilo Watt
 - **Charge (kW):** Battery Charge Power in kilo Watt
@@ -335,6 +344,16 @@ Table with all variables for every step.
 
 ### Energy Plan Totals
 **TODO:**
+
+## Solar Forecast Configuration
+There are currently two options to configure the Solar Forecast information.
+If you already have Forecast.Solar Integration setup then you can use the data available in the Integration.
+There is not an entity available with the Solar Production Forecast per hour but the data can be retrieved by Helios using a service of the Forecast.Solar Integration.
+<br>
+The alternative (more complex) option is to configure your own REST api in the optional helios_optimizer_forecast.yaml.
+<br>Adapt the yaml to your own setup (location, declination (angle), azimuth - 180 (direction) and peak-power) and copy the yaml to the packages folder.
+<br>See the [Forecast Solar Documentation](https://doc.forecast.solar/) for details.
+<br>A template is included in the yaml file that converts the raw data from the api into the hours data that Helios requires.
 
 ## Installation
 [Helios Optimizer - Installation](INSTALL.md)

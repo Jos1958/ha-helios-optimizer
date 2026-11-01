@@ -2,15 +2,21 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 
-## 0.9.3a (2026-10-28) Minor Fixes
-- Initialized the step size for the House Daily Usage Distribution array (house_size), prevent an exception when distribution is empty, flat usage will be used
+## 0.9.4 (2026-11-01) Improved Energy Provider Handling 
+- Energy Provider split into a target and source provider which can be both different from the main provider (which determines the Source Price Data format)
+- Improved handling of price conversions to support Belgium Tax, Markup and Loss Factors
+- Temporary solution for handling "Grid Clock" and Engie Providers for Belgium
+- **Change files:** All PyScript (*.py), Dashboard (yaml), Package (yaml), Documentation
+
+## 0.9.3b (2026-10-29) Minor Fixes
+- Initialized the step size for the House Daily Usage Distribution array (house_size), prevent an exception when distribution is empty, flat usage will be used, improved the error message for invalid sizes
 - Check Solar Energy Forecast is available before converting to floats
 - For Solar Enabled a Solar Energy Forecast must be available, raise an error when not available (optimizer will NOT continue)
 - Check HBC Price Data is available and return an error when no price data found (optimizer will NOT continue)
 - Check that All Imports are allowed for PyScript and give an error message when the PyScript Configuration needs to be adapted
 - Check that Hass is accessable by PyScript as a global variable and give an error message when the PyScript Configuration needs to be adapted
 - Fixed issue with initial empty helios version number entity, is now handled as 0.0.0, all applicable entities will be initialized
-- **Update:** Only the PyScript files are updated (*.py)
+- **Changed files:** Only the PyScript files are updated (*.py)
 
 ## 0.9.3 (2026-10-28) HBC Output and Prices and Strategy Graph
 - Added Helios Forecast PyScript which calls the forecast_solar.get_forecast service to retrieve the forecast solar hours, the required config entry is retrieved from hass
