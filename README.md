@@ -14,7 +14,7 @@ See [Helios Optimizer Why LP](WHY.md)
 - Prerequisites: 
   - **PyScript** (**VERY IMPORTANT:** with V Allow All Imports and V Hass Access)
   - **Forecast.Solar** Integration
-  - **Dynamic Price Integration** (working in HBC): Helios uses the dynamic prices in HBC!
+  - **Dynamic Price Integration** (working dynamic prices in HBC): Helios uses the dynamic prices of HBC!
 - **Download** the latest version from [GitHub](https://github.com/Jos1958/ha-helios-optimizer/releases)
 - Create the **missing folders** in Home Assistant 
 - Copy the **py files** to /pyscript and /pyscript/helios_python
