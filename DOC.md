@@ -115,36 +115,21 @@ and can be **manually** started with the green **Start Helios** button.<br>
 ## Input Parameters
 
 ### Optimization Parameters
-- **Steps:** Optimization Steps (24-192)
+- **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow)
+  <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
+  Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
   <br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
   <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
-- **Start Step:** Start the Optimization in the specified step (0..Steps). 
-  <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
-  <br>All steps before the Start Step are **Skipped** so starting at the current time is the most logical step to start the optimization.
-  <br>Other Start Step values are only to be used for (Regression) Testing or Simulation Runs of the Optimizer!
 - **Max Grid Import:** Maximum Grid Import Power in kW
   <br>Remark: A low maximum grid import (or export) level can make the energy plan infeasible since a power balance must always be maintained.
 - **Max Grid Export:** Maximum Grid Export Power in kW
 - **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
   <br>In the future the House Energy Usage will be retrieved from history data but at the moment you need to make an estimate for the average energy usage in the house. 
+  <br>See the advanced parameters section if you want to change the distribution of the daily usage over the day.
   <br>Large energy users (EV, WP and Boiler) will be optimized separately in the future and will have to be excluded from the house usage but for now you may want to **include** them in the house usage. 
   <br>**House Usage** (kWh) = Grid Import - Grid Export + Battery Daily Discharge - Battery Charge + Solar Production (all in kWh per Day)
   <br>**Warning:** This is NOT the energy retrieved from the Grid!
-- **House Daily Usage Distribution (24 Hours):** 
-  <br>How is the energy usage spread over the day (an array of 24 values, 1 value for each hour of the day).
-  <br>Each value represents only the relative energy usage for a specific hour during the day and not the exact energy usage.
-  <br>If you specify 1 for the first hour (00:00-01:00) and 3 for the 7th hour (06:00-07:00) this only means that you are using 3x times more energy in the 7th hour.
-  <br>Remark: The sum of the 24 numbers does not have to be the same as the daily usage.
-- **Price Type used in HBC:** Specify which price type is applicable for the the Tarif Data Source in HBC.
-  <br>Helios will derive the other prices from the HBC Price Data and needs to now which price type is retrieved by HBC.
-  - **Import** Prices: Price applicable for importing energy from the grid (ct/kWh) 
-  - **Export** Prices: Price applicable for exporting energy from the grid (ct/kWh) 
-  - **Market** Prices: Import and Export Prices are based on the Market Price which does not contain taxes, provider markup etc..
-- **Source Provider:** Specify for which Data Provider has been used to retrieve the HBC Price Data.
-Usually this will be the (Price/Tariff) Data Source as selected in HBC but you may want to manually overwrite the Source (Data) Provider.
-- **Target Provider:** Specify for which Energy Provider you want the prices to be calculated.
-Usually this will be the HBC (Price/Tariff) Data Source as selected in HBC but you may want to manually overwrite the Target (Energy) Provider.
 - **Solar Mode:** Solar Panel Inverter Mode 
   - All: Solar Production Energy in a step is equal to the Solar Forecast Energy for the step
   - Modulating: Solar Production can be from Zero (0kWh) to the Solar Forecast Energy for the step
@@ -155,6 +140,26 @@ Usually this will be the HBC (Price/Tariff) Data Source as selected in HBC but y
   <br>Helios will retrieve the Solar Forecast Array using a service provided by the Forecast.Solar Integration!
   - **Forecast.Solar REST api** (Alternative): Use this option if you want to retrieve the Solar Forecast Array directly from the internet using a REST api.
   <br>See [Solar Forecast Configuration](#solar-forecast-configuration) for more information.
+
+### Advanced Parameters
+- **Start Step:** Start the Optimization in the specified step (0..Steps). 
+  <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
+  <br>All steps before the Start Step are **Skipped** so starting at the current time is the most logical step to start the optimization.
+  <br>Other Start Step values are only to be used for (Regression) Testing or Simulation Runs of the Optimizer!
+- **House Daily Usage Distribution (24 Hours):** 
+  <br>How is the energy usage spread over the day (an array of 24 values, 1 value for each hour of the day).
+  <br>Each value represents only the relative energy usage for a specific hour during the day and not the exact energy usage.
+  <br>If you specify 1 for the first hour (00:00-01:00) and 3 for the 7th hour (06:00-07:00) this only means that you are using 3x times more energy in the 7th hour.
+  <br>Remark: The sum of the 24 numbers does not have to be the same as the daily usage.
+- **Price Type used in HBC:** Specify which Price Type is used for the **Tarif Data Source** in HBC.
+  <br>Helios will derive the other prices from the **HBC Dynamic Price Data** and needs to now which Price Type is used in HBC.
+  - **Import** Prices: Price applicable for importing energy from the grid (ct/kWh) 
+  - **Export** Prices: Price applicable for exporting energy from the grid (ct/kWh) 
+  - **Market** Prices: Import and Export Prices are based on the Market Price which does not contain taxes, provider markup etc..
+- **Price Data Provider:** Specify which Source Provider has been used to retrieve the HBC Price Data.
+The default value will be the 'HBC Data Source' as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Source (Data) Provider.
+- **Energy Provider (Contract):** Specify which Target Provider you want to use to calculated the prices for the Optimizer.
+The default value will be the 'HBC Data Source' as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Target (Energy) Provider.
   
 ### Battery Parameters
 - **Battery Enabled:** Enabled or Disabled Batteries, when disabled the battery will not be used by optimizer
@@ -207,6 +212,8 @@ predictable transition into the next optimization run.
 The parameters in this section are retrieved from Helios and cannot be changed by the user.
 They are displayed only for validation purposes:
 - **Helios Version:** Latest installed version of Helios
+- **Steps:** Optimization Steps which is derived from Optimization Days and Step Size 
+  <br>(0=Disabled, 24 x 1 Hour, 48 x 1 Hour, 96 x Quarter, 192 x Quarter of a Hour) 
 
 The following parameters should represent the (total) values for **all** HBC batteries and calculated based on HBC Marstek Entities using Helios **Templates**.
 They are used as input for the Helios Optimizer:
@@ -285,8 +292,9 @@ The Optimal Energy Plan Graph displays the most important Output of the Helios O
 **Negative Power** values (below the X-as) indicate that power is used (Used in the House, Battery Charged or Exported).
 <br>The **left** Y-as is for the Power values (kW) and the **right** Y-as is for the SOC Percentages (0-100%). 
 <br>
-Warning: Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
-Tips how to fix this are welcome.
+**Warning:** Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
+Full Window width problems may also be resolved by resizing the Browser Window or going into Edit of the Dashboard and close without changes.
+Tips how to fix this issue are welcome.
 <br><br>
 
 ## Output Details
@@ -354,6 +362,10 @@ The alternative (more complex) option is to configure your own REST api in the o
 <br>Adapt the yaml to your own setup (location, declination (angle), azimuth - 180 (direction) and peak-power) and copy the yaml to the packages folder.
 <br>See the [Forecast Solar Documentation](https://doc.forecast.solar/) for details.
 <br>A template is included in the yaml file that converts the raw data from the api into the hours data that Helios requires.
+
+The Helios Optimizer requires a Solar Forecast Array that matches the step size and total number of steps specified in the input parameters.
+If the forecast is only provided for today while you are optimizing a two-day horizon, the array will be automatically extended to two days by repeating the final day's data.
+Similarly, if the step size is incorrect (e.g., 60 minutes instead of 15 minutes), the array will be automatically resampled to match the step size.
 
 ## Installation
 [Helios Optimizer - Installation](INSTALL.md)

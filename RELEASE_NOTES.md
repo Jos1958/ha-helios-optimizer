@@ -2,7 +2,7 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 
-## 0.9.4 (2026-11-01) Improved Energy Provider Handling 
+## 0.9.4 (2026-11-01) Improved Data and Energy Provider Handling 
 - Energy Provider split into a target and source provider which can be both different from the main provider (which determines the Source Price Data format)
 - Improved handling of price conversions to support Belgium Tax, Markup and Loss Factors
 - Temporary solution for handling "Grid Clock" and Engie Providers for Belgium
