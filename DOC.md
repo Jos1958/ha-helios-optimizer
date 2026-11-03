@@ -115,9 +115,6 @@ and can be **manually** started with the green **Start Helios** button.<br>
 ## Input Parameters
 
 ### Optimization Parameters
-- **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow)
-  <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
-  Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
   <br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
   <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
@@ -142,10 +139,13 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>See [Solar Forecast Configuration](#solar-forecast-configuration) for more information.
 
 ### Advanced Parameters
+- **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow)
+  <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
+  Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
 - **Start Step:** Start the Optimization in the specified step (0..Steps). 
   <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
-  <br>All steps before the Start Step are **Skipped** so starting at the current time is the most logical step to start the optimization.
-  <br>Other Start Step values are only to be used for (Regression) Testing or Simulation Runs of the Optimizer!
+  <br>All steps prior to the Start Step are **Skipped**. Therefore starting at the **current** time (by setting the start step to 0) is the logical choice to begin the optimization.
+  <br>Other Start Step values are **only** to be used for (Regression) **Testing** or Simulation Runs of the Optimizer!
 - **House Daily Usage Distribution (24 Hours):** 
   <br>How is the energy usage spread over the day (an array of 24 values, 1 value for each hour of the day).
   <br>Each value represents only the relative energy usage for a specific hour during the day and not the exact energy usage.
