@@ -39,7 +39,7 @@
   !  [packages]
   -    house_battery_control.yaml      - Home Battery Control (HBC) package file (must already exist, Helios Strategy will be added)
   V    helios_optimizer.yaml           - Helios Templates, Input Numbers and Selects
-  -    helios_optimizer_config.yaml    - forecast.solar REST API and Template <== This file is not needed any more !!!!
+  -    helios_optimizer_forecast.yaml  - forecast.solar REST API and Template <== This file is optional and not needed any more !!!!
   !  [pyscript]
   V    helios_services.py              - Helios Services file which defines the Helios Optimizer Services 
   V    helios_forecast.py              - Helios Forecast file which retrieves the Helios Solar Forecast from the Forecast.Solar Integration
@@ -140,12 +140,12 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
   - Battery Charge and Discharge Limit (e.g. 1.2kWh, total limit, depending on your battery configuration)
   - Battery Charge and Discharge Efficiency (2x 0.9 for a RTE of 81%)
 
-- **No need to adapt the Advanced Parameters (Helios Insight Mode only)**
+- **It is not necessary to adapt any of the Advanced Parameters for your first runs (Helios Insight Mode only)**
   - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
     <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
     <br>Use only a specifiy start step for simulation/test runs!
   - House Daily Usage Distribution (e.g. [ 1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8, 3, 1])
-
+  - Price Source Data parameters (changes only needed when you have generic market prices in HBC instead of provider prices)
   
 - **Run Helios Optimizer** using the green button ("Start Helios Optimizer Task")
 - The button will turn yellow (at least 1 sec) while the Helios Optimizer is running
