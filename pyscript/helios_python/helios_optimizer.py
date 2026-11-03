@@ -37,12 +37,14 @@
 #   2026-09-12: JR  v0.79p Changed arguments solar.forecast and house_forecast to solar.energy_forecast and house_energy_forecast to stress the difference between energy and power values
 #   2026-09-18: JR  v0.78r Added HBC Price Array and Provider Price Arrays as Input Price Array (Import and Export Price Arrays are derived from the Input Array)
 #   2026-09-18: JR  v0.79r Added a now_ts to the arguments with Naive (without timezone) (HA) Current Time, rename optimize_ts to optimize_ts_str
-#   2026-10-01: JR  v0.79s Added Source Price Data parsing to determine the Import and Export Price Arrays (using the Helios Energy Price Parser), added source_type and original_provider to the arguments
+#   2026-10-01: JR  v0.79s Added Source Price Data parsing to determine the Import and Export Price Arrays (using the Helios Energy Price Parser), added price_type and source_provider to the arguments
 #   2026-10-07: JR  v0.90  First Public Release (Read-only for HBC), Support for HBC Price Data, Updates Helios Optimizer Entities for HBC (Sub-Strategy and Net Power) but has no Helios Strategy yet in HBC
 #   2026-10-12: JR  v0.91  Initializes Helios Optimizer Input Entities depending on the previous helios release version, For some initial values of Input Entities HBC values are used (sell/charge target, max discharge/charge power)
 #   2026-10-15: JR  v0.92a Added Market Prices Array and New Graph with (Import, Export and Market) Prices and the selected Strategy
 #   2026-10-15: JR  v0.92b Adapted the Strategy Calculation, Made it more consistent and easier to follow, Clear difference between Buy/Charge and Sell/Discharge, Conversion Table from Helios to HBC Strategy
 #   2026-10-28: JR  v0.93  First public release with HBC Output (works together with Helios Strategy in HBC)
+#   2026-10-28: JR  v0.93a Added Test on solar_energy_forecast (not None) before convert the forecast to floats (like for the prices)
+#   2026-10-29: JR  v0.93a For Solar Enabled a Solar Energy Forecast must be available, raise an error when not available (optimizer stops)
 #
 #   Remark: For the full helios history see helios_main.py
 #   
@@ -74,7 +76,7 @@ except ImportError: # Mock Logger not found (hopefully we are running in Home As
 from helios_python.helios_common import * # Import the Pure Python Helios Common Functions    (used also by the Helios Main)
 from helios_python.helios_prices import * # Import the Pure Python Helios Energy Price Parser (used also by the Helios Main)
 
-HELIOS_VERSION      = "0.9.3"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
+HELIOS_VERSION      = "0.9.4"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
 HELIOS_CALC_NAME    = "Helios Optimizer Calc Plan"
 MINUTES_PER_HOUR    = 60.0      # Conversion factor (float) from hours to minutes
 SECONDS_PER_MIN     = 60.0      # Conversion factor (float) from minutes to seconds
@@ -84,6 +86,7 @@ STEPS               = 48        # Default Number of Steps (48 steps of 60 minute
 STEP_SIZE           = 60        # Default Step Size (60 minutes)
 STEP_ZERO           = 0         # Default Start Step (0=Automatic start step at current time)
 PRICE_FACTOR        = 1.0       # Default Price Factor (1.0 = price is in euro per kWh, 0.001 = price is in euro per Wh, 0.01 = price is in cent per kWh) 
+MAX_GRID            = 11.0      # Default Maximum Grid Import/Export Capacity (kW)
 MAX_TIME            = 10.0      # Default Maximum Solver Time (seconds) 
 MAX_ITER            = 10000     # Default Maximum Solver Iterations
 
@@ -91,7 +94,6 @@ IMPORT_PRICE_FIXED  = 0.20      # Default Import Price when no import_prices or 
 EXPORT_PRICE_FIXED  = 0.05      # Default Export Price when no export_prices or export_price_fixed is provided
 MARKET_PRICE_FIXED  = None      # No Default for Market Price (this array is info only and not mandatory)
 
-MAX_GRID            = 11.0      # Default Maximum Grid Import/Export Capacity (kW)
 HOUSE_POWER_FIXED   = 0.5       # Default House Usage (kW) Power when no house_energy_forecast or house_power_fixed is provided, 0.5 kW is 500 Watt constant usage is 12 kWh per day
 HOUSE_DAY           = 10.0      # Default House Usage for a Day (kWh) when a house_spread_hours is provide
 HOUSE_DISTR         = '[ 1, 1, 1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 6, 3, 3, 1]' # Default House Distribution
@@ -115,9 +117,6 @@ SOLAR_MOD        = 'modulating' # Solar Mode where Solar Production is Dimmed be
 SOLAR_BIN        = 'binary'     # Solar Mode where Solar Production is Binary: Zero (0) or Full (Solar Forecast)
 SOLAR_DIS        = 'disabled'   # Solar Mode where Solar Production is Zero (0)
 SOLAR_MODE          = SOLAR_ALL # Default Solar Mode is Solar Production is All (Full and equal to Solar Forecast)
-
-FORECAST_FS_INTEGR  = 'Forecast.Solar Integration' # Retrieved from the Integration with a Service and stored into HELIOS_SOLAR_FORECAST2
-FORECAST_FS_REST    = 'Forecast.Solar REST api'    # Retrieved from a REST api and converted with a template  into HELIOS_SOLAR_FORECAST2 (see helios_optimizer_forecast.yaml)
 
 EV_OFF              = False     # Default Electrical Vehicle Disabled
 HP_OFF              = False     # Default Heatpump Disabled
@@ -182,46 +181,31 @@ CONVERT_STRATEGY = {
 # REMARK: This is now a Pure Python Function which is called asynchronous by helios_optimizer_service using the task.executor, common functies called are also pure python
 # @pyscript_compile # Not needed anymore since the helios_optimizer.py is now in /pyscript/helios_python/ (pure python) folder and not in the /pyscript/ or /pyscript/modules/ (pyscript) folders, it is compiled and imported  
 def helios_optimizer_calc_plan( 
-    steps=STEPS,                 # 24 steps for 60 minutes is one day,  48 steps is two days
-    step_size=STEP_SIZE,         # 96 steps for 15 minutes is one day, 192 steps is two days
-    start_step=STEP_ZERO,        # 0 = Determine start step automatically using current time
+    steps=None,                  # 24 steps for 60 minutes is one day,  48 steps is two days
+    step_size=None,              # 96 steps for 15 minutes is one day, 192 steps is two days
+    start_step=None,             # 0 = Determine start step automatically using current time
 
     price_size=None,             # None=price_size is equal to step_size (Default), resample price          arrays from price_size to step_size when not None and different
     house_size=None,             # None=house_size is equal to step_size (Default), resample house forecast arrays from house_size to step_size when not None and different
     solar_size=None,             # None=solar_size is equal to step_size (Default), resample solar forecast arrays from solar_size to step_size when not None and different
     price_factor=None,           # Price Factor 1.0 (or None)=Price in euro per kWh, 0.001=Price in euro per Wh, 0.01=Price in cent per kWh (Applicable to Import and Export Prices but NOT applicable to the Source Price Data!)
 
-    max_grid_import_kw=MAX_GRID, # Maximum Grid Import Power (kW)
-    max_grid_export_kw=MAX_GRID, # Maximum Grid Export Power (kW)
+    max_grid_import_kw=None,     # Maximum Grid Import Power (kW)
+    max_grid_export_kw=None,     # Maximum Grid Export Power (kW)
 
-    solar=None,                  # Solar Parameters (dict)  : Solar Enabled, Solar Mode, Solar Energy Forecast in kWh per step 
-    battery=None,                # Battery Parameters (dict): Battery Enabled, Capacity, SOC%-s (Start, Target, Min, Max), Max Charge/Discharge Power, Charge/Discharge Efficiency, Charge/Discharge Cost
-    ev=None,                     # Future Electric Vehicle Charging Parameters (dict)
-    heat_pump=None,              # Future Heat Pump Parameters (dict)
-    boiler=None,                 # Future Boiler Parameters (dict)
-
-    house_energy_forecast=None,  # Array with House Energy Forecast (the house usage in kWh per step)
     house_daily_usage_kwh=None,  # Optional House Daily Usage (kWh) as a total value, alternative for house forecast array, will be spread over the day using house_daily_distr
     house_daily_distr=None,      # Optional House Daily Distribution over the Day as a list of 24 values (kWh) for each hour of the day (Remark: This field can be a list but also a string with a list of values)
 
-    import_prices=None,          # Array with Import Prices (an import price in euro per step)
-    export_prices=None,          # Array with Export Prices (an export price in euro per step)
-    market_prices=None,          # Array with Market Prices (a  market price in euro per step, Remark: information only, not used in calculations)
     provider_key=None,           # Provider Key for the Source Price Data (e.g. "hbc_marks" for HBC Energy Prices, "frank_energie" for Frank Energie Import Prices, etc)
+    price_type=None,             # Source (Price) Type (Market, Import or Export) for Source Price Data, removed see Provider Profiles
+    source_provider=None,        # Source (Energy) Provider Key (Only applicable when the Source Price Provider is not the same as the provider_key) 
+    target_provider=None,        # Target (Energy) Provider Key (Only applicable when the Target Price Provider is not the same as the provider_key) 
     source_price_sensor=None,    # Source Price Sensor (Entity Id) (Info Only, since the Source Price Data is already retrieved from HA in the service) - Used by the Helios Service but not in Calculate Plan Function
-    source_price_data=None,      # Source Price Data (alternative to import/export prices)
-#   source_type=None,            # Source (Price) Type (Market, Import or Export) for Source Price Data, removed see Provider Profiles
-    original_provider=None,      # Original (Energy) Provider (Only applicable when the Price Provider is not the Original Source for the Price Data) 
-
-    # Following fixed values arguments are not provided via the helios service (yet):
-    import_price_fixed=IMPORT_PRICE_FIXED, # Fixed Import Price (valid for all steps), only used when no import price array is provided
-    export_price_fixed=EXPORT_PRICE_FIXED, # Fixed Export Price (valid for all steps), only used when no export price array is provided
-    house_power_fixed=HOUSE_POWER_FIXED,   # House Fixed Usage  (valid for all steps), only used when no house usage  array is provided (Alternative for house_daily_usage_kwh, only used when house_daily_usage and house_energy_forecast_kwh are not provided)
 
     # Solver limitations, Debug and Testing arguments:
-    max_time=MAX_TIME,           # Maximum time in seconds for the HiGHS Solver
-    max_iterations=MAX_ITER,     # Maximum iterations      for the HiGHS Solver
-    insight=INSIGHT_STD,         # Insight Level (0=No Calculation, 1=Minimum, 9=Maximum, see helios_common.py for details, Standard level is Max)
+    max_time=None,               # Maximum time in seconds for the HiGHS Solver
+    max_iterations=None,         # Maximum iterations      for the HiGHS Solver
+    insight=None,                # Insight Level (0=No Calculation, 1=Minimum, 9=Maximum, see helios_common.py for details, Standard level is Max)
     write_files=False,           # Write Files (True=Write JSON and CSV files) - Used by the Helios Optimizer Service but not in Calculate Plan Function (Not Applicable to writing files in the VS Main)
     output_folder=None,          # Output Folder (Info Only, since the output files are written already in the service) - Used by the Helios Service but not in Calculate Plan Function
 
@@ -233,6 +217,23 @@ def helios_optimizer_calc_plan(
     optimize_ts_str=None,        # Optimize timestamp string (Default is None, Replaces the Current Timestamp as specified in now_ts
     optimize_off_min=0,          # Offset in minutes to UTC for the Timezone of the Optimize Timestamp 
 
+    solar=None,                  # Solar Parameters (dict)  : Solar Enabled, Solar Mode, Solar Energy Forecast in kWh per step 
+    battery=None,                # Battery Parameters (dict): Battery Enabled, Capacity, SOC%-s (Start, Target, Min, Max), Max Charge/Discharge Power, Charge/Discharge Efficiency, Charge/Discharge Cost
+    ev=None,                     # Future Electric Vehicle Charging Parameters (dict)
+    heat_pump=None,              # Future Heat Pump Parameters (dict)
+    boiler=None,                 # Future Boiler Parameters (dict)
+
+    house_energy_forecast=None,  # Array with House Energy Forecast (the house usage in kWh per step)
+    import_prices=None,          # Array with Import Prices (an import price in euro per step)
+    export_prices=None,          # Array with Export Prices (an export price in euro per step)
+    market_prices=None,          # Array with Market Prices (a  market price in euro per step, Remark: information only, not used in calculations)
+    source_price_data=None,      # Source Price Data (alternative to import/export prices)
+
+    # Following fixed values arguments are not provided via the helios service (yet):
+    import_price_fixed=None,     # Fixed Import Price (valid for all steps), only used when no import price array is provided
+    export_price_fixed=None,     # Fixed Export Price (valid for all steps), only used when no export price array is provided
+    house_power_fixed=None,      # House Fixed Usage  (valid for all steps), only used when no house usage  array is provided (Alternative for house_daily_usage_kwh, only used when house_daily_usage and house_energy_forecast_kwh are not provided)
+
 #   return_response=None         # Return a result (argument only required for the Helios Optimizer Service, Calculate Plan DOES return the payload)
 ):
     """
@@ -242,6 +243,19 @@ def helios_optimizer_calc_plan(
     start_ts, optimize_ts  = datetime.now(), None # Start of Service Execution (Current Date and Time)
     t_current, t_start, phase_ms, total_ms = performance_count() # Initialize the performance Array and the Counter
 #   _LOGGER.info(f"{HELIOS_CALC_NAME} Started: Initial Performance Array='{PERFORMANCE_ARRAY_MS}'")
+
+    # Set some default values if the value is still None
+    if (steps              == None): steps              = STEPS
+    if (step_size          == None): step_size          = STEP_SIZE        
+    if (start_step         == None): start_step         = STEP_ZERO       
+    if (max_grid_import_kw == None): max_grid_import_kw = MAX_GRID
+    if (max_grid_export_kw == None): max_grid_export_kw = MAX_GRID
+    if (import_price_fixed == None): import_price_fixed = IMPORT_PRICE_FIXED
+    if (export_price_fixed == None): export_price_fixed = EXPORT_PRICE_FIXED
+    if (house_power_fixed  == None): house_power_fixed  = HOUSE_POWER_FIXED  
+    if (max_time           == None): max_time           = MAX_TIME 
+    if (max_iterations     == None): max_iterations     = MAX_ITER
+    if (insight            == None): insight            = INSIGHT_STD
 
     try:
         # ------------------------ PHASE ZERO A ----------------------------#
@@ -259,6 +273,7 @@ def helios_optimizer_calc_plan(
         soc_min_kwh, soc_max_kwh, soc_start_kwh, soc_target_kwh, soc_end_kwh, capacity_kwh  = 0, 0, 0, 0, 0, 0  # Unknown Energie in kwh yet 
         soc_min_pct, soc_max_pct, soc_start_pct, soc_target_pct, soc_end_pct                = 0, 0, 0, 0, 0     # Unknown SOC Percentages yet 
         max_bat_charge_kw, max_bat_disch_kw, bat_charge_eff, bat_disch_eff                  = 0, 0, 0, 0        # No Battery Maximums or Efficiency Factors available yet
+        charge_cost, discharge_cost                                                         = 0, 0              # No Battery Charge and Discharge Cost available yet
         max_ev_power_kw, max_hp_power_kw, max_boil_power_kw                                 = 0, 0, 0           # No Electical Vehicle, Heatpump and Boiler Maximums available yet 
 
         soc_end_pct     = None  # Battery End % 
@@ -356,8 +371,11 @@ def helios_optimizer_calc_plan(
         # Or (when price parsing failed) generate an array with fixed values (import_price_fixed and export_price_fixed) for all of the steps in the optimization period
         if source_price_data is not None and (import_prices is None or export_prices is None or market_prices is None): # Source Prices are provided and Import, Export and/or Market Prices are not?
             # For now when source prices are provided then assume they are from HBC and the source provider is Frank Energie (set in automation):
-            energy_price_parser = HeliosEnergyPriceParser(provider_key=provider_key, config_override={"original_provider": original_provider}, target_tz=optimize_off_min) # Default Max Fallback Days is 1, Target timezone from now (+60 or 120min in NL) 
-            processed_price_data = energy_price_parser.get_day_prices(price_data=source_price_data, target_step_size=step_size, lookup_ts=optimize_ts) # Get Energy Prices (Market, Import and Export) for the Optimize Day(s)
+            config_override = {}
+            if source_provider: config_override["source_provider"] = source_provider # Override the source provider key but only when specified (source_provider can also be specified in the profile)
+            if target_provider: config_override["target_provider"] = target_provider # Override the target provider key but only when specified (target_provider can also be specified in the profile)
+            energy_price_parser = HeliosEnergyPriceParser(provider_key=provider_key, config_override=config_override, target_tz=optimize_off_min) # Default Max Fallback Days is 1, Target timezone from now (+60 or 120min in NL) 
+            processed_price_data = energy_price_parser.get_day_prices(price_data=source_price_data, price_type=price_type, target_step_size=step_size, lookup_ts=optimize_ts) # Get Energy Prices (Market, Import and Export) for the Optimize Day(s)
 
         if import_prices is None and (processed_price_data != None) and (len(processed_price_data) > 0): # No Import Price Array specified but Source Price Parsing succeeded?
             import_prices = energy_price_parser.get_simple_price_list(processed_prices=processed_price_data, price_key=TARGET_IP_KEY)
@@ -392,19 +410,20 @@ def helios_optimizer_calc_plan(
             house_energy_forecast = [convert_float(h, f"house_energy_forecast[{i+1}]", min=0, decimals=ROUND_ENERGY_KWH2) for i,h in enumerate(house_energy_forecast)] # Convert House Energy Forecast to floats
         elif (house_daily_distr != None): # House Energy Usage Distribution array specified (defines how to spread the daily energy usage over the hours of the day)
             # Generate a House Energy Forecast from the Daily Usage and the Distribution over the day (Remark: Distribution can be a list of a string of separated values and will be converted to floats in the generate function)
-            house_energy_forecast = generate_forecast_for_distribution(steps_per_day * house_energy_fixed_per_step_kwh, house_daily_distr, name="house_daily_distr", decimals=ROUND_ENERGY_KWH2) # Generate a forecast array using the distribution of the energy over the hours of the day
+            house_energy_forecast = generate_forecast_for_distribution(steps_per_day * house_energy_fixed_per_step_kwh, house_daily_distr, expected_sizes=[24, 48, 96], name="house_daily_usage_distribution", decimals=ROUND_ENERGY_KWH2) # Generate a forecast array using the distribution of the energy over the hours of the day
             house_size = int((24 * MINUTES_PER_HOUR) / len(house_energy_forecast)) # The length of the house usage distribution array determines the step size of the house energy forecast (not the general step size or the specified house step size)
         else: # No forecast and no spread over the day provided so use a fixed energy per step
            house_energy_forecast = [house_energy_fixed_per_step_kwh] * expected_house_input_len # Generate a forecast array with a fixed value for all of the hours of the day
 
         solar_energy_forecast = solar.get("energy_forecast", [SOLAR_ZERO] * expected_price_input_len) if solar_enabled else None # Get the forecast for solar (one level deeper in the parameters then the other arrays)
-        solar_energy_forecast = [convert_float(s, f"solar_energy_forecast[{i+1}]", min=0, decimals=ROUND_ENERGY_KWH2) for i,s in enumerate(solar_energy_forecast)] if solar_enabled else [SOLAR_ZERO] * expected_solar_input_len # Without solar forecast the solar array has 0.0 values
+#       solar_energy_forecast = [convert_float(s, f"solar_energy_forecast[{i+1}]", min=0, decimals=ROUND_ENERGY_KWH2) for i,s in enumerate(solar_energy_forecast)] if (solar_enabled and solar_energy_forecast) else [SOLAR_ZERO] * expected_solar_input_len # Without solar forecast the solar array has 0.0 values
+        solar_energy_forecast = [convert_float(s, f"solar_energy_forecast[{i+1}]", min=0, decimals=ROUND_ENERGY_KWH2) for i,s in enumerate(solar_energy_forecast)] if (solar_enabled and solar_energy_forecast) else None # Without solar forecast the solar array is not available
 
         if (insight >= INSIGHT_MAX):
             # Sum the input arrays for house usage and solar forecast 
             # The Forecast Periods can different, e.g. sum of 1 day of house forecast and sum of 2 days solar forecast
             # Note: The input arrays are summed before the resampling and especially the extending to the length of the optimization period! 
-            house_input_sum_kwh, solar_input_sum_kwh = sum(house_energy_forecast), sum(solar_energy_forecast) # Use later in totals to check resampling and extending of forecasts
+            house_input_sum_kwh, solar_input_sum_kwh = sum(house_energy_forecast) if house_energy_forecast else 0, sum(solar_energy_forecast) if solar_energy_forecast else 0 # Use later in totals to check resampling and extending of forecasts
             _LOGGER.debug(f"Input Totals: House={round(house_input_sum_kwh, ROUND_ENERGY_KWH)}, Solar Forecast={round(solar_input_sum_kwh, ROUND_ENERGY_KWH)}")
 
         # Resample the input arrays when step size is not equal to the step size of the input array-s:
@@ -421,7 +440,7 @@ def helios_optimizer_calc_plan(
             solar_energy_forecast = resample(solar_energy_forecast, solar_size, step_size, "solar forecast", kind="linear", conserve_sum=True, dtype=float, decimals=ROUND_POWER_KW) # Resample solar energy forecast (e.g. from 60 to 15 min), linear interpolation of forecasts (conserve sum of energy)
 
         if (insight >= INSIGHT_MAX):
-            _LOGGER.debug(f"Resampled Totals: House={round(sum(house_energy_forecast), ROUND_ENERGY_KWH)}, Solar Forecast={round(sum(solar_energy_forecast), ROUND_ENERGY_KWH)}")
+            _LOGGER.debug(f"Resampled Totals: House={round(sum(house_energy_forecast) if house_energy_forecast else 0, ROUND_ENERGY_KWH)}, Solar Forecast={round(sum(solar_energy_forecast) if solar_energy_forecast else 0, ROUND_ENERGY_KWH)}")
         t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1a-Res') # Phase 1a time in msec
 
         # Validate the length of the input arrays (must be equal to the number of steps T)
@@ -435,12 +454,14 @@ def helios_optimizer_calc_plan(
         solar_energy_forecast = check_and_extend_size(solar_energy_forecast, T, "solar_energy_forecast", True, steps_per_day, days_in_period-1) # Check that the length of the solar forecast array is equal to T (number of steps) or multiply with a max of days
 
         if (insight >= INSIGHT_MAX):
-            _LOGGER.debug(f"Extended Totals: House={round(sum(house_energy_forecast), ROUND_ENERGY_KWH)}, Solar Forecast={round(sum(solar_energy_forecast), ROUND_ENERGY_KWH)}")
+            _LOGGER.debug(f"Extended Totals: House={round(sum(house_energy_forecast) if house_energy_forecast else 0, ROUND_ENERGY_KWH)}, Solar Forecast={round(sum(solar_energy_forecast) if solar_energy_forecast else 0, ROUND_ENERGY_KWH)}")
         t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1b-Ext') # Phase 1b time in msec
 
         if (solar_enabled):
             solar_mode     = solar.get("mode", SOLAR_ALL).lower() if solar_enabled else "disabled" # Mode: all (default, no dimming or switch), modulating (dimming), binary (on/off)
             solar_mode     = solar_mode if (solar_mode in [SOLAR_ALL, SOLAR_MOD, SOLAR_BIN]) else SOLAR_ALL if solar_enabled else SOLAR_DIS # prevent invalid solar modes
+            if (solar_energy_forecast == None):
+                raise ValueError("Solar is enabled but the Solar Energy Forecast is not available (empty)!")
         
         # JR2026-09-11: Conversion from Solar and House Energy Forecasts to Power Forecasts,
         # This requires a conversion from Energy (kWh) to Power (kW) by multiplying with steps per hour (Power = steps_per_hour * Energy or Power = Energy / delta_time):
@@ -477,22 +498,25 @@ def helios_optimizer_calc_plan(
                 soc_target_pct  = convert_float(battery.get("soc_target_pct", soc_min_pct), "battery.soc_target_pct", ROUND_ENERGY_PCT) # Use the SOC Min when no SOC Target (Min) is specified
                 soc_target_kwh = (soc_target_pct / PERCENTAGE_FACTOR) * capacity_kwh # Requested Minium SOC Target at the end of the optimization period
 
-                # Get the Battery Charge and Discharge Cost:
-                charge_cost    = convert_float(battery.get("charge_cost"   , CHARGE_COST), "battery.charge_cost"   , decimals=ROUND_PRICES_EURO)
-                discharge_cost = convert_float(battery.get("discharge_cost", DISCH_COST ), "battery.discharge_cost", decimals=ROUND_PRICES_EURO)
+                # Get the Battery Charge and Discharge Cost (allow None and use the default):
+                charge_cost    = convert_float(battery.get("charge_cost"   , CHARGE_COST), "battery.charge_cost"   , decimals=ROUND_PRICES_EURO, allow_none=True)
+                discharge_cost = convert_float(battery.get("discharge_cost", DISCH_COST ), "battery.discharge_cost", decimals=ROUND_PRICES_EURO, allow_none=True)
             
+                # Use the default when no charge or discharge cost is specified:
+                if (charge_cost    == None): charge_cost    = CHARGE_COST
+                if (discharge_cost == None): discharge_cost = DISCH_COST
             else: # No capacity (zero)
-                bat_enabled: false # Battery requires capacity larger than zero
+                bat_enabled = False # Battery requires capacity larger than zero
         
         # Optional Smart Deferrable Devices:
         if ev_enabled: # Electrical Vehicle enabled?
-            max_ev_power_kw   = convert_float(ev    .get("max_power_kw", EV_FIXED  ), "ev.max_power_kw"    , decimals=ROUND_POWER_KW)
+            max_ev_power_kw   = convert_float(ev       .get("max_power_kw", EV_FIXED  ), "ev.max_power_kw"    , decimals=ROUND_POWER_KW)
 
         if hp_enabled: # Heat Pump enabled?
-            max_hp_power_kw   = convert_float(hp    .get("max_power_kw", HP_FIXED  ), "hp.max_power_kw"    , decimals=ROUND_POWER_KW)
+            max_hp_power_kw   = convert_float(heat_pump.get("max_power_kw", HP_FIXED  ), "hp.max_power_kw"    , decimals=ROUND_POWER_KW)
 
         if boiler_enabled: # Boiler enabled?
-            max_boil_power_kw = convert_float(boiler.get("max_power_kw", BOIL_FIXED), "boiler.max_power_kw", decimals=ROUND_POWER_KW)
+            max_boil_power_kw = convert_float(boiler   .get("max_power_kw", BOIL_FIXED), "boiler.max_power_kw", decimals=ROUND_POWER_KW)
 
         t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1c') # Phase 1c time in msec
 
@@ -1113,7 +1137,7 @@ def helios_optimizer_calc_plan(
 
     # Overall exception handling for the entire optimization function:
     except Exception as e: 
-        error_message = f"Optimizer Calculation Failed with {repr(e)}"
+        error_message = f"Optimizer Calculation Failed with \"{e}\""
         error_stack = traceback.format_exc() # Retrieve the python error stack from traceback
         calc_result, calc_code = "Optimizer Exception", RC_OPTIMIZER_EXCEPTION
         _LOGGER.error(f"\n[{HELIOS_CALC_NAME}] Exception: {error_message}")
@@ -1210,6 +1234,11 @@ def helios_optimizer_calc_plan(
         "python_details"          : PYTHON_DETAILS if (insight >= INSIGHT_MAX) else None,
         "python_info"             : PYTHON_INFO    if (insight >= INSIGHT_MAX) else None,
         "scipy"                   : SCIPY_VERSION,
+        "source_price_sensor"     : source_price_sensor, # Source Price Sensor (used to retrieve the Price Data)
+        "provider_key"            : provider_key,        # Main Provider Key for parsing the Price Data
+        "price_type"              : price_type,          # Price Type of the Price Data Source
+        "source_provider"         : source_provider,     # Price/Tariff Data Provider
+        "target_provider"         : target_provider,     # Energy Provider
 
         "now_ts"                  : datetime_isoformat_msec(now_ts) if (now_ts != None) else None, # Now (=last_service_begin) as provided in the call by the Helios Service
         "now_tz"                  : str(now_tz), # Now Related Timezone String

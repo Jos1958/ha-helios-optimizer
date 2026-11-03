@@ -9,7 +9,8 @@
 - Introduced a Horizon (in Days) parameter (replacing the Steps parameter on the Dashboard), Model will calculated with Steps value derived from Horizon and Step Size
 - Steps is 0 (specify via Horizon is 0) disables the Optimization Model, No Calculation will be done
 - Introduced an Advanced Parameters section (only in insight mode) with Horizon, House Daily Usage Distribution and Price parameters 
-- **Change files:** All PyScript (*.py), Dashboard (yaml), Package (yaml), Documentation
+- **Changed files:** All PyScript (*.py), Dashboard (yaml), Package (yaml), Documentation
+- **Not changed since 0.9.3:** Node-Red Helios Strategy Flow (json), Banner File (jpeg), Automation is Obsolete!
 
 ## 0.9.3b (2026-10-29) Minor Fixes
 - Initialized the step size for the House Daily Usage Distribution array (house_size), prevent an exception when distribution is empty, flat usage will be used, improved the error message for invalid sizes

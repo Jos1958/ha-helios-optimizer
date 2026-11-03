@@ -232,6 +232,15 @@ input_text:
 # INPUT_SELECT
 ###########################################################################################################
 input_select:
+  helios_optimizer_horizon:
+    name: "Helios Optimizer Horizon (Days)"
+    icon: mdi:weather-sunset-down
+    options:
+      - "2"
+      - "1"
+      - "0"
+    #initial: 2
+
   helios_optimizer_step_size:
     name: "Helios Optimizer Step Size (Min)"
     icon: mdi:clock-fast
@@ -263,14 +272,61 @@ input_select:
       - "custom"
     #initial: "import"
     
-  helios_optimizer_source_type:
-    name: "Helios Optimizer Source Price Type"
-    icon: mdi:currency-eur
+  helios_optimizer_price_entity_id:
+  # Select an Entity Id for the sensor that contains the Source Price Data (input for Import and Export Price Arrays)
+  # Currently only HBC Price Data is supported but more sources will be supported in the future
+  # This Entity is not used at the moment since only HBC Prices are supported
+    name: "Helios Optimizer Source Price Data Sensor"
+    icon: mdi:cash
     options:
-      - "import"
-      - "export"
-      - "market"
+      - "sensor.hbc_energy_prices_data"
+      
+  helios_optimizer_price_type:
+  # Price Type is an input for the Helios Optimizer and defines which type of price is used in the Source Price Data
+  # In HBC the Price Data is loaded when using the Dynamic or Helios Strategy from a Data Source
+  # This Data Source (usually) contains prices of one of the price types (market, import or export)
+  # Helios needs this information to convert the Source Price into the 3 different price values
+    name: "Helios Optimizer Source Price Type"
+    icon: mdi:shopping-outline
+    options:
+      - import
+      - market
+      - export 
     #initial: "import"
+
+  helios_optimizer_source_provider:
+  # The Source Provider is the (Energy or Data) Provider where you retrieve the price information from.
+  # HBC has retrieved its Source Price Data from this Source Provider and has stored it in its own entity (sensor.hbc_energy_prices_data)
+  # This can be your own Energy Provider but also a different provider that has market prices or similar prices
+    name: "Helios Optimizer Source Provider for Energy Data"
+    icon: mdi:transmission-tower
+    options:
+      - "HBC Data Source"
+      - "Frank Energie"
+      - "Zonneplan"
+      - "Energy Zero"
+      - "Tibber"
+      - "Engie"
+      - "Grid Clock"
+      - "Nordpool"
+      - "Generic"
+      - "Custom"
+    #initial: "HBC Data Source"
+
+  helios_optimizer_target_provider:
+  # The Target Provider is your own Energy Provider
+  # The Target Provider is the provider that delivers the Energy to your house (you have a contract with this provider).
+    name: "Helios Optimizer Source Price Type"
+    icon: mdi:transmission-tower
+    options:
+      - "HBC Data Source"
+      - "Frank Energie"
+      - "Zonneplan"
+      - "Energy Zero"
+      - "Tibber"
+      - "Engie"
+      - "Custom"
+    #initial: "HBC Data Source"
 
   helios_optimizer_solar_source:
   # Select a Source for the Solar Forecast Information
@@ -280,8 +336,8 @@ input_select:
     name: "Helios Optimizer Forecast Solar Sensor"
     icon: mdi:lightning-bolt
     options:
-      - "Forecast.Solar Integration"
-      - "Forecast.Solar REST api"
+      - "Forecast.Solar Integration" # Solar Forecast by Forecast.Solar Integration, will be retrieved via a service from the integration
+      - "Forecast.Solar REST api"    # Solar Forecast by Forecast.Solar REST api that needs to be defined in the optional helios_optimizer_forecast.yaml 
 
   #helios_optimizer_forecast_solar_sensor:
   # Select an Entity Id for the sensor that contains the Forecast Solar Results (Warning: a specific format is required)
@@ -293,13 +349,6 @@ input_select:
   #   - "sensor.helios_optimizer_forecast_solar_hours"
   #   - "pyscript.helios_optimizer_forecast_solar_hours"
   #   - "sensor.forecast_solar_total_hours"
-      
-  helios_optimizer_source_entity_id:
-  # Select an Entity Id for the sensor that contains the Source Price Data (input for Import and Export Price Arrays)
-    name: "Helios Optimizer Forecast Solar Sensor"
-    icon: mdi:cash
-    options:
-      - "sensor.hbc_energy_prices_data"
       
   helios_optimizer_hbc_sub_strategy:
   # Output from the Helios Optimizer and Input for the HBC Helios Sub Strategy
@@ -330,6 +379,10 @@ input_boolean:
     name: "Helios Optimizer Battery Enabled"      
     icon: mdi:battery-charging-medium
     # initial: false  
+
+  # Insights
+  helios_optimizer_debug_mode:
+    name: Helios Insight
       
 ###########################################################################################################
 # TEMPLATE SENSORS

@@ -172,13 +172,16 @@ def helios_optimizer_retrieve_forecast_solar_hours(
         # When only tomorrow is available the array will have 48 hours and the first 24 will all be zero
         if response != None: # Valid response found
             # Totals for Today:
+            total_today_kwh = 0
             if found_today or found_tomorrow: # Save the today totals (in kW and kWh), if today not available but tomorrow is then today will be zero-s
+                total_today_kwh = total_today_wh / 1000
                 forecast_response["result"]["days_kw" ][today.strftime("%Y-%m-%d")] = int(total_today_wh) # Total Wh today (integer)
-                forecast_response["result"]["days_kwh"][today.strftime("%Y-%m-%d")] = round(total_today_wh / 1000, 1) # Total kWh today (float, 1 decimal)
+                forecast_response["result"]["days_kwh"][today.strftime("%Y-%m-%d")] = round(total_today_kwh, 1) # Total kWh today (float, 1 decimal)
             # Totals for Tomorrow:
+            total_tomorrow_kwh = 0
             if found_tomorrow: # Save the tomorrow totals (in kW and kWh)
                 forecast_response["result"]["days_kw" ][tomorrow.strftime("%Y-%m-%d")] = int(total_tomorrow_wh)
-                forecast_response["result"]["days_kwh"][tomorrow.strftime("%Y-%m-%d")] = round(total_tomorrow_wh / 1000, 1)
+                forecast_response["result"]["days_kwh"][tomorrow.strftime("%Y-%m-%d")] = round(total_tomorrow_kwh, 1)
     
             # Built a Forecast Array for today and optionaly tomorrow (1 or 2 days):
             if found_today or found_tomorrow: # Remark: If only tomorrow found then today will be zero's
@@ -199,7 +202,7 @@ def helios_optimizer_retrieve_forecast_solar_hours(
             # Update the Entity (if it does not exist it will be created)
             state.set( # Update the status and attributes of the Forecast Entity
                 HELIOS_SOLAR_FORECAST2,
-                value=0, # State value is not used
+                value=round(total_today_kwh, 1), # State value is total for today in kwh
                 friendly_name=HELIOS_SOLAR_FORECAST_NAME2,
                 unit_of_measurement="kWh", # Kilo Watt Hour
                 device_class="energy",

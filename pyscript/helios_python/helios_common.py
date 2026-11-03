@@ -16,24 +16,29 @@
 #   2026-09-15: JR  v0.79q Improved Input Validation and Error Checking for check_and_extend_size function in helios_common.py, testing in EnergyPriceConversion VS Main
 #   2026-10-01: JR  v0.79s Moved Input Chars and Press Any Key (although CLI) functions from helios_main.py to this module (helios_common.py) so they can be used by other Visual Studio test modules (like EnergyPriceConversion.py) 
 #   2026-10-28: JR  v0.93  First public release with HBC Output (works together with Helios Strategy in HBC)
+#   2026-10-29: JR  v0.93a Fixed issue with initial empty helios version number entity (parse_version), empty version is now handled as 0.0.0, all applicable entities will be initialized in helios_services.py
 #
 #   Remark: For the full helios history see helios_main.py
 #   
 # Warning: In Visual Studio this module exists in the helios_python folder of the Helios Optimizer Project and in Home Assistant in the /config/pyscript/helios_python folder.
 
-import os                                     # For file exist
-import sys                                    # For python version (detailed version and version info)
-import platform                               # For python version (simple version)
-import json                                   # For writing a Dictionary Data Structue (e.g. payload output) to a json file
-import time 
-import csv                                    # For exporting data as a CSV file with DictWriter
-import numpy as np                            # Numeric Pyscript Library (includes numeric array) 
-import itertools                              # for zip_longest
-import re                                     # for split
+IMPORTS_FAILED2 = False
+try:
+    import os                                     # For file exist
+    import sys                                    # For python version (detailed version and version info)
+    import platform                               # For python version (simple version)
+    import json                                   # For writing a Dictionary Data Structue (e.g. payload output) to a json file
+    import time 
+    import csv                                    # For exporting data as a CSV file with DictWriter
+    import numpy as np                            # Numeric Pyscript Library (includes numeric array) 
+    import itertools                              # for zip_longest
+    import re                                     # for split
 
-from typing   import TextIO                   # For DictWriter 
-from datetime import datetime, timedelta
-from io       import TextIOWrapper
+    from typing   import TextIO                   # For DictWriter 
+    from datetime import datetime, timedelta
+    from io       import TextIOWrapper
+except (ImportError, Exception) as e:
+    IMPORTS_FAILED2 = True # Allow the common module to be loaded while imports fail (see helios_services.py which reports the error), never reached since sys.path cannot be changed when imports fail
 
 # Determine the environment (Visual Studio or Home Assistant):
 try: # Assume we are running in Visual Studio and not in Home Assistant (HA) and try to import the home_assistant_mock.py  
@@ -90,25 +95,8 @@ INSIGHT_PLAN        = 8         # Plan Arrays are created (from the Solver Varia
 INSIGHT_MAX         = 9         # Maximum Insight Level (All debug info is created)
 INSIGHT_OPTIONS     =[INSIGHT_OFF, INSIGHT_MIN, INSIGHT_LOW, INSIGHT_SUM, INSIGHT_PLAN, INSIGHT_MAX]
 
-# Abnormal State Internal Values (applicable to Battery States and House Power Surplus State, copied from _batmgt_config.py):
-INITIAL_STATE   = "Initial"     # Initial version of a state at load of the pyscript or before retrieval from Home Assistant
-UNKNOWN_STATE   = "Unknown"     # Unknown state  (Used when the SOC of a battery or the House Power Surplus are temporary not available)
-UNAVAIL_STATE   = "Unavailable" # Unavailable state (Serious problem with getting access)
-FAILED_STATE    = "Failed"      # Failed state   (Used when an exception occurs while calculating the state)
-NOT_FOUND_STATE = "NotFound"    # Not Found      (Set at the start of the calculation/lookup, indicates that no valid state has been found)
-NONAME_STATE    = "NoStateName" # No Name        (Set when a state is retrieved for a state name of None, only allowed for optional states/results)
-
-# Home Assistant Entity values (copied from _batmgt_config.py):
-HA_ON        = "on"             # Home Assistant switch value for On
-HA_OFF       = "off"            # Home Assistant switch value for Off
-HA_UNK       = "Unk"            # Home Assistant switch value not yet retrieved
-HA_UNKNOWN   = "unknown"        # Home Assistant Stae is temporary not known (e.g. at startup), processing can continue because the value may come available later
-HA_UNAVAIL   = "unavailable"    # Home Assistant State is unavailable due to a connection error with the device or other more serious problem, perhaps better stop processing
-HA_UN_LIST   = [HA_UNKNOWN, HA_UNAVAIL] # Home Assistant List of Undefined States (unknown or unavailable)
-HA_FRNAME    = "friendly_name"  # Home Assistant attribute name for Friendly (Alternative) Name of a state 
 HA_TS_FORMAT = "%Y-%m-%d %H:%M:%S" # Format for timestamp attributes in Home Assistant
-MAX_DELAY_VALUE = 99999         # Prevent overflow of timestamp delta's by replacing it by this value for delta's since fromtimestamp(0)
-
+HA_TS_SHORT  = "%Y-%m-%d %H:%M"    # Default Format for timestamp attributes 
 PERMISSION_WARNING = "WARNING: The file may be IN USE by another application! Close this OTHER Application and Restart this process!"
 
 # -------------------------------------------------------------------
@@ -178,6 +166,7 @@ def get_single_char() -> str:
 # Parse the version number string into a tuple of integers for correct numerical comparison (e.g., '1.2.13' becomes (1, 2, 13)).
 def parse_version(version_str: str) -> tuple[int, ...]:
     """Convert the version from '1.2.13' to (1, 2, 13) for correct numerical comparison."""
+    if not isinstance(version_str, str) or (version_str.strip()  == ''): version_str = "0.0.0" # Initialize to 0 for invalid string or empty string 
     clean_str = version_str.lstrip("vV").rstrip('abcdefghijklmnopqrstuvwxyz').strip() # Remove leading'v' or 'V' (for Version), trailing sub-versions (a..z) and strip leading and trailing spaces
     return tuple(map(int, clean_str.split(".")))
 
@@ -289,7 +278,7 @@ def is_float(value):
         return False # Not a float
 
 # Format the datetime using a format string:
-def datetime_string(dt: datetime = datetime.now(), dt_format: str = "%Y-%m-%d %H:%M"):
+def datetime_string(dt: datetime = datetime.now(), dt_format: str = HA_TS_SHORT):
     return dt.strftime(dt_format)
 
 # Format the datetime using iso format with the specified timespec (minutes, seconds, )
@@ -305,8 +294,9 @@ def is_size_correct(array, expected_size, name, raise_error : bool = True) -> bo
     array_size = len(array)
     
     if (array_size != expected_size):
+        error_message = f"Invalid size for {name} array: expected {expected_size}, got {array_size}"
         if raise_error:
-            raise ValueError(f"Invalid size for {name} array: expected {expected_size}, got {array_size}")
+            raise ValueError()
         else:
             _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Is-Size-Correct]: {error_message}")
             return False
@@ -428,7 +418,8 @@ def resample(data_array: list, step_in: int, step_out: int, name: str = "unknown
 
     # 1. Data array already has the correct size or is empty:
     if (data_array is None) or (len(data_array) == 0) or (step_in is None) or (step_in == step_out):
-        return list(data_array) # No changes required
+#       return list(data_array) # No changes required
+        return list(data_array) if data_array else None # No changes required, JR2026-10-29: Removed the list conversion for data_array is None
 
     # 2. Convert the incoming array to a np array:
     np_data_array = np.array(data_array, dtype=dtype)
@@ -469,7 +460,7 @@ def resample(data_array: list, step_in: int, step_out: int, name: str = "unknown
 SPLIT_PATTERN = re.compile(r'[,;|]') # split with , ; | space or tab (multiple spaces or tabs count as one separator)
 BRACKETS = '[](){}<>'
 # Generate a forecast based upon the usage spread and the total daily usage
-def generate_forecast_for_distribution(total_usage: float, usage_distr: any, expected_sizes: list = [24, 48, 96], name: str = "unknown-distribution", raise_error: bool = True, decimals: int = 4) -> list:
+def generate_forecast_for_distribution(total_usage: float, usage_distr: any, expected_sizes: list = None, name: str = "unknown-distribution", raise_error: bool = True, decimals: int = 4) -> list:
     """
     Converts a total usage using a usage distribution (profile) into a concrete usage forecast
     scaled to a target total usage value.
@@ -500,7 +491,7 @@ def generate_forecast_for_distribution(total_usage: float, usage_distr: any, exp
         error_message = f"Invalid '{name}' Distribution {str(usage_distr)}, NOT a valid List!"
 
     elif (expected_sizes != None) and not (len(usage_distr) in expected_sizes): # Does the usage distribution have an expected size?
-        error_message = f"Invalid '{name}' Distribution Size {len(usage_distr)}, Expected as size in {expected_sizes}!"
+        error_message = f"Invalid '{name}' Distribution Array Size {len(usage_distr)}, The LENGTH of the array is expected to be in {expected_sizes}!"
 
     else: # Found a usage distribution list with an expected size!
         # Convert the distribution list items to floats
@@ -542,7 +533,7 @@ def generate_forecast_for_distribution(total_usage: float, usage_distr: any, exp
 # Remark: In the difference structure a index starting at 1 (instead of 0) is used!
 # WARNING: For now nesting in lists is not supported!
 def list_index_diff(old_list1, new_list2, path = None):
-    _LOGGER.warning("Comparing Index List" + (f" for {path}:" if path else ":"))
+#   _LOGGER.warning("Comparing Index List" + (f" for {path}:" if path else ":"))
 #   _LOGGER.warning(f"Comparing2 list:\n{list1}\n{list2}")
     diff = {}
     max_len = max(len(old_list1), len(new_list2))
@@ -559,7 +550,7 @@ def list_index_diff(old_list1, new_list2, path = None):
 # Compare difference between 2 Lists using the List VALUES as KEYS
 # WARNING: For now nesting in lists is not supported!
 def list_key_diff(list1, list2, path = None):
-    _LOGGER.warning("Comparing Key List" + (f" for {path}:" if path else ":"))
+#   _LOGGER.warning("Comparing Key List" + (f" for {path}:" if path else ":"))
 #   _LOGGER.warning(f"Comparing list:\n{l1}\n{l2}")
     diff = {}
     for key in set(list1) | set(list2):
@@ -766,19 +757,46 @@ def raw_csv_writer(path: str, row_list: list[dict], headers: list = None, row_ke
 
     return row_count
 
+# Raw JSON file writer replaces the content of a file with the json data from the dictionary. 
+def raw_json_writer(path: str, dict_data: dict, indent: int = 4, default_type = str):
+    char_count = 0, 
+    try: # Try running the Raw File Writer:
+        json_str = format_dict_as_json(dict_data, indent = indent, default_type = default_type)
+        char_count = raw_file_writer(path, json_str) # Write the json using the Raw File Writer 
+    except Exception as e: # Could not write the json string
+        _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-JSON-Write] Exception: {repr(e)}")
+    return char_count
+
+# Read a JSON file into a dictionary
+# Returns a dictionary or None (file not found or contains invalid JSON)
+def raw_json_reader(path: str) -> dict:
+    """
+    Read a JSON file into a dictionary.
+    Executor handles this off-thread (so the file reading does not hold up the main loop of HA).
+    """       
+    json_dict = None
+    try: # Try running the Raw File Readr and JSON to Dict Conversion
+        json_str = raw_file_reader(path) # Read the json string using the Raw File Reader 
+        json_dict = convert_json_to_dict(json_str) # Convert the JSON string to a dictionary and return it (returns None when JSON string is None)
+        if json_dict is None: # Conversion from JSON to Dictionary failed?
+            _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-JSON-Reader] Error: JSON Conversion Failed, returning {json_dict}")
+    except Exception as e: # Could not read the json string
+        _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-JSON-Reader] Exception: {repr(e)}")
+    return json_dict # Return the dictionary or None when file not found or invalid
+
 # Raw file reader reads the content of a file and returns the content as a text. 
 # @pyscript_compile # Not needed anymore (see above)
 def raw_file_reader(path: str, newline = "", encoding = "utf-8") -> str:
+    text = None
     try:
         # 'r' is for read, existing file are opened for reading at the start of the file. 
 #       with open(path, "r", newline = "", encoding="utf-8") as f: # Open for read ("r")
         with raw_open_file_for_read(path, newline=newline, encoding=encoding) as f: # Open for read ("r")
             text = f.read()
             f.close()
-            return text
     except Exception as e:
         _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-File-Reader] Exception for '{path}': {repr(e)}!") 
-        return None # Return None if the file could not be read
+    return text # Return text or None if the file could not be read
 
 # Open a file in Replace ("w") Mode at the start of the file with the specified newline and encoding 
 # @pyscript_compile # Not needed anymore (see above)

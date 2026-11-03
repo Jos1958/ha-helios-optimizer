@@ -12,6 +12,7 @@
     <br>WARNING: Currently ONLY Forecast.Solar is supported as a Solar Forecast!
   - **File Editor** (or Samba) via HACS: to create folders and upload files
   - **PyScript** installation via HACS with imports and hass access enabled:
+    <br>**VERY IMPORTANT:** The Helios Optimizer **CANNOT** run without these options enabled!
     - Integrations: Pyscript Python scripting - pyscript - [Configurate]
       - V Allow All Imports?
       - V Access hass as a global variable?
@@ -128,19 +129,23 @@
 Select the "Dynamic" strategy in HBC, this will generate the HBC Price Data.
 Now you can continue in the next step but HBC will still apply the dynamic sub-strategies.  
 
-- **Check the Helios Optimizer Dashboard** (within 10s after restart the automation should run)
+- **Check the Helios Optimizer Dashboard** (within 8s after restart the automation should run)
 - **Adapt the Optimization Parameters and the Battery Parameters**
-  - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
-    <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
-    <br>Use only a specifiy start step for simulation/test runs!
+  - Step Size (60 or 15 Minutes), Start with 60 minutes this will work also when you have 15 minutes dynamic prices
   - House Daily Usage (e.g. 10.0 kWh) 
-  - House Daily Usage Distribution (e.g. [ 1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8, 3, 1])
   - Max Grid Import and Export: 11.0 kWh (2x)
   - Battery Enabled: On (or Off when you do not have a battery)
   - Battery SOC Target: 40%-50% (to be left for the rest of the night at the end of the optimization period, usually end of the day tomorrow)
   - Battery SOC Min and Max (e.g. 10% and 90%, depending on your battery requirements)
   - Battery Charge and Discharge Limit (e.g. 1.2kWh, total limit, depending on your battery configuration)
   - Battery Charge and Discharge Efficiency (2x 0.9 for a RTE of 81%)
+
+- **No need to adapt the Advanced Parameters (Helios Insight Mode only)**
+  - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
+    <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
+    <br>Use only a specifiy start step for simulation/test runs!
+  - House Daily Usage Distribution (e.g. [ 1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8, 3, 1])
+
   
 - **Run Helios Optimizer** using the green button ("Start Helios Optimizer Task")
 - The button will turn yellow (at least 1 sec) while the Helios Optimizer is running
