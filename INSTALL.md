@@ -32,6 +32,7 @@
   - Remark: Do not copy the Node-Red and Dashboard files (see below for instructions)
 
   - File Structure on GitHub:
+  
 ```
   -[HomeAssistant]                     - Already exist for your HA installation (sometimes called: [config]):
   !  [packages]

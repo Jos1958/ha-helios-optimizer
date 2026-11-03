@@ -1,4 +1,3 @@
- views:
   - type: sections
     path: helios-controls
     max_columns: 3
@@ -18,10 +17,10 @@
         show_name: true
         show_state: false
         show_icon: true
-        entity: input_boolean.house_battery_control_is_debug_mode
+        entity: input_boolean.helios_optimizer_debug_mode
         tap_action:
           action: toggle
-        name: Insights mode
+        name: Helios Insights Mode
       - type: shortcut
         tap_action:
           action: navigate
@@ -198,11 +197,6 @@
               - scipy
             vertical: false
             features_position: bottom
-            visibility:
-              - condition: user
-                users:
-                  - e3660168261a4344a4c14e358c2ba336
-                  - 6f5834a212c040e290a60b1b550dbdda
           - type: heading
             icon: mdi:shield-star-outline
             heading: 'Link to Helios Dashboard: Results Details'
@@ -222,21 +216,11 @@
               url_path: https://jos1958.github.io/ha-helios-optimizer/DOC
           - type: markdown
             content: >-
-              <font color="grey">
-
-              <i>
-
-              The <b>Helios Optimizer Service</b> will typically run every
-              <b>quarter</b> of an hour and can be <b>manually</b> started with
-              the <b>Start Helios</b> button.
-
-              <br><b>Tip:</b> Use the <b>links</b> above the sections for
-              <b>detailed</b> Helios Optimizer Documentation and a description
-              of the individual fields.
-
-              </i>
-
-              </font>
+              <font color="grey"><i>The <b>Helios Optimizer</b> will typically
+              run every <b>15 minutes</b> and can be <b>manually</b> started
+              with the <b>Start</b> button. <b>TIP:</b> Use the <b>links</b>
+              above the sections for <b>general</b> Documentation and a
+              description of <b>individual</b> parameters.</i></font>
             grid_options:
               columns: full
           - type: custom:button-card
@@ -260,8 +244,8 @@
                 - background-color: |
                     [[[
                       if (entity && entity.state === 'on')
-                        return '#ff9800'; // ORANJE wanneer hij getriggerd wordt
-                      return '#2e7d32';   // GROEN in ruststand
+                        return '#ff9800'; // Orange when triggered
+                      return '#2e7d32';   // Green in rest
                     ]]]
                 - color: '#ffffff'
                 - font-weight: bold
@@ -287,31 +271,18 @@
               url_path: https://jos1958.github.io/ha-helios-optimizer/DOC#optimization-parameters
           - type: markdown
             content: >-
-              <font color="grey"><i>
-
-              The <b>settings</b> below tune how the Helios Optimizer runs. 
-
-              Use <b>48</b> <b>Steps</b> with a <b>Step Size</b> of <b>60min</b>
-              and <b>Start Step</b> of <b>0</b> (for <u>automatic</u>) for a
-              typical run with a horizon of <b>2 days</b>.
-
-              </i></font>
+              <font color="grey"><i>The <b>settings</b> below tune the Helios
+              Optimizer.</i></font>
           - type: entities
             entities:
-              - entity: input_number.helios_optimizer_steps
-                name: Steps
               - entity: input_select.helios_optimizer_step_size
                 name: Step Size (Minutes)
-              - entity: input_number.helios_optimizer_start_step
-                name: Start Step (0 is Auto)
               - entity: input_number.helios_optimizer_max_grid_import
                 name: Max Grid Import
               - entity: input_number.helios_optimizer_max_grid_export
                 name: Max Grid Export
               - entity: input_number.helios_optimizer_house_daily_usage
                 name: House Daily Usage (Avg)
-              - entity: input_text.helios_optimizer_house_daily_distr
-                name: House Daily Usage Distribution (24 Hours)
               - entity: input_select.helios_optimizer_solar_mode
                 name: Solar Mode
               - entity: input_select.helios_optimizer_solar_source
@@ -361,6 +332,55 @@
         background:
           color: yellow
           opacity: 16
+        visibility:
+          - condition: state
+            entity_id: input_boolean.helios_optimizer_debug_mode
+            state:
+              - 'on'
+        cards:
+          - type: heading
+            icon: mdi:weather-sunny
+            heading: Advanced Parameters
+            heading_style: subtitle
+            grid_options:
+              columns: 12
+              rows: auto
+            tap_action:
+              action: url
+              url_path: https://jos1958.github.io/ha-helios-optimizer/DOC#advanced-parameters
+          - type: markdown
+            content: >-
+              <font color="grey"><i>The Model works <b>best</b> if you select a
+              horizon of **2 days** (e.g. *48 x 60 min* or *192 x 15 min*). A
+              *shorter horizon* may give unexpected behaviour!</b>. Zero
+              DISABLES the Model.</i></font>
+          - type: entities
+            entities:
+              - entity: input_select.helios_optimizer_horizon
+                name: Horizon in Days
+          - type: markdown
+            content: >-
+              <font color="grey"><i> The advanced <b>settings</b> of the Helios
+              Optimizer are only needed in special situations (e.g. Regression
+              Testing, Specific House Demand or Different Price Data and Energy
+              Provider).</i></font>
+          - type: entities
+            entities:
+              - entity: input_number.helios_optimizer_start_step
+                name: Start Step (0 is Auto)
+              - entity: input_text.helios_optimizer_house_daily_distr
+                name: House Daily Usage Distribution (24 Hours)
+              - entity: input_select.helios_optimizer_price_type
+                name: Price Type used in HBC
+              - entity: input_select.helios_optimizer_source_provider
+                name: Price Data Provider
+              - entity: input_select.helios_optimizer_target_provider
+                name: Energy Provider (Contract)
+      - type: grid
+        column_span: 1
+        background:
+          color: yellow
+          opacity: 16
         cards:
           - type: heading
             icon: mdi:battery-charging-high
@@ -384,31 +404,45 @@
               state_attr('input_number.helios_optimizer_energy_plan', 'current')
               -%}
 
+              {%- set key    =
+              state_attr('input_number.helios_optimizer_energy_plan',
+              'provider_key') %}
+
+              {%- set source =
+              state_attr('input_number.helios_optimizer_energy_plan',
+              'source_provider') %}
+
+              {%- set target =
+              state_attr('input_number.helios_optimizer_energy_plan',
+              'target_provider') %}
+
               {%- if c is defined and c is not none -%}
+                {%- set base  = state_attr('input_number.helios_optimizer_energy_plan', 'base_step') | default(None) -%}
                 {%- set step  = state_attr('input_number.helios_optimizer_energy_plan', 'active_step') | default(None) -%}
+                {%- set end   = state_attr('input_number.helios_optimizer_energy_plan', 'end_step') | default(None) -%}
                 {%- set start = state_attr('input_number.helios_optimizer_energy_plan', 'active_time') | default('')  -%}
-                🐾 **Active Step:** {{ step }}
+                🐾 **Steps** {{ base }}-{{ end }} **Active Step:** {{ step }}
                 🕰️ **Step Start Time:** {{ start }}
                 |Component | State | Power |
                 |:--- | :---: | :---: |
-                |💎 **Helios Strategy**   | **{{ c.battery_strategy }}**                                       | |
-                |♟️ **HBC Sub Strat**     | **{{ c.hbc_sub_strategy }}**                                       | |
-                |🔋 **Net Battery**       | {{ '🔻 Discharge' if c.battery_net_power_w  < 0 else ('🔺 Charge' if c.battery_net_power_w > 0 else '⚪ Standby') }} | {{ c.battery_net_power_w }} W |
-                |🔌 **Grid Power**        | {{ '🟠 Export'    if c.grid_power_w         < 0 else ('🟢 Import' if c.grid_power_w        > 0 else '⚪ NOM'    ) }} | {{ c.grid_power_w        }} W |
-                |☀️ **Solar Production**  | {{ '🟡 Active'    if c.solar_production_w   > 0 else '⚪ Standby' }} | {{ c.solar_production_w  }} W |
-                |🏠 **House Usage**       | {{ '🔴 Active'    if c.house_usage_w        > 0 else '⚪ Standby' }} | {{ c.house_usage_w       }} W |  
+                |💎 **Helios Strategy**   | **{{ c.battery_strategy }}**                                       | {{key   }} |
+                |♟️ **HBC Sub Strat**     | **{{ c.hbc_sub_strategy }}**                                       | {{target}} |
+                |🔋 **Net Battery**       | {{ '🔻 Discharge' if c.battery_net_power_w  < 0 else ('🔺 Charge' if c.battery_net_power_w > 0 else '⚪ Standby') }} | {{"%5.0f"| format(c.battery_net_power_w)}} W |
+                |🔌 **Grid Power**        | {{ '🟠 Export'    if c.grid_power_w         < 0 else ('🟢 Import' if c.grid_power_w        > 0 else '⚪ NOM'    ) }} | {{"%5.0f"| format(c.grid_power_w       )}} W |
+                |☀️ **Solar Production**  | {{ '🟡 Active'    if c.solar_production_w   > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.solar_production_w )}} W |
+                |🏠 **House Usage**       | {{ '🔴 Active'    if c.house_usage_w        > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.house_usage_w      )}} W |  
                 |🔸 **Limits:**           | | |
-                |🔸 **Charge Limit**      | {{ '🟤 Active'    if c.max_charge_w         > 0 else '⚪ Disabled'}} | {{ c.max_charge_w        }} W |
-                |🔸 **Discharge Limit**   | {{ '🟤 Active'    if c.max_discharge_w      > 0 else '⚪ Disabled'}} | {{ c.max_discharge_w     }} W |
-                |🔸 **Max Grid Import**   | {{ '🟤 Active'    if c.max_grid_import_w    > 0 else '⚪ Off-Grid'}} | {{ c.max_grid_import_w   }} W |
-                |🔸 **Max Grid Export**   | {{ '🟤 Active'    if c.max_grid_export_w    > 0 else '⚪ Disabled'}} | {{ c.max_grid_export_w   }} W |
-              {%- elif false -%}  
-                |⚡ **Battery Power**     | {{ '⚡ Active'    if c.battery_power_w      > 0 else '⚪ Standby' }} | {{ c.battery_power_w     }} W |
-                |🔺 **Charge Power**      | {{ '🔵 Active'    if c.battery_charge_w     > 0 else '⚪ Standby' }} | {{ c.battery_charge_w    }} W |
-                |🔻 **Discharge Power**   | {{ '🟣 Active'    if c.battery_discharge_w  > 0 else '⚪ Standby' }} | {{ c.battery_discharge_w }} W |
-                |🚗 **EV Laadpaal**       | {{ '⚡ Charge'    if c.ev_power_w           > 0 else '⚪ Off'     }} | {{ c.ev_power_w          }} W |
-                |♨️ **Heatpump**          | {{ '🔥 Heat'      if c.hp_power_w           > 0 else '⚪ Off'     }} | {{ c.hp_power_w          }} W |
-                |🚿 **Boiler**            | {{ '💧 Heat Up'   if c.boiler_power_w       > 0 else '⚪ Off'     }} | {{ c.boiler_power_w      }} W |
+                |🔸 **Charge Limit**      | {{ '🟤 Active'    if c.max_charge_w         > 0 else '⚪ Disabled'}} | {{"%5.0f"| format(c.max_charge_w       )}} W |
+                |🔸 **Discharge Limit**   | {{ '🟤 Active'    if c.max_discharge_w      > 0 else '⚪ Disabled'}} | {{"%5.0f"| format(c.max_discharge_w    )}} W |
+                |🔸 **Max Grid Import**   | {{ '🟤 Active'    if c.max_grid_import_w    > 0 else '⚪ Off-Grid'}} | {{"%5.0f"| format(c.max_grid_import_w  )}} W |
+                |🔸 **Max Grid Export**   | {{ '🟤 Active'    if c.max_grid_export_w    > 0 else '⚪ Disabled'}} | {{"%5.0f"| format(c.max_grid_export_w  )}} W |
+               {%- elif false -%}  
+                |⚡ **Battery Power**     | {{ '⚡ Active'    if c.battery_power_w      > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.battery_power_w    )}} W |
+                |🔺 **Charge Power**      | {{ '🔵 Active'    if c.battery_charge_w     > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.battery_charge_w   )}} W |
+                |🔻 **Discharge Power**   | {{ '🟣 Active'    if c.battery_discharge_w  > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.battery_discharge_w)}} W |
+                |🚗 **EV Laadpaal**       | {{ '⚡ Charge'    if c.ev_power_w           > 0 else '⚪ Off'     }} | {{"%5.0f"| format(c.ev_power_w         )}} W |
+                |♨️ **Heatpump**          | {{ '🔥 Heat'      if c.hp_power_w           > 0 else '⚪ Off'     }} | {{"%5.0f"| format(c.hp_power_w         )}} W |
+                |🚿 **Boiler**            | {{ '💧 Heat Up'   if c.boiler_power_w       > 0 else '⚪ Off'     }} | {{"%5.0f"| format(c.boiler_power_w     )}} W |
               {%- else -%}
 
               *No Current Strategy and Power available.*
@@ -444,6 +478,11 @@
                 card_mod:
                   style: |
                     :host{pointer-events: all; opacity: 0.6} 
+              - entity: input_number.helios_optimizer_steps
+                name: Optimization Steps
+                card_mod:
+                  style: |
+                    :host{pointer-events: none; opacity: 0.6} 
               - entity: sensor.helios_template_hbc_maximum_energy
                 name: Maximum Energy (All Batteries)
                 card_mod:
@@ -471,7 +510,7 @@
                     :host{pointer-events: all; opacity: 0.6} 
         visibility:
           - condition: state
-            entity_id: input_boolean.house_battery_control_is_debug_mode
+            entity_id: input_boolean.helios_optimizer_debug_mode
             state:
               - 'on'
       - type: grid
@@ -539,27 +578,16 @@
                 card_mod:
                   style: |
                     :host{pointer-events: none; opacity: 0.6} 
+              - entity: input_select.house_battery_strategy_dynamic_data_source
+                name: HBC Tariff Data Source
+                card_mod:
+                  style: |
+                    :host{pointer-events: none; opacity: 0.6} 
         visibility:
           - condition: state
-            entity_id: input_boolean.house_battery_control_is_debug_mode
+            entity_id: input_boolean.helios_optimizer_debug_mode
             state:
               - 'on'
-      - type: grid
-        column_span: 3
-        cards:
-          - type: markdown
-            content: Als deze tekst **ROOD** is, werkt card-mod!
-            card_mod:
-              style: |
-                ha-card {
-                  color: red !important;
-                }
-            grid_options:
-              columns: full
-            visibility:
-              - condition: user
-                users:
-                  - aeb5f377cffb469180f9b97c7136f6ae
     cards: []
   - type: sections
     path: helios-results
@@ -579,7 +607,7 @@
         show_name: true
         show_state: false
         show_icon: true
-        entity: input_boolean.house_battery_control_is_debug_mode
+        entity: input_boolean.helios_optimizer_debug_mode
         tap_action:
           action: toggle
         name: Insights mode
@@ -663,7 +691,7 @@
                   fontSize: 14px
               tooltip:
                 x:
-                  format: dddd dd MMMM yyyy - HH:mm
+                  format: dddd dd MMMM yyyy - HH:mm:ss
             series:
               - entity: input_number.helios_optimizer_energy_plan
                 name: Strategy
@@ -950,9 +978,8 @@
                     - padding: 2px
                     - border-radius: 4px
             visibility:
-              - condition: user
-                users:
-                  - e3660168261a4344a4c14e358c2ba336
+              - condition: not
+                conditions: []
           - type: grid
             grid_options:
               columns: full
@@ -1100,7 +1127,7 @@
                   fontSize: 14px
               tooltip:
                 x:
-                  format: dddd dd MMMM yyyy - HH:mm
+                  format: dddd dd MMMM yyyy - HH:mm:ss
                 'y':
                   decimals: 3
             yaxis:
@@ -1375,7 +1402,7 @@
           opacity: 16
         visibility:
           - condition: state
-            entity_id: input_boolean.house_battery_control_is_debug_mode
+            entity_id: input_boolean.helios_optimizer_debug_mode
             state:
               - 'on'
       - type: grid
@@ -1404,6 +1431,9 @@
                 | **Calc Result**       | {{ a.get('calc_result') }} |  
                 | **Helios Version**    | {{ a.get('version')     }} |
                 | **SciPy Version**     | {{ a.get('scipy')       }} |
+                | **Price Type**        | {{ a.get('price_type')  }} |
+                | **Source Provider**   | {{ a.get('source_provider'     ) }} |
+                | **Target Provider**   | {{ a.get('target_provider'     ) }} |
                 | **Run Started**       | {{ a.get('last_run_started'    ) }} | 
                 | **Run Stopped**       | {{ a.get('last_run_stopped'    ) }} |
                 | **Run Time** (ms)     | {{ a.get('service_calc_time_ms') }} |  
@@ -1463,7 +1493,7 @@
           opacity: 16
         visibility:
           - condition: state
-            entity_id: input_boolean.house_battery_control_is_debug_mode
+            entity_id: input_boolean.helios_optimizer_debug_mode
             state:
               - 'on'
       - type: grid

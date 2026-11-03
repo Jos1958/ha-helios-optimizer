@@ -2,10 +2,13 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 
-## 0.9.4 (2026-11-01) Improved Data and Energy Provider Handling 
+## 0.9.4 (2026-11-03) Improved Data and Energy Provider Handling 
 - Energy Provider split into a target and source provider which can be both different from the main provider (which determines the Source Price Data format)
 - Improved handling of price conversions to support Belgium Tax, Markup and Loss Factors
 - Temporary solution for handling "Grid Clock" and Engie Providers for Belgium
+- Introduced a Horizon (in Days) parameter (replacing the Steps parameter on the Dashboard), Model will calculated with Steps value derived from Horizon and Step Size
+- Steps is 0 (specify via Horizon is 0) disables the Optimization Model, No Calculation will be done
+- Introduced an Advanced Parameters section (only in insight mode) with Horizon, House Daily Usage Distribution and Price parameters 
 - **Change files:** All PyScript (*.py), Dashboard (yaml), Package (yaml), Documentation
 
 ## 0.9.3b (2026-10-29) Minor Fixes
