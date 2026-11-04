@@ -3,7 +3,7 @@
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - **Install** - [Release Notes](RELEASE_NOTES.md)
 
 ## Installation
-- **Prerequisites for Helios Optimizer:**
+- **Prerequisites for Helios Optimizer** (Before the Helios Installation):
   - **HACS** installation on your Home Assistant System
   - **Home Battery Control (HBC)** installation with an 'active' dynamic price datasource
     <br>Helios retrieves the dynamic import prices from HBC and uses it to calculate the related market and export prices.
@@ -11,11 +11,11 @@
   - **Forecast.Solar** Integration Installation and Configuration for your Solar Panels
     <br>WARNING: Currently ONLY Forecast.Solar is supported as a Solar Forecast!
   - **File Editor** (or Samba) via HACS: to create folders and upload files
-  - **PyScript** installation via HACS with imports and hass access enabled:
+  - **PyScript** installation via HACS with **Imports** and **hass** access enabled:
     <br>**VERY IMPORTANT:** The Helios Optimizer **CANNOT** run without these options enabled!
     - Integrations: Pyscript Python scripting - pyscript - [Configurate]
-      - V Allow All Imports?
-      - V Access hass as a global variable?
+      - **V** Allow All Imports?
+      - **V** Access hass as a global variable?
       - _ Use legacy decorators? (Not required)
   - For the Helios Dashboard (UI-components)
     - **ApexCharts Card** (via HACS)
@@ -23,16 +23,16 @@
     - Markdown Card (built-in)
     - Picture (built-in) for /local/HeliosOptimizerBanner.jpeg in www-folder
     
-- **Download and Copy the Helios Optimizer files:**
+- **Download and Copy the Helios Optimizer files** (from GitHub):
   - Download the lastest version on [GitHub](https://github.com/Jos1958/ha-helios-optimizer/releases)
   - Unpack the ha-helios-optimizer-x.x.x.zip file 
   - Use the File or Samba to create folders and copy files:
-    - Create the folders (with a **!**) on your HA installation when they do not yet exist: 
+    - Create the folders (See Folder Overview: **!**) on your HA installation when they do not yet exist: 
 <br>  [packages], [pyscript], [helios_python] (sub-folder of [pyscript]), [www] and [export]
-    - Copy the applicable files (with a **V**) to your HA installation.
-  - Remark: Do not copy the Node-Red and Dashboard files (see below for instructions)
+    - Copy the applicable files (see File Overview: **V**) to your HA installation.
+  - **Remark:** Do not copy the Node-Red and Dashboard files (see below for instructions)
 
-  - File Structure on GitHub:
+  - **File and Folder Overview** on GitHub:
   
 ```
   -[HomeAssistant]                     - Already exist for your HA installation (sometimes called: [config]):
@@ -61,7 +61,7 @@
   -    helios_dashboard.yaml           - contains the helios dashboard
 ```
 
-- **Check the configuration.yaml:** Include packages and allow external dirs
+- **Check the configuration.yaml** (Include packages and allow external dirs):
 <br>Make sure that the packages folder is included in your configuration.yaml (already needed for HBC) and allow for external directories (/config/export).
 <br>Helios will write output files (for debugging and testing purposes) to the export folder (not sure if this configuration is needed for pyscript).
 ```
@@ -71,7 +71,7 @@
       - /config/export    
 ```
 
-- **Helios Optimizer Dashboard:** Create a **New** Dashboard or **Add to** the **HBC** Dashboard
+- **Helios Optimizer Dashboard** (Create a **New** Dashboard or **Add to** the **HBC** Dashboard):
   - Create a **New** Dashboard:
     - Home Assistant - Settings (Instellingen) - Dashboards - [Add Dashboard] empty dashboard
     - Specify:
@@ -90,7 +90,7 @@
     but **exclude** the line with 'views:' since it is already at the top of the HBC dashboard!
   - [Save] the Dashboard yaml
 
-- **Helios Strategy for HBC:** Add the Helios Strategy to the HBC Strategies
+- **Helios Strategy for HBC** (Add the Helios Strategy to the HBC Strategies):
   - Create a new Node-RED flow for Helios Strategy:
     - Select "Node-RED"in the HA Sidebar
     - In the Node-RED Menu (right top) - Select "Import"
@@ -99,38 +99,41 @@
     - Select "new flow" (or "current flow" when your updating) and press [Import] 
     - If you get a message: "Some of the nodes you are importing already exist in your workspace"
       - Press [View nodes..]
+      
       ```
       Flows:
       V > Strategy Helios v4.15.1
       _   Home Assistant  ! _ replace
       ```
     - Do **NOT** change the selections/checks!
-<br>  Leave the "Strategy Helios" **checked** and leave "Home Assistant" **unchecked**.  
-<br>  Your existing Home Assistant Server connection will be automatically used by the helios nodes!
+      <br>Leave the "Strategy Helios" **checked** and leave "Home Assistant" **unchecked**.   
+      <br>Your existing Home Assistant Server connection will be automatically used by the helios nodes!
+
     - Press [Import Selected]
     - Press [Deploy] 
   
-  - Add Helios to the House Battery Strategy entity options:
+  - **Add Helios to the House Battery Strategies** (In the HBC configuration):
     - Use the File Editor in Home Assistant
-    - Open the folder:  "packages"
-    - Open the file: "house_battery_control.yaml"
+    - Open the folder: **"packages"**
+    - Open the file: **"house_battery_control.yaml"**
     - Search for "house_battery_strategy:"
-    - Add an extra option to the existing options of the input_select.house_battery_strategy entity:
+    - Add an **extra option** to the existing options of the **input_select.house_battery_strategy** entity:
       - Helios # Requires a dynamic tariff contract, the Cheapest Hours HACS add-on and the Helios Optimizer Installation
     - [Save] the file "house_battery_control.yaml"
-    - **WARNING:** Repeat this step after a new installation of the HBC!
+    - **WARNING:** Repeat this step after each **upgrade** installation of HBC!
 
 - **Restart** Home Assistant
 
-- **Select the Helios Strategy** in **HBC**
+- **Select the Helios Strategy** (in **HBC**):
   - Goto the HBC Home Page
   - Under "Master Battery Control" - "Choose strategy" - Select "Helios" from the dropdown
 <br>If you want to start with a test of Helios in read-only mode.
 Select the "Dynamic" strategy in HBC, this will generate the HBC Price Data.
 Now you can continue in the next step but HBC will still apply the dynamic sub-strategies.  
 
-- **Check the Helios Optimizer Dashboard** (within 8s after restart the automation should run)
-- **Adapt the Optimization Parameters and the Battery Parameters**
+- **Check the Helios Optimizer Dashboard** (within 8s after restart the automation should run):
+
+- **Adapt the Optimization Parameters and the Battery Parameters** (on the Helios Dashboard):
   - Step Size (60 or 15 Minutes), Start with 60 minutes this will work also when you have 15 minutes dynamic prices
   - House Daily Usage (e.g. 10.0 kWh) 
   - Max Grid Import and Export: 11.0 kWh (2x)
@@ -140,14 +143,14 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
   - Battery Charge and Discharge Limit (e.g. 1.2kWh, total limit, depending on your battery configuration)
   - Battery Charge and Discharge Efficiency (2x 0.9 for a RTE of 81%)
 
-- **It is not necessary to adapt any of the Advanced Parameters for your first runs (Helios Insight Mode only)**
+- **It is not necessary to adapt any of the Advanced Parameters for your first runs** (Available in Helios Insight Mode only):
   - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
     <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
     <br>Use only a specifiy start step for simulation/test runs!
   - House Daily Usage Distribution (e.g. [ 1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8, 3, 1])
   - Price Source Data parameters (changes only needed when you have generic market prices in HBC instead of provider prices)
   
-- **Run Helios Optimizer** using the green button ("Start Helios Optimizer Task")
+- **Run Helios Optimizer** (using the green button "**Start** Helios Optimizer Task"):
 - The button will turn yellow (at least 1 sec) while the Helios Optimizer is running
 - Check out the results in the Results Overview and the Optimized Energy Plan (as a Graph and as a Table)
   <br>Especially check the 'Result' and the 'Solver Status' boxes on the Results Overview!

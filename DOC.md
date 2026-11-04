@@ -2,6 +2,37 @@
 ![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
 [README](README.md) - **Doc** - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)
 
+## Table of Content
+- [Intro](#intro)
+- [Overview](#overview)
+- [Why use a Linear Programming Model](#why-use-a-linear-programming-model)
+- [Description](#Description)
+- [How It Works: The Energy Model](#how-it-works-the-energy-model)
+- [Execution & Architecture](#execution-architecture)
+- [Helios Dashboard (Input and Output)](#helios-dashboard-input-and-output)
+- [Input Parameters](#input-parameters)
+  - [Optimization Parameters](#optimization-parameters)
+  - [Advanced Parameters](#advanced-parameters)
+  - [Battery Parameters](#battery-parameters)
+  - [Why a Horizon of 48 hours and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target)
+  - [Derived Parameters](#derived-parameters)
+  - [HBC Settings](#hbc-settings)
+- [Output](#output)
+  - [Results Summary](#results-summary)
+  - [Actuals for Current Step](#actuals-for-current-step)
+  - [Prices and Strategy Graph](#prices-and-strategy-graph)
+  - [Optimal Energy Plan Graph](#optimal-energy-plan-graph)
+  - [Optimal Energy Plan Table](#optimal-energy-plan-table)
+- [Insight Details](#insight-details)
+  - [Optimization State](#optimization-state)
+  - [Solar and Battery Information](#solar-and-battery-information)
+  - [Optimization Run](#optimization-run)
+  - [Energy Plan Totals](#energy-plan-totals)
+- [Solar Forecast Configuration](#solar-forecast-configuration)
+- [Installation](#installation)
+- [Release Notes](#release-notes)
+- [License](#license)
+
 ## Intro
 The **HELIOS Optimizer Service** is a **H**ome **A**ssistant **PyScript** application designed to 
 calculate an **Optimal Energy Plan** for your house for typically 2 days.
@@ -139,6 +170,7 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>See [Solar Forecast Configuration](#solar-forecast-configuration) for more information.
 
 ### Advanced Parameters
+Enable Helios Insight Mode to make these advanced parameters visible.
 - **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow)
   <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
   Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
@@ -160,6 +192,7 @@ and can be **manually** started with the green **Start Helios** button.<br>
 The default value will be the 'HBC Data Source' as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Source (Data) Provider.
 - **Energy Provider (Contract):** Specify which Target Provider you want to use to calculated the prices for the Optimizer.
 The default value will be the 'HBC Data Source' as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Target (Energy) Provider.
+- **Net Metering (Saldering 2026):** By Enabling Net Metering the Export Prices will include Energy Tax (this is only sensible as long as the Net Metering is applicable in the Netherlands, obsolete starting 2027)
   
 ### Battery Parameters
 - **Battery Enabled:** Enabled or Disabled Batteries, when disabled the battery will not be used by optimizer
@@ -259,6 +292,22 @@ Instead the values calculated using Helios templates based on the Marstek entiti
 - **Solver Status:** Solver (SciPy LP) Message or other Error Message
 - **Versions:** Helios, Python and SciPy Software Levels (e.g. 1.0.0 - 3.14.6 - 1.18.1) 
 
+### Actuals for Current Step
+- **Active Step:** Current Step Number (1..N) based on Current Time which is at or after the start of the current step but before the start of the next step.
+- **Step Start Time:** Start time of the current step.
+- **Per Component:** State and Power for the current step.
+  - **Helios Strategy:** Current Strategy as calculated by the Helios Optimizer.
+  - **HBC Sub Strategy:** Current HBC Sub-Strategy derived from the Helios Strategy.
+  - **Net Battery:** Charge or Discharge or Standby, Net Battery Power (Charge - Discharge)
+  - **Grid Power:** Import or Export or NOM, Net Grid Power (Import - Export)
+  - **Solar Production:** Active or Standby, Solar Inverter Production Power
+  - **House Usage:** Active or Standby, House Demand Power 
+  
+  - **Charge Limit:** Active or Disabled, Maximum Battery Charge Power (step independent)
+  - **Discharge Limit:** Active or Disabled, Maximum Battery Discharge Power (step independent)
+  - **Max Grid Import:** Active or Off-Grid, Maximum Grid Import Power (step independent)
+  - **Max Grid Export:** Active or Disabled, Maximum Grid Export Power (step independent)
+
 ### Prices and Strategy Graph
 ![Helios Optimizer: Prices and Strategy Graph](images/HeliosGraphs2a-Prices.jpeg)
 The Prices and Strategy Graph displays the **Import Prices** (as columns) and the related **Export** and **Market Prices** (as 2 lines).
@@ -297,35 +346,8 @@ Full Window width problems may also be resolved by resizing the Browser Window o
 Tips how to fix this issue are welcome.
 <br><br>
 
-## Output Details
-
-### Optimization State
-**TODO:**
-
-### Actuals for Current Step
-- **Active Step:** Current Step Number (1..N) based on Current Time which is at or after the start of the current step but before the start of the next step.
-- **Step Start Time:** Start time of the current step.
-- **Per Component:** State and Power for the current step.
-  - **Helios Strategy:** Current Strategy as calculated by the Helios Optimizer.
-  - **HBC Sub Strategy:** Current HBC Sub-Strategy derived from the Helios Strategy.
-  - **Net Battery:** Charge or Discharge or Standby, Net Battery Power (Charge - Discharge)
-  - **Grid Power:** Import or Export or NOM, Net Grid Power (Import - Export)
-  - **Solar Production:** Active or Standby, Solar Inverter Production Power
-  - **House Usage:** Active or Standby, House Demand Power 
-  
-  - **Charge Limit:** Active or Disabled, Maximum Battery Charge Power (step independent)
-  - **Discharge Limit:** Active or Disabled, Maximum Battery Discharge Power (step independent)
-  - **Max Grid Import:** Active or Off-Grid, Maximum Grid Import Power (step independent)
-  - **Max Grid Export:** Active or Disabled, Maximum Grid Export Power (step independent)
-
-### Solar and Battery Information
-**TODO:**
-
-## Insight Details
-Enable insights mode to make the following outputs visible.
-
 ### Optimal Energy Plan Table
-Table with all variables for every step.
+The Results Table lists all (power, energy, soc and cost) variables as calculated (or used) by the Optimization Model for every step of the optimization period (horizon):
 - **Start Time:** Start Time of the Step in HH:MM (Today or Tomorrow)
 - **Import Price:** Import Price for Importing Energy from the Grid
 - **Export Price:** Export Price for Exporting Energy to the Grid (when negative you are paying for exporting)
@@ -345,7 +367,14 @@ Table with all variables for every step.
 - Battery Net Power: Battery Charge Power - Battery Discharge Power; Positive when charging and negative when discharging
 - Battery Power: Absolute value of Battery Net Power; Always positive
 
-### Run and Totals
+## Insight Details
+Enable Helios Insights Mode to make the following outputs visible.
+
+### Optimization State
+**TODO:**
+
+### Solar and Battery Information
+**TODO:**
 
 ### Optimization Run
 **TODO:**
