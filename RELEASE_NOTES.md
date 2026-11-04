@@ -155,3 +155,5 @@
 - Initial commit with the first implementation of a LP call in pyscript
 - The functionality is started from an HA automation
 - Errors in the compilation or runtime can be found in the Home Assistant System Log
+
+[Readme](README.md) - [Doc](DOC.md) - **Why LP (EN)** - [Why LP (NL)](WHY.md#waarom-lp-gebruiken-nl) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License]
