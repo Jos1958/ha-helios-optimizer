@@ -151,7 +151,7 @@
 - **Files Changed:**
   - `pyscript/helios_calculator.py` (was HeliosCalculator.py)
 
-## 0.1.0 (2026-05-19)
+## 0.1.0 (2026-05-19) 
 - Initial commit with the first implementation of a LP call in pyscript
 - The functionality is started from an HA automation
 - Errors in the compilation or runtime can be found in the Home Assistant System Log
