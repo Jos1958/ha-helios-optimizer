@@ -46,10 +46,10 @@ For a **detailed** installation procedure see [Helios Optimizer Installation](IN
 - **Clean Data Structure:** Simple full-day input and output arrays (00:00-24:00/48:00).
 
 ## Roadmap (2026-2027)
-- **Energy Providers:** Add additional **Energy Providers** with their related Provider Markups (Opslag).
 - **Solar Forecast:** Support for **Solcast** as an additional Solar Production prediction.
+- **Additional Models:** **Profit Optimization** is implemented, Additional models are **Cost Optimization** and **Self Consumption**.
+- **Energy Providers:** Add additional **Energy Providers** with their related Provider Markups (Opslag).
 - **House Usage History:"** Determine House Usage **Forecast** from House Usage **History**.
-- **Additional Models:** Profit Optimization is implemented, Additional models are **Cost Optimization** and **Self Consumption**.
 - **Device Support:** **EV** (highest priority), **Heat Pump**, and **Boiler** support (as **Deferrable** Devices).
 - **Modular Connectors:** Dedicated modules for **Energy Providers**, **Solar Forecasts**, Battery and Solar Inverter **Integrations**.
 - **Native HA Integration:** Pure Python Home Assistant **Custom Component** (HACS-ready), run without PyScript or external engines.
