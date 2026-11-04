@@ -6,7 +6,7 @@
 - [Intro](#intro)
 - [Overview](#overview)
 - [Why use a Linear Programming Model](#why-use-a-linear-programming-model)
-- [Description](#Description)
+- [Description](#description)
 - [How It Works: The Energy Model](#how-it-works-the-energy-model)
 - [Execution & Architecture](#execution-architecture)
 - [Helios Dashboard (Input and Output)](#helios-dashboard-input-and-output)
