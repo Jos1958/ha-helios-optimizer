@@ -8,7 +8,7 @@
 - [Why use a Linear Programming Model](#why-use-a-linear-programming-model)
 - [Description](#description)
 - [How It Works: The Energy Model](#how-it-works-the-energy-model)
-- [Execution & Architecture](#execution-architecture)
+- [Execution and Architecture](#execution-and-architecture)
 - [Helios Dashboard (Input and Output)](#helios-dashboard-input-and-output)
 - [Input Parameters](#input-parameters)
   - [Optimization Parameters](#optimization-parameters)
@@ -115,7 +115,7 @@ At the core of the optimizer is a physical and financial Energy Model. For each 
 - **Objective Function:** Minimizes net **Energy Costs** (or maximizes financial return) over the entire horizon, taking into account Dynamic Import and Export Prices, Battery Capacity and Grid and Battery Power limits.
 - **Optimal Variables:** Output values are generated for Target Battery Strategy with Charge/Discharge Power and an optional PV Strategy (Modulating/Dimming or On/Off) Strategy for each step.
 
-### Execution & Architecture
+### Execution and Architecture
 The current version runs as a PyScript Service installed in your pyscript/ folder. Pure Python modules are in the pyscript/helios_python folder.
 For maximum performance, the calculation (including LinProg) runs asynchronously in a native Python thread, 
 computing a full 48-hour plan in under 500ms without blocking Home Assistant.
@@ -344,7 +344,6 @@ The Optimal Energy Plan Graph displays the most important Output of the Helios O
 **Warning:** Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
 Full Window width problems may also be resolved by resizing the Browser Window or going into Edit of the Dashboard and close without changes.
 Tips how to fix this issue are welcome.
-<br><br>
 
 ### Optimal Energy Plan Table
 The Results Table lists all (power, energy, soc and cost) variables as calculated (or used) by the Optimization Model for every step of the optimization period (horizon):
