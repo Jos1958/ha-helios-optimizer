@@ -7,8 +7,8 @@ Lineair programmeren lost dit op door het energiesysteem op te knippen in drie v
 **Beslissingsvariabelen**, een **Doelfunctie** en **Beperkingen (Constraints)**.
 
 Voor de Helios Optimizer is gekozen voor een 48 uur horizon omdat daar dan altijd een volledige dag in valt (ook als we pas om 23:00 starten).
----
 
+---
 ### Bouwsteen 1: De Beslissingsvariabelen
 Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale plan te komen. We definiëren deze variabelen voor elk uur van de dag ($t = 1, 2, \dots, 24$):
 
@@ -16,8 +16,8 @@ Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draa
 * $P_{net,verkoop}(t)$: Het vermogen dat je verkoopt (teruglevert/exporteert) aan het net ($\ge 0, \le P_{net,{max_{verkoop}}}$).
 * $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0, \le P_{batterij,{max_{laad}}}$).
 * $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0, \le P_{batterij,{max_{ontlaad}}}$).
----
 
+---
 ### Bouwsteen 2: De Doelfunctie (Kosten Minimaliseren)
 Het hoofddoel is om de netto energiekosten over de gehele dag zo laag mogelijk te houden. Dit berekenen we door de kosten van inkoop te verminderen met de opbrengsten van verkoop. 
 
@@ -26,7 +26,6 @@ Als $C_{inkoop}(t)$ de actuele inkoopprijs per uur is en $C_{verkoop}(t)$ de ter
 $$ \text{Minimaliseer } \sum_{t=1}^{24} \left( P_{net,inkoop}(t) \times C_{inkoop}(t) - P_{net,verkoop}(t) \times C_{verkoop}(t) \right) $$
 
 ---
-
 ### Bouwsteen 3: De Beperkingen (Constraints)
 De solver mag de knoppen niet zomaar oneindig opendraaien; hij moet zich houden aan de wetten van de fysica en de limieten van de hardware.
 
@@ -55,7 +54,6 @@ Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt i
 * $$0 \le P_{net,export}(t) \le P_{net,{max_{export}}}$$
 
 ---
-
 ### Praktische Nuance: Voorkomen van Loze Arbitrage 
 Dankzij de batterij **efficiëntiefactoren** voorkomt het model 'loze arbitrage' (stroom kopen en direct weer verkopen zonder echte winst). 
 Als een batterij een totale *round-trip efficiency* heeft van bijvoorbeeld 81% ($\eta_{laad} = 0.90$ en $\eta_{ontlaad} = 0.90$), 
