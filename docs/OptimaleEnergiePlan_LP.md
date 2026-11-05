@@ -21,7 +21,7 @@ Het hoofddoel is om de netto energiekosten over de gehele dag zo laag mogelijk t
 
 Als $C_{inkoop}(t)$ de actuele inkoopprijs per uur is en $C_{export}(t)$ de terugleververgoeding, dan ziet de formule er als volgt uit:
 
-$$ \text{Minimaliseer } \sum_{t=1}^{24} \left( P_{net\_{inkoop}}(t) \times C_{inkoop}(t) - P_{net\_{export}}(t) \times C_{export}(t) \right) $$
+$$ \text{Minimaliseer } \sum_{t=1}^{24} \left( P_{net,inkoop}(t) \times C_{inkoop}(t) - P_{net,export}(t) \times C_{export}(t) \right) $$
 
 ---
 
