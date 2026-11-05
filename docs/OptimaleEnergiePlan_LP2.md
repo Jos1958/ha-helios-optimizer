@@ -7,5 +7,5 @@ Lineair programmeren lost dit op door het energiesysteem op te knippen in drie v
 **Beslissingsvariabelen**, een **Doelfunctie** en **Beperkingen (Constraints)**.
 
 Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale plan te komen. We definiëren deze variabelen voor elk uur van de dag ($t = 1, 2, \dots, 24$):
-* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt (afneemt/importeert) van het elektriciteitsnet ($\ge 0, \le P_{net,{max_{inkoop}}}$).
+* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt (afneemt/importeert) van het elektriciteitsnet ($\ge 0, \le P_{net,maxinkoop}$).
 
