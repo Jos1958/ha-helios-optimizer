@@ -1,3 +1,8 @@
+---
+layout: default
+title: Het Optimale Energieplan met Lineair Programmeren
+---
+
 # Het Optimale Energieplan met Lineair Programmeren (LP)
 
 In de energiesector staat dit probleem bekend als **Energy Asset Optimization** of **Economic Dispatch**. 
@@ -9,7 +14,6 @@ Lineair programmeren lost dit op door het energiesysteem op te knippen in drie v
 Voor de Helios Optimizer is gekozen voor een 48 uur horizon omdat daar dan altijd een volledige dag in valt (ook als we pas om 23:00 starten).
 
 ---
-
 ### Bouwsteen 1: De Beslissingsvariabelen
 Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale plan te komen. We definiëren deze variabelen voor elk uur van de dag ($t = 1, 2, \dots, 24$):
 
