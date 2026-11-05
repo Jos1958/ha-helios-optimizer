@@ -9,7 +9,7 @@ Lineair programmeren lost dit op door het energiesysteem op te knippen in drie v
 ### Bouwsteen 1: De Beslissingsvariabelen
 Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale plan te komen. We definiëren deze variabelen voor elk uur van de dag ($t = 1, 2, \dots, 24$):
 
-* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt van het elektriciteitsnet ($\ge 0$).
+* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt van het elektriciteitsnet ($\ge 0$, $\ge P_{net,{max_{inkoop}}}$).
 * $P_{net,export}(t)$: Het vermogen dat je teruglevert (exporteert) aan het net ($\ge 0$).
 * $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0$).
 * $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0$).
@@ -46,8 +46,8 @@ De batterij is daarnaast gebonden aan fysieke grenzen:
 
 #### C. Hardware- en Netaansluitingslimieten
 Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt importeren of exporteren:
-* $$0 \le P_{net,inkoop}(t) \le P_{net,{Max_{inkoop}}}$$
-* $$0 \le P_{net,export}(t) \le P_{net,{Max_{export}}}$$
+* $$0 \le P_{net,inkoop}(t) \le P_{net,{max_{inkoop}}}$$
+* $$0 \le P_{net,export}(t) \le P_{net,{max_{export}}}$$
 
 ---
 
