@@ -46,8 +46,8 @@ De batterij is daarnaast gebonden aan fysieke grenzen:
 
 #### C. Hardware- en Netaansluitingslimieten
 Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt importeren of exporteren:
-* $$0 \le P_{net,inkoop}(t) \le P_{net,{max\_import}}$$
-* $$0 \le P_{net,export}(t) \le P_{net,{max\_export}}$$
+* $$0 \le P_{net,inkoop}(t) \le P_{net,{Max_{inkoop}}}$$
+* $$0 \le P_{net,export}(t) \le P_{net,{Max_{export}}}$$
 
 ---
 
