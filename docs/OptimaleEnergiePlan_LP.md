@@ -40,8 +40,9 @@ De hoeveelheid energie die daadwerkelijk *in* de batterij zit (uitgedrukt in kWh
 
 $$ SoC(t) = SoC(t-1) + \left( P_{batterij,laad}(t) \times \eta_{laad} \right) - P_{batterij,ontlaad}(t) $$
 
-De batterij is daarnaast gebonden aan fysieke grenzen:
+De batterij is daarnaast gebonden aan (fysieke) grenzen:
 * **Capaciteitsgrens:** De batterij kan nooit leger dan de minimum capaciteit en nooit voller dan de maximale capaciteit: $SoC_{min} \le SoC(t) \le SoC_{max}$
+Hierbij is gelden de fysieke grenzen dat $SoC_{min} \ge 0$ en $SoC_{max} \le SoC_{capaciteit}
 * **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: $0 \le P_{batterij,laad}(t) \le P_{batterij,{laad\-max}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{ontlaad\-max}}$
 
 #### C. Hardware- en Netaansluitingslimieten
@@ -52,4 +53,6 @@ Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt i
 ---
 
 ### Praktische Nuance: Voorkomen van Loze Arbitrage 
-Dankzij de toegeegde **efficiëntiefactoren** voorkomt het model 'loze arbitrage' (stroom kopen en direct weer verkopen zonder echte winst). Als een batterij een totale *round-trip efficiency* heeft van bijvoorbeeld 81% ($\eta_{laad} = 0.90$ en $\eta_{ontlaad} = 0.90$), weet de solver dat handelen met de batterij pas zin heeft als het prijsverschil tussen de uren groter is dan het energieverlies van 19%.
+Dankzij de batterij **efficiëntiefactoren** voorkomt het model 'loze arbitrage' (stroom kopen en direct weer verkopen zonder echte winst). 
+Als een batterij een totale *round-trip efficiency* heeft van bijvoorbeeld 81% ($\eta_{laad} = 0.90$ en $\eta_{ontlaad} = 0.90$), 
+weet de solver dat handelen met de batterij pas zin heeft als het prijsverschil tussen de uren groter is dan het energieverlies van 19%.
