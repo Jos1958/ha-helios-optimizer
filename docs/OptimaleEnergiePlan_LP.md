@@ -58,3 +58,4 @@ Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt i
 Dankzij de batterij **efficiëntiefactoren** voorkomt het model 'loze arbitrage' (stroom kopen en direct weer verkopen zonder echte winst). 
 Als een batterij een totale *round-trip efficiency* heeft van bijvoorbeeld 81% ($\eta_{laad} = 0.90$ en $\eta_{ontlaad} = 0.90$), 
 weet de solver dat handelen met de batterij pas zin heeft als het prijsverschil tussen de uren groter is dan het energieverlies van 19%.
+
