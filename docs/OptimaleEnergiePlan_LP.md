@@ -9,7 +9,7 @@ Lineair programmeren lost dit op door het energiesysteem op te knippen in drie v
 ### Bouwsteen 1: De Beslissingsvariabelen
 Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale plan te komen. We definiëren deze variabelen voor elk uur van de dag ($t = 1, 2, \dots, 24$):
 
-* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt van het elektriciteitsnet ($\ge 0$, $\ge P_{net,{max_{inkoop}}}$).
+* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt van het elektriciteitsnet ($\ge 0$, \le P_{net,{max_{inkoop}}}$).
 * $P_{net,export}(t)$: Het vermogen dat je teruglevert (exporteert) aan het net ($\ge 0$).
 * $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0$).
 * $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0$).
@@ -41,7 +41,7 @@ De hoeveelheid energie die daadwerkelijk *in* de batterij zit (uitgedrukt in kWh
 $$ SoC(t) = SoC(t-1) + \left( P_{batterij,laad}(t) \times \eta_{laad} \right) - P_{batterij,ontlaad}(t) $$
 
 De batterij is daarnaast gebonden aan fysieke grenzen:
-* **Capaciteitsgrens:** De batterij kan nooit leger dan nul en nooit voller dan zijn maximale capaciteit: $0 \le SoC(t) \le SoC_{max}$
+* **Capaciteitsgrens:** De batterij kan nooit leger dan de minimum capaciteit en nooit voller dan de maximale capaciteit: $SoC_{min} \le SoC(t) \le SoC_{max}$
 * **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: $0 \le P_{batterij,laad}(t) \le P_{batterij,{laad\-max}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{ontlaad\-max}}$
 
 #### C. Hardware- en Netaansluitingslimieten
