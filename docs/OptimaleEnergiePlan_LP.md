@@ -41,10 +41,11 @@ De hoeveelheid energie die daadwerkelijk *in* de batterij zit (uitgedrukt in kWh
 $$ SoC(t) = SoC(t-1) + \left( P_{batterij,laad}(t) \times \eta_{laad} \right) - P_{batterij,ontlaad}(t) $$
 
 De batterij is daarnaast gebonden aan (fysieke) grenzen:
-* **Capaciteitsgrens:** De batterij kan nooit leger dan de minimum capaciteit en nooit voller dan de maximale capaciteit: $SoC_{min} \le SoC(t) \le SoC_{max}$
-Hierbij is gelden de fysieke grenzen dat $SoC_{min} \ge 0$ en $SoC_{max} \le SoC_{capaciteit}$
+* **Capaciteitsgrens:** De batterij kan nooit leger dan de minimum capaciteit en nooit voller dan de maximale capaciteit: 
+<br>$SoC_{min} \le SoC(t) \le SoC_{max}$
+<br>Hierbij is gelden de fysieke grenzen dat $SoC_{min} \ge 0$ en $SoC_{max} \le SoC_{capaciteit}$
 * **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: 
-$0 \le P_{batterij,laad}(t) \le P_{batterij,{max_{laad}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{max_{ontlaad}}}$
+<br>$0 \le P_{batterij,laad}(t) \le P_{batterij,{max_{laad}}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{max_{ontlaad}}}$
 
 #### C. Hardware- en Netaansluitingslimieten
 Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt inkopen (importeren) of verkopen (exporteren):
