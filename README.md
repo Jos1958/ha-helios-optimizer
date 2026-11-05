@@ -32,7 +32,7 @@ See [Helios Optimizer Why LP](WHY.md)
 
 For a **detailed** installation procedure see [Helios Optimizer Installation](INSTALL.md).
 
-## Features
+## Features 
 - **LP/MILP Optimization:** Uses SciPy **Linear Programming** to **maximize** profit and **minimize** energy costs.
 - **HBC Output Integration:** Helios Strategy as a **native HBC strategy** using the Helios Optimizer Output (Sub Strategy and Power).
 - **HBC Input Integration:** Retrieves Parameters and Prices from **HBC** 
