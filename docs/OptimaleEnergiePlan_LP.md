@@ -33,7 +33,7 @@ Elk afzonderlijk uur moet er een perfecte balans zijn op jouw interne elektricit
 
 Omdat de batterij bij ontladen te maken heeft met een ontlaadefficiëntie ($\eta_{ontlaad}$), komt er aan de aanbodzijde net iets minder bruikbare stroom uit de batterij dan er intern wordt onttrokken:
 
-$$ P_{zon}(t) + P_{net\_inkoop}(t) + \left( P_{batterij\_ontlaad}(t) \times \eta_{ontlaad} \right) = Vraag(t) + P_{batterij\_laad}(t) + P_{net\_export}(t) $$
+$$ P_{zon}(t) + P_{net\_{inkoop}}(t) + \left( P_{batterij\_{ontlaad}}(t) \times \eta_{ontlaad} \right) = Vraag(t) + P_{batterij\_{laad}}(t) + P_{net\_{export}}(t) $$
 
 #### B. De Batterijstatus (State of Charge - SoC)
 De hoeveelheid energie die daadwerkelijk *in* de batterij zit (uitgedrukt in kWh), verandert elk uur op basis van het laad- en ontlaadgedrag. Hier passen we de laadefficiëntie ($\eta_{laad}$) toe:
