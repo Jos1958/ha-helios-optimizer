@@ -5,8 +5,9 @@ In de energiesector staat dit probleem bekend als **Energy Asset Optimization** 
 
 Lineair programmeren lost dit op door het energiesysteem op te knippen in drie vaste wiskundige bouwstenen: 
 **Beslissingsvariabelen**, een **Doelfunctie** en **Beperkingen (Constraints)**.
+---
 
-
+### Helios
 Voor de Helios Optimizer is gekozen voor een 48 uur horizon omdat daar dan altijd een volledige dag in valt (ook als we pas om 23:00 starten).
 ---
 
