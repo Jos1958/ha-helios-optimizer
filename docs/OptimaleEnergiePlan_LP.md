@@ -6,9 +6,6 @@ Het doel is om een slim energiesysteem (met bijvoorbeeld zonnepanelen en een thu
 Lineair programmeren lost dit op door het energiesysteem op te knippen in drie vaste wiskundige bouwstenen: 
 **Beslissingsvariabelen**, een **Doelfunctie** en **Beperkingen (Constraints)**.
 
----
-
-### Helios
 Voor de Helios Optimizer is gekozen voor een 48 uur horizon omdat daar dan altijd een volledige dag in valt (ook als we pas om 23:00 starten).
 
 ---
