@@ -9,10 +9,10 @@ Lineair programmeren lost dit op door het energiesysteem op te knippen in drie v
 ### Bouwsteen 1: De Beslissingsvariabelen
 Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale plan te komen. We definiëren deze variabelen voor elk uur van de dag ($t = 1, 2, \dots, 24$):
 
-* $P_{net\_{inkoop}}(t)$: Het vermogen dat je inkoopt van het elektriciteitsnet ($\ge 0$).
-* $P_{net\_{export}}(t)$: Het vermogen dat je teruglevert (exporteert) aan het net ($\ge 0$).
-* $P_{batterij\_{laad}}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0$).
-* $P_{batterij\_{ontlaad}}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0$).
+* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt van het elektriciteitsnet ($\ge 0$).
+* $P_{net,export}(t)$: Het vermogen dat je teruglevert (exporteert) aan het net ($\ge 0$).
+* $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0$).
+* $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0$).
 
 ---
 
@@ -33,21 +33,21 @@ Elk afzonderlijk uur moet er een perfecte balans zijn op jouw interne elektricit
 
 Omdat de batterij bij ontladen te maken heeft met een ontlaadefficiëntie ($\eta_{ontlaad}$), komt er aan de aanbodzijde net iets minder bruikbare stroom uit de batterij dan er intern wordt onttrokken:
 
-$$ P_{zon}(t) + P_{net\_{inkoop}}(t) + \left( P_{batterij\_{ontlaad}}(t) \times \eta_{ontlaad} \right) = Vraag(t) + P_{batterij\_{laad}}(t) + P_{net\_{export}}(t) $$
+$$ P_{zon}(t) + P_{net,inkoop}(t) + \left( P_{batterij,ontlaad}(t) \times \eta_{ontlaad} \right) = Vraag(t) + P_{batterij,laad}(t) + P_{net,export}(t) $$
 
 #### B. De Batterijstatus (State of Charge - SoC)
 De hoeveelheid energie die daadwerkelijk *in* de batterij zit (uitgedrukt in kWh), verandert elk uur op basis van het laad- en ontlaadgedrag. Hier passen we de laadefficiëntie ($\eta_{laad}$) toe:
 
-$$ SoC(t) = SoC(t-1) + \left( P_{batterij\_{laad}}(t) \times \eta_{laad} \right) - P_{batterij\_{ontlaad}}(t) $$
+$$ SoC(t) = SoC(t-1) + \left( P_{batterij,laad}(t) \times \eta_{laad} \right) - P_{batterij,ontlaad}(t) $$
 
 De batterij is daarnaast gebonden aan fysieke grenzen:
 * **Capaciteitsgrens:** De batterij kan nooit leger dan nul en nooit voller dan zijn maximale capaciteit: $0 \le SoC(t) \le SoC_{max}$
-* **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: $0 \le P_{batterij\_{laad}}(t) \le P_{laad\_{max}}$ en $0 \le P_{batterij\_{ontlaad}}(t) \le P_{ontlaad\_{max}}$
+* **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: $0 \le P_{batterij,laad}(t) \le P_{batterij,laad-max}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,ontlaad-max}$
 
 #### C. Hardware- en Netaansluitingslimieten
 Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt importeren of exporteren:
-* $$0 \le P_{net,inkoop}(t) \le P_{net_{max_{import}}}$$
-* $$0 \le P_{net,export}(t) \le P_{net_{max_{export}}}$$
+* $$0 \le P_{net,inkoop}(t) \le P_{net,max-import}$$
+* $$0 \le P_{net,export}(t) \le P_{net,max-export}$$
 
 ---
 
