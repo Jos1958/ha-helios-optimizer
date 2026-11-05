@@ -9,19 +9,19 @@ Lineair programmeren lost dit op door het energiesysteem op te knippen in drie v
 ### Bouwsteen 1: De Beslissingsvariabelen
 Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale plan te komen. We definiëren deze variabelen voor elk uur van de dag ($t = 1, 2, \dots, 24$):
 
-* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt van het elektriciteitsnet ($\ge 0, \le P_{net,{max_{inkoop}}}$).
-* $P_{net,export}(t)$: Het vermogen dat je teruglevert (exporteert) aan het net ($\ge 0$).
-* $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0$).
-* $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0$).
+* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt (afneemt/importeert) van het elektriciteitsnet ($\ge 0, \le P_{net,{max_{inkoop}}}$).
+* $P_{net,verkoop}(t)$: Het vermogen dat je verkoopt (teruglevert/exporteert) aan het net ($\ge 0, \le P_{net,{max_{verkoop}}}$).
+* $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0, \le P_{batterij,{max_{laad}}}$).
+* $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0, \le P_{batterij,{max_{ontlaad}}}$).
 
 ---
 
 ### Bouwsteen 2: De Doelfunctie (Kosten Minimaliseren)
-Het hoofddoel is om de netto energiekosten over de gehele dag zo laag mogelijk te houden. Dit berekenen we door de kosten van inkoop te verminderen met de opbrengsten van export. 
+Het hoofddoel is om de netto energiekosten over de gehele dag zo laag mogelijk te houden. Dit berekenen we door de kosten van inkoop te verminderen met de opbrengsten van verkoop. 
 
-Als $C_{inkoop}(t)$ de actuele inkoopprijs per uur is en $C_{export}(t)$ de terugleververgoeding, dan ziet de formule er als volgt uit:
+Als $C_{inkoop}(t)$ de actuele inkoopprijs per uur is en $C_{verkoop}(t)$ de terugleververgoeding, dan ziet de formule er als volgt uit:
 
-$$ \text{Minimaliseer } \sum_{t=1}^{24} \left( P_{net,inkoop}(t) \times C_{inkoop}(t) - P_{net,export}(t) \times C_{export}(t) \right) $$
+$$ \text{Minimaliseer } \sum_{t=1}^{24} \left( P_{net,inkoop}(t) \times C_{inkoop}(t) - P_{net,verkoop}(t) \times C_{verkoop}(t) \right) $$
 
 ---
 
@@ -29,11 +29,11 @@ $$ \text{Minimaliseer } \sum_{t=1}^{24} \left( P_{net,inkoop}(t) \times C_{inkoo
 De solver mag de knoppen niet zomaar oneindig opendraaien; hij moet zich houden aan de wetten van de fysica en de limieten van de hardware.
 
 #### A. De Energiebalans (Vraag = Aanbod op het net)
-Elk afzonderlijk uur moet er een perfecte balans zijn op jouw interne elektriciteitsnet. Alles wat er binnenkomt (zon, inkoop, batterij-ontlading) moet exact gelijk zijn aan wat er verbruikt of weggestuurd wordt (vraag, batterij-lading, export). 
+Elk afzonderlijk uur moet er een perfecte balans zijn op jouw interne elektriciteitsnet. Alles wat er binnenkomt (zon, inkoop, batterij-ontlading) moet exact gelijk zijn aan wat er verbruikt of weggestuurd wordt (vraag, batterij-lading, verkoop). 
 
 Omdat de batterij bij ontladen te maken heeft met een ontlaadefficiëntie ($\eta_{ontlaad}$), komt er aan de aanbodzijde net iets minder bruikbare stroom uit de batterij dan er intern wordt onttrokken:
 
-$$ P_{zon}(t) + P_{net,inkoop}(t) + \left( P_{batterij,ontlaad}(t) \times \eta_{ontlaad} \right) = Vraag(t) + P_{batterij,laad}(t) + P_{net,export}(t) $$
+$$ P_{zon}(t) + P_{net,inkoop}(t) + \left( P_{batterij,ontlaad}(t) \times \eta_{ontlaad} \right) = Vraag(t) + P_{batterij,laad}(t) + P_{net,verkoop}(t) $$
 
 #### B. De Batterijstatus (State of Charge - SoC)
 De hoeveelheid energie die daadwerkelijk *in* de batterij zit (uitgedrukt in kWh), verandert elk uur op basis van het laad- en ontlaadgedrag. Hier passen we de laadefficiëntie ($\eta_{laad}$) toe:
@@ -45,7 +45,7 @@ De batterij is daarnaast gebonden aan fysieke grenzen:
 * **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: $0 \le P_{batterij,laad}(t) \le P_{batterij,{laad\-max}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{ontlaad\-max}}$
 
 #### C. Hardware- en Netaansluitingslimieten
-Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt importeren of exporteren:
+Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt inkopen (importeren) of verkopen (exporteren):
 * $$0 \le P_{net,inkoop}(t) \le P_{net,{max_{inkoop}}}$$
 * $$0 \le P_{net,export}(t) \le P_{net,{max_{export}}}$$
 
