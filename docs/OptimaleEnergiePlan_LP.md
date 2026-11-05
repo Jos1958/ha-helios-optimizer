@@ -7,7 +7,6 @@ Lineair programmeren lost dit op door het energiesysteem op te knippen in drie v
 **Beslissingsvariabelen**, een **Doelfunctie** en **Beperkingen (Constraints)**.
 
 Voor de Helios Optimizer is gekozen voor een 48 uur horizon omdat daar dan altijd een volledige dag in valt (ook als we pas om 23:00 starten).
-
 ---
 
 ### Bouwsteen 1: De Beslissingsvariabelen
@@ -17,7 +16,6 @@ Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draa
 * $P_{net,verkoop}(t)$: Het vermogen dat je verkoopt (teruglevert/exporteert) aan het net ($\ge 0, \le P_{net,{max_{verkoop}}}$).
 * $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0, \le P_{batterij,{max_{laad}}}$).
 * $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0, \le P_{batterij,{max_{ontlaad}}}$).
-
 ---
 
 ### Bouwsteen 2: De Doelfunctie (Kosten Minimaliseren)
