@@ -42,12 +42,12 @@ $$ SoC(t) = SoC(t-1) + \left( P_{batterij,laad}(t) \times \eta_{laad} \right) - 
 
 De batterij is daarnaast gebonden aan fysieke grenzen:
 * **Capaciteitsgrens:** De batterij kan nooit leger dan nul en nooit voller dan zijn maximale capaciteit: $0 \le SoC(t) \le SoC_{max}$
-* **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: $0 \le P_{batterij,laad}(t) \le P_{batterij,laad\-max}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,ontlaad\-max}$
+* **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: $0 \le P_{batterij,laad}(t) \le P_{batterij,{laad\-max}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{ontlaad\-max}}$
 
 #### C. Hardware- en Netaansluitingslimieten
 Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt importeren of exporteren:
-* $$0 \le P_{net,inkoop}(t) \le P_{net,max\-import}$$
-* $$0 \le P_{net,export}(t) \le P_{net,max\-export}$$
+* $$0 \le P_{net,inkoop}(t) \le P_{net,{max\-import}}$$
+* $$0 \le P_{net,export}(t) \le P_{net,{max\-export}}$$
 
 ---
 
