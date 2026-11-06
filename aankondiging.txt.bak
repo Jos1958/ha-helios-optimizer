@@ -1,7 +1,7 @@
 Hallo, 
 Er is een nieuwe test versie van Helios beschikbaar.
 https://github.com/Jos1958/ha-helios-optimizer/releases/tag/0.9.4
-Nieuwe versie kun je altijd vinden met:
+Nieuwe versies kun je altijd vinden met:
 https://github.com/Jos1958/ha-helios-optimizer/releases
 
 Lees goed de installatie beschrijving: https://jos1958.github.io/ha-helios-optimizer/INSTALL.html
@@ -13,5 +13,7 @@ Details over input en output parameters kun je vinden via de links boven de sect
 Voorwaarden:
 - PyScript moet geinstalleerd staan en heel belangrijk met een aantal opties (import en hass) enabled.
 - Je hebt Forecast.Solar Integratie nodig
+- De Dynamisch Strategy moet geconfigureerd zijn in HBC met prijs gegevens
 
 Ik hoor graag je feedback.
+Groeten, Jos

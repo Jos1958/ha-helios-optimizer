@@ -1,5 +1,5 @@
 Hallo, 
-Er is een nieuwe test versie van Helios beschikbaar.
+Er is een test versie van Helios beschikbaar.
 https://github.com/Jos1958/ha-helios-optimizer/releases/tag/0.9.4
 Nieuwe versies kun je altijd vinden met:
 https://github.com/Jos1958/ha-helios-optimizer/releases
