@@ -22,13 +22,13 @@ Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draa
 * $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0, \le P_{batterij,{max_{laad}}}$).
 * $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0, \le P_{batterij,{max_{ontlaad}}}$).
 
-Uit deze variabelen volgt de gebruikte energie per stap:
+Uit deze power variabelen volgt de gebruikte energie per stap:
 $$E(t) = P(t) \times \Delta t$$ : Het vermogen in kWh 
 
 Waarbij: 
-* $E(t)$: De hoeveelheid energie in een tijdstap $t$ (uitgedrukt in Wattuur ($\text{Wh}$) of kilowattuur ($\text{kWh}$)).
-* $P(t)$: Het gemiddelde vermogen tijdens die tijdstap (uitgedrukt in Watt ($\text{W}$) of kilowatt ($\text{kW}$)).
-* $\Delta t$: De lengte of duur van de tijdsstap (uitgedrukt in uren, bijvoorbeeld $1$ uur of $0,5$ uur voor 30 minuten).
+* $P(t)$: Het gemiddelde vermogen tijdens die stap (uitgedruk in Kilo Watt ($\text{kW}$)).
+* $\Delta t$: De lengte of duur van de stap (uitgedrukt in uren, bijvoorbeeld $1$ uur of $0,25$ uur voor 15 minuten).
+* $E(t)$: De hoeveelheid energie in een tijdstap $t$ (uitgedrukt in Kilo Watt Uur ($\text{kWh}$)).
 
 ---
 ### Bouwsteen 2: De Doelfunctie (Kosten Minimaliseren)
@@ -47,12 +47,12 @@ Elk afzonderlijk uur moet er een perfecte balans zijn op jouw interne elektricit
 
 Omdat de batterij bij ontladen te maken heeft met een ontlaadefficiëntie ($\eta_{ontlaad}$), komt er aan de aanbodzijde net iets minder bruikbare stroom uit de batterij dan er intern wordt onttrokken:
 
-$$ P_{zon}(t) + P_{net,inkoop}(t) + \left( P_{batterij,ontlaad}(t) \times \eta_{ontlaad} \right) = Vraag(t) + P_{batterij,laad}(t) + P_{net,verkoop}(t) $$
+$$ P_{zon}(t) + P_{net,inkoop}(t) + \left( E_{batterij,ontlaad}(t) \times \eta_{ontlaad} \right) = Vraag(t) + E_{batterij,laad}(t) + P_{net,verkoop}(t) $$
 
 #### B. De Batterijstatus (State of Charge - SoC)
 De hoeveelheid energie die daadwerkelijk *in* de batterij zit (uitgedrukt in kWh), verandert elk uur op basis van het laad- en ontlaadgedrag. Hier passen we de laadefficiëntie ($\eta_{laad}$) toe:
 
-$$ SoC(t) = SoC(t-1) + \left( P_{batterij,laad}(t) \times \eta_{laad} \right) - P_{batterij,ontlaad}(t) $$
+$$ SoC(t) = SoC(t-1) + \left( P_{batterij,laad}(t) \times \eta_{laad} \right) - E_{batterij,ontlaad}(t) $$
 
 De batterij is daarnaast gebonden aan (fysieke) grenzen:
 * **Capaciteitsgrens:** De batterij kan nooit leger dan de minimum capaciteit en nooit voller dan de maximale capaciteit: 
