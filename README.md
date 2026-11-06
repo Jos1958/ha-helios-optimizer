@@ -101,7 +101,7 @@ Only small bug fixes will be accepted.
 Please raise an issue to report a bug or to request for new functionality.
 
 # Interest Poll (Dutch)
-**[Helios Optimizer Interest Poll Results in Dutch](../docs/PEILING_HELIOS.md)**
+**[Helios Optimizer Interest Poll Results in Dutch](docs/PEILING_HELIOS.md)**
 
 # License
 **[Helios Optimizer License](https://github.com/Jos1958/ha-helios-optimizer/blob/main/LICENSE)**
