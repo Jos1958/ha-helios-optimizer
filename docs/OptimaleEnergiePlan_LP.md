@@ -38,7 +38,7 @@ Waarbij:
 Het hoofddoel is om de netto energiekosten over de gehele dag zo laag mogelijk te houden. 
 Dit berekenen we door de kosten van inkoop te verminderen met de opbrengsten van verkoop. 
 
-Als $C_{inkoop}(t)$ de actuele inkoopprijs per uur is en $C_{verkoop}(t)$ de terugleververgoeding, dan ziet de formule er als volgt uit:
+Als $C_{inkoop}(t)$ de actuele inkoopprijs voor een kWh is en $C_{verkoop}(t)$ de verkoopprijs (terugleververgoeding), dan ziet de formule er als volgt uit:
 
 $$ \text{Minimaliseer } \sum_{t=1}^{24} \left( E_{net,inkoop}(t) \times C_{inkoop}(t) - E_{net,verkoop}(t) \times C_{verkoop}(t) \right) $$
 
@@ -60,13 +60,10 @@ $$ SoC(t) = SoC(t-1) + \left( E_{batterij,laad}(t) \times \eta_{laad} \right) - 
 
 De batterij is daarnaast gebonden aan (fysieke) grenzen:
 * **Capaciteitsgrens:** De batterij kan nooit leger dan de minimum capaciteit en nooit voller dan de maximale capaciteit: 
-
-$SoC_{min} \le SoC(t) \le SoC_{max}$
-
-Hierbij is gelden de fysieke grenzen dat $SoC_{min} \ge 0$ en $SoC_{max} \le SoC_{capaciteit}$
-
+  <br>$SoC_{min} \le SoC(t) \le SoC_{max}$
+  <br>Hierbij is gelden de fysieke grenzen dat $SoC_{min} \ge 0$ en $SoC_{max} \le SoC_{capaciteit}$:
 * **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: 
-  $0 \le P_{batterij,laad}(t) \le P_{batterij,{max_{laad}}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{max_{ontlaad}}}$
+  <br>$0 \le P_{batterij,laad}(t) \le P_{batterij,{max_{laad}}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{max_{ontlaad}}}$
 
 #### C. Hardware- en Netaansluitingslimieten
 Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt inkopen (importeren) of verkopen (exporteren):
