@@ -65,9 +65,9 @@ $$SoC(t) = SoC(t-1) + \left( E_{batterij,laad}(t) \times \eta_{laad} \right) - E
 
 De batterij is daarnaast gebonden aan (fysieke) grenzen:
 * **Capaciteitsgrens:** De batterij kan nooit leger dan de minimum capaciteit en nooit voller dan de maximale capaciteit: 
-  <br>$$ SoC_{min} \le SoC(t) \le SoC_{max} $$. Hierbij gelden ook fysieke grenzen:t $$ SoC_{min} \ge 0$ en $SoC_{max} \le SoC_{capaciteit} $$.
+  <br>$$SoC_{min} \le SoC(t) \le SoC_{max}$$. Hierbij gelden ook de fysieke grenzen: $$SoC_{min} \ge 0$$ en $$SoC_{max} \le SoC_{capaciteit}$$.
 * **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: 
-  <br>$$ 0 \le P_{batterij,laad}(t) \le P_{batterij,{max_{laad}}}$$ en $$ 0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{max_{ontlaad}}} $$.
+  <br>$$0 \le P_{batterij,laad}(t) \le P_{batterij,{max_{laad}}}$$ en $$0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{max_{ontlaad}}}$$.
 
 #### C. Hardware- en Netaansluitingslimieten
 Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt inkopen (importeren) of verkopen (exporteren):
