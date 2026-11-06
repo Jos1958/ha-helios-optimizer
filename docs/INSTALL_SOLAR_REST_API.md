@@ -1,0 +1,22 @@
+- **Solar Forecast Configuration:** Adapt the configuration for your location
+  - **VERY IMPORTANT:** This step is optional and NOT NEEDED when you already have installed and configured the Forecast.Solar Integration!
+  - Edit the helios_optimizer_forecast.yaml in folder packages (see above)
+  - Adapt the REST API Definition for forecast.solar with your location and setup
+  - The example configuration is defined for a setup in Amsterdam with 20 panels and needs to be adapted to your own situation:
+  - To configure your own forecast you need the following info:
+      - **Peak Power in kW:** e.g. 20 panels x 395 Watt Peak = 8.0 kW 
+      - The direction of your roof: e.g. 175 degrees (Roof at the North=0, East=90, South=180, West=270, almost South=175)
+      - **WARNING:** In the REST API we **subtract 180** degrees: 
+        <br>North: 0->180, East: 90->-90, South: 180->0, West: 270->90, Almost South: 175->-5 !!! 
+      - **Roof Angle/Pitch:** 48 degrees (Usually somewhere between 40 and 60 degrees)
+      - **Location of your house:** e.g. Latitude: 52.370, Longitude: 4.895 (for Amsterdam Center)
+      - See: https://doc.forecast.solar/doku.php?id=find_your_azimuth for details
+      - In Home Assistant you can find the location values: 
+        <br>Settings - Rooms, Labels & Zones - Zones - Home - <Change> -> Latitude and Longitude
+      - Google Maps https://www.google.com/maps?q=52.370216%2C4.895168
+      - Google uses by default a location in degrees but can also show latitude and longitude (below the degrees)
+      - **Scan Interval:** 3600 (minimum every hour or use 86400 for every day and make an automation that executes the REST API using a schedule)
+  - Adapt the values in the REST Example Configuration using the above info:
+      - Example: "https://api.forecast.solar/estimate/52.370/4.895/48/-5/8.0"
+      - Fill your values: "https://api.forecast.solar/estimate/latitude/longitude/roof-angle/roof-direction-180/peak-power-kw"
+  - Save the helios_optimizer_config.yaml
