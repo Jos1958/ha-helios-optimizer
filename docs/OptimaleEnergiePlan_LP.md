@@ -60,19 +60,18 @@ $$ SoC(t) = SoC(t-1) + \left( E_{batterij,laad}(t) \times \eta_{laad} \right) - 
 
 De batterij is daarnaast gebonden aan (fysieke) grenzen:
 * **Capaciteitsgrens:** De batterij kan nooit leger dan de minimum capaciteit en nooit voller dan de maximale capaciteit: 
-  <br>$SoC_{min} \le SoC(t) \le SoC_{max}$
-  <br>Hierbij is gelden de fysieke grenzen dat $SoC_{min} \ge 0$ en $SoC_{max} \le SoC_{capaciteit}$:
+  <br>$$ SoC_{min} \le SoC(t) \le SoC_{max} $$. Hierbij gelden ook fysieke grenzen:t $$ SoC_{min} \ge 0$ en $SoC_{max} \le SoC_{capaciteit} $$.
 * **Snelheidsgrens:** De omvormer bepaalt hoe snel de batterij maximaal kan laden of ontladen: 
-  <br>$0 \le P_{batterij,laad}(t) \le P_{batterij,{max_{laad}}}$ en $0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{max_{ontlaad}}}$
+  <br>$$ 0 \le P_{batterij,laad}(t) \le P_{batterij,{max_{laad}}}$$ en $$ 0 \le P_{batterij,ontlaad}(t) \le P_{batterij,{max_{ontlaad}}} $$.
 
 #### C. Hardware- en Netaansluitingslimieten
 Je fysieke hoofdzekering begrenst hoeveel stroom je maximaal gelijktijdig kunt inkopen (importeren) of verkopen (exporteren):
-* $$0 \le P_{net,inkoop}(t) \le P_{net,{max_{inkoop}}}$$
-* $$0 \le P_{net,export}(t) \le P_{net,{max_{export}}}$$
+* $$0 \le P_{net,inkoop}(t) \le P_{net,{max_{inkoop}}}$$.
+* $$0 \le P_{net,export}(t) \le P_{net,{max_{export}}}$$.
 
 ---
 ### Praktische Nuance: Voorkomen van Loze Arbitrage 
 Dankzij de batterij **efficiëntiefactoren** voorkomt het model 'loze arbitrage' (stroom kopen en direct weer verkopen zonder echte winst). 
-Als een batterij een totale *round-trip efficiency* heeft van bijvoorbeeld 81% ($\eta_{laad} = 0.90$ en $\eta_{ontlaad} = 0.90$), 
+Als een batterij een totale *round-trip efficiency* heeft van bijvoorbeeld 81% ($$ \eta_{laad} = 0.90 $$ en $$ \eta_{ontlaad} = 0.90 $$), 
 weet de solver dat handelen met de batterij pas zin heeft als het prijsverschil tussen de uren groter is dan het energieverlies van 19%.
 
