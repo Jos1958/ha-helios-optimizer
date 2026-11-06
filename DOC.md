@@ -73,7 +73,10 @@ The Model uses **SciPy**, a Python Scientific Computing Library, to solve the li
 ![Helios Calculator](images/HeliosOverview.jpeg)
 
 ## Why use a Linear Programming Model
-See [Why use Linear Programming?](WHY.md#why-use-lp-en) or [Waarom Lineair Programmeren gebruiken?](WHY.md#waarom-lp-gebruiken-nl)
+See [Why use Linear Programming?](WHY.md#why-use-lp-en) or [Waarom Lineair Programmeren gebruiken?](WHY.md#waarom-lp-gebruiken-nl).
+
+If you want to know more about the formulas used in the model and you can read dutch see: 
+[Optimale Energie Plan met LP](https://github.com/Jos1958/ha-helios-optimizer/blob/main/docs/OptimaleEnergiePlan_LP.md)
 
 ## Description
 Helios calculates an optimized energy plan for a specified horizon (typically 2 days)
