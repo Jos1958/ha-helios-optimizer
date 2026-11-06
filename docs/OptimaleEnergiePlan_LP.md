@@ -20,10 +20,12 @@ Dit zijn de 'knoppen' waar de Helios Optimizer (met de LP-solver) elk uur ($t$) 
 Ook zal de Optimizer bij voorkeur rekenen vanaf nu tot eind volgende dag rekenen (een periode van 24 tot 48 uur) maar ook dat laten we hier buiten beschouwing.
 We definiëren deze variabelen als het gemiddelde vermogen in kW voor elke stap (van 1 uur) van de dag ($t = 1, 2, \dots, 24$):
 
-* $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt (afneemt/importeert) van het elektriciteitsnet ($\ge 0, \le P_{net,{max_{inkoop}}}$).
-* $P_{net,verkoop}(t)$: Het vermogen dat je verkoopt (teruglevert/exporteert) aan het net ($\ge 0, \le P_{net,{max_{verkoop}}}$).
-* $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0, \le P_{batterij,{max_{laad}}}$).
-* $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0, \le P_{batterij,{max_{ontlaad}}}$).
+* $$ P_{net,inkoop}(t) $$: Het vermogen dat je inkoopt (afneemt/importeert) van het elektriciteitsnet ($\ge 0, \le P_{net,{max_{inkoop}}}$).
+* $$ P_{net,verkoop}(t) $$: Het vermogen dat je verkoopt (teruglevert/exporteert) aan het net ($\ge 0, \le P_{net,{max_{verkoop}}}$).
+* $$ P_{batterij,laad}(t) $$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0, \le P_{batterij,{max_{laad}}}$).
+* $$ P_{batterij,ontlaad}(t) $$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0, \le P_{batterij,{max_{ontlaad}}}$).
+* $$ P_{huis,vraag} (t) $$: Het gemiddelde vermogen dat het huis vraagt op basis van een voorspelling
+* $$ P_{zon,productie} (t) $$: Het gemiddelde vermogen dat de panelen opleveren op basis van een voorspelling
 
 Uit deze power variabelen volgen de gebruikte energie variabelen per stap:
 * $$E(t) = P(t) \times \Delta t$$ : Het vermogen in kWh 
@@ -42,6 +44,8 @@ Als $C_{inkoop}(t)$ de actuele inkoopprijs voor een kWh is en $C_{verkoop}(t)$ d
 
 $$ \text{Minimaliseer } \sum_{t=1}^{24} \left( E_{net,inkoop}(t) \times C_{inkoop}(t) - E_{net,verkoop}(t) \times C_{verkoop}(t) \right) $$
 
+Om de afschrijving van de batterij mee te nemen kunnen we een prijs voor laden ($$ C_{laad} $$) en voor ontladen ($$ C_{ontlaad} $$) toevoegen maar die laten we hier ook even buiten beschouwing.
+
 ---
 ### Bouwsteen 3: De Beperkingen (Constraints)
 De solver mag de knoppen niet zomaar oneindig opendraaien; hij moet zich houden aan de wetten van de fysica en de limieten van de hardware.
@@ -51,7 +55,8 @@ Elk afzonderlijk uur moet er een perfecte balans zijn op jouw interne elektricit
 
 Omdat de batterij bij ontladen te maken heeft met een ontlaadefficiëntie ($\eta_{ontlaad}$), komt er aan de aanbodzijde net iets minder bruikbare stroom uit de batterij dan er intern wordt onttrokken:
 
-$$ P_{zon}(t) + P_{net,inkoop}(t) + \left( P_{batterij,ontlaad}(t) \times \eta_{ontlaad} \right) = Vraag(t) + P_{batterij,laad}(t) + P_{net,verkoop}(t) $$
+$$ P_{zon,productie}(t) + P_{net,inkoop}(t) + \left( P_{batterij,ontlaad}(t) \times \eta_{ontlaad} \right) = 
+P_{huis,vraag}(t) + P_{batterij,laad}(t) + P_{net,verkoop}(t) $$
 
 #### B. De Batterijstatus (State of Charge - SoC)
 De hoeveelheid energie die daadwerkelijk *in* de batterij zit (uitgedrukt in kWh), verandert elk uur op basis van het laad- en ontlaadgedrag. Hier passen we de laadefficiëntie ($\eta_{laad}$) toe:
