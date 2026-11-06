@@ -12,9 +12,10 @@ See [Helios Optimizer Why LP](WHY.md)
 
 ## Installation:
 - Prerequisites: 
-  - **PyScript** (**VERY IMPORTANT:** with V Allow All Imports and V Hass Access)
-  - **Forecast.Solar** Integration
-  - **Dynamic Price Integration** (working dynamic prices in HBC): Helios uses the dynamic prices of HBC!
+  - **PyScript (Via HACS)**: Configuration with V Allow All Imports and V Hass Access (**VERY IMPORTANT**)
+  - **Forecast.Solar** Integration: Configured Solar Panels (pane)
+  - **Dynamic Price Integration** (working dynamic prices in HBC): Helios uses the **dynamic prices** of HBC!
+  - **Additional Dashboard Cards (via HACS)**: ApexCharts, card-mod and button-card 
 - **Download** the latest version from [GitHub](https://github.com/Jos1958/ha-helios-optimizer/releases)
 - Create the **missing folders** in Home Assistant 
 - Copy the **py files** to /pyscript and /pyscript/helios_python

@@ -22,6 +22,14 @@ Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draa
 * $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0, \le P_{batterij,{max_{laad}}}$).
 * $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0, \le P_{batterij,{max_{ontlaad}}}$).
 
+Uit deze variabelen volgt de gebruikte energie per stap:
+$$E(t) = P(t) \times \Delta t$$ : Het vermogen in kWh 
+
+Waarbij: 
+* $E(t)$: De hoeveelheid energie in een tijdstap $t$ (uitgedrukt in Wattuur ($\text{Wh}$) of kilowattuur ($\text{kWh}$)).
+* $P(t)$: Het gemiddelde vermogen tijdens die tijdstap (uitgedrukt in Watt ($\text{W}$) of kilowatt ($\text{kW}$)).
+* $\Delta t$: De lengte of duur van de tijdsstap (uitgedrukt in uren, bijvoorbeeld $1$ uur of $0,5$ uur voor 30 minuten).
+
 ---
 ### Bouwsteen 2: De Doelfunctie (Kosten Minimaliseren)
 Het hoofddoel is om de netto energiekosten over de gehele dag zo laag mogelijk te houden. Dit berekenen we door de kosten van inkoop te verminderen met de opbrengsten van verkoop. 

@@ -2,6 +2,11 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 
+## 0.9.5 (2026-11-??) Net Metering Mode (Salderingsregeling) and Minor Fixes
+- Graphs did not always use full width (especially in Windows), added update_interval: 5s to the apexcharts-card (Thanks to Gerrit_18808)
+- Improved Installation (Thanks Martijn), Readme, Documentation (Thanks Mike Da Spike)
+- Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026)
+
 ## 0.9.4 (2026-11-03) Improved Data and Energy Provider Handling 
 - Energy Provider split into a target and source provider which can be both different from the main provider (which determines the Source Price Data format)
 - Improved handling of price conversions to support Belgium Tax, Markup and Loss Factors
