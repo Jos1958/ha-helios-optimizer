@@ -15,28 +15,32 @@ Voor de Helios Optimizer is gekozen voor een 48 uur horizon omdat daar dan altij
 
 ---
 ### Bouwsteen 1: De Beslissingsvariabelen
-Dit zijn de 'knoppen' waar de computer (de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale plan te komen. We definiëren deze variabelen voor elk uur van de dag ($t = 1, 2, \dots, 24$):
+Dit zijn de 'knoppen' waar de Helios Optimizer (met de LP-solver) elk uur ($t$) aan kan draaien om tot het meest optimale energie plan te komen. 
+*Opmerking:* De Optimizer kan ook met stappen van 15 minuten rekenen maar dat laten de rest van dit verhaal even buiten beschouwing.
+Ook zal de Optimizer bij voorkeur rekenen vanaf nu tot eind volgende dag rekenen (een periode van 24 tot 48 uur) maar ook dat laten we hier buiten beschouwing.
+We definiëren deze variabelen als het gemiddelde vermogen in kW voor elke stap (van 1 uur) van de dag ($t = 1, 2, \dots, 24$):
 
 * $P_{net,inkoop}(t)$: Het vermogen dat je inkoopt (afneemt/importeert) van het elektriciteitsnet ($\ge 0, \le P_{net,{max_{inkoop}}}$).
 * $P_{net,verkoop}(t)$: Het vermogen dat je verkoopt (teruglevert/exporteert) aan het net ($\ge 0, \le P_{net,{max_{verkoop}}}$).
 * $P_{batterij,laad}(t)$: Het vermogen dat vanaf het interne net naar de batterij wordt gestuurd ($\ge 0, \le P_{batterij,{max_{laad}}}$).
 * $P_{batterij,ontlaad}(t)$: Het vermogen dat intern uit de batterij wordt getrokken ($\ge 0, \le P_{batterij,{max_{ontlaad}}}$).
 
-Uit deze power variabelen volgt de gebruikte energie per stap:
-$$E(t) = P(t) \times \Delta t$$ : Het vermogen in kWh 
+Uit deze power variabelen volgen de gebruikte energie variabelen per stap:
+* $$E(t) = P(t) \times \Delta t$$ : Het vermogen in kWh 
 
 Waarbij: 
 * $P(t)$: Het gemiddelde vermogen tijdens die stap (uitgedruk in Kilo Watt ($\text{kW}$)).
-* $\Delta t$: De lengte of duur van de stap (uitgedrukt in uren, bijvoorbeeld $1$ uur of $0,25$ uur voor 15 minuten).
+* $\Delta t$: De lengte of duur van de stap (uitgedrukt in uren, bijvoorbeeld $1$ uur voor 60 minuten of $0,25$ uur voor 15 minuten).
 * $E(t)$: De hoeveelheid energie in een tijdstap $t$ (uitgedrukt in Kilo Watt Uur ($\text{kWh}$)).
 
 ---
 ### Bouwsteen 2: De Doelfunctie (Kosten Minimaliseren)
-Het hoofddoel is om de netto energiekosten over de gehele dag zo laag mogelijk te houden. Dit berekenen we door de kosten van inkoop te verminderen met de opbrengsten van verkoop. 
+Het hoofddoel is om de netto energiekosten over de gehele dag zo laag mogelijk te houden. 
+Dit berekenen we door de kosten van inkoop te verminderen met de opbrengsten van verkoop. 
 
 Als $C_{inkoop}(t)$ de actuele inkoopprijs per uur is en $C_{verkoop}(t)$ de terugleververgoeding, dan ziet de formule er als volgt uit:
 
-$$ \text{Minimaliseer } \sum_{t=1}^{24} \left( P_{net,inkoop}(t) \times C_{inkoop}(t) - P_{net,verkoop}(t) \times C_{verkoop}(t) \right) $$
+$$ \text{Minimaliseer } \sum_{t=1}^{24} \left( E_{net,inkoop}(t) \times C_{inkoop}(t) - E_{net,verkoop}(t) \times C_{verkoop}(t) \right) $$
 
 ---
 ### Bouwsteen 3: De Beperkingen (Constraints)
