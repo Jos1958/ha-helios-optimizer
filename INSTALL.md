@@ -86,9 +86,9 @@
   - Edit the Dashboard in YAML mode
   - Open dashboard/helios_dashboard.yaml in your local Editor 
   - Select all content of the helios_dashboard.yaml file 
-  - For a **New** Dashboard: Copy/Paste all of the content to the Yaml editor (**replace all existing** lines of the new dashboard including the first line with 'views:')
+  - For a **New** Dashboard: Copy/Paste all of the content to the Yaml editor (**replace all existing** lines of the new dashboard including the first line with **views:**)
   - Alternative for adding to the **HBC** Dashboard: Copy/Paste the content **at the bottom** of the HBC Dashboard yaml 
-    but **exclude** the line with 'views:' since it is already at the top of the HBC dashboard!
+    but **exclude** the line with **views:** since this line is already available at the top of the HBC dashboard!
   - [Save] the Dashboard yaml
 
 - **Helios Strategy for HBC** (Add the Helios Strategy to the HBC Strategies):
@@ -150,6 +150,7 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
     <br>Use only a specifiy start step for simulation/test runs!
   - House Daily Usage Distribution (e.g. [ 1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8, 3, 1])
   - Price Source Data parameters (changes only needed when you have generic market prices in HBC instead of provider prices)
+  - Prices used by Helios per step can be checked in the Optimal Energy Plan Table
   
 - **Run Helios Optimizer** (using the green button "**Start** Helios Optimizer Task"):
 - The button will turn yellow (at least 1 sec) while the Helios Optimizer is running

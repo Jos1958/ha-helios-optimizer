@@ -1,3 +1,4 @@
+views:
   - type: sections
     path: helios-controls
     max_columns: 3

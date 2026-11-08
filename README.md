@@ -21,7 +21,8 @@ See [Helios Optimizer Why LP](WHY.md)
 - Copy the **py files** to /pyscript and /pyscript/helios_python
 - Copy the **configuration** file (helios_optimizer.yaml) to /packages
 - Copy the **banner** file (HeliosOptimizerBanner.jpeg) to /www
-- Create a new Home Assistant **Dashboard** for Helios or add the Helios Tabs to the HBC Dashboard (helios_dashboard.yaml)
+- **Create** a new Home Assistant **Dashboard** for Helios (from helios_dashboard.yaml including the **views:** line at the top)
+- Or **Add** the Helios Tabs to the HBC Dashboard yaml (from helios_dashboard.yaml but excluding the **views:** line)
 - Import the **Helios Strategy Flow** (02 strategy-helios-vx.xx.x-vy.y.y.json) in Node-RED and [Deploy]
 - **Add** the **"Helios"** strategy to the options of input_select.house_battery_strategy in the HBC configuration file (house_battery_control.yaml)
 - **Restart** Home Assistant
@@ -30,6 +31,7 @@ See [Helios Optimizer Why LP](WHY.md)
   <br>HBC will follow the **Dynamic Strategy**, dynamic price info is refreshed and the Helios Optimizer produces an **Energy Plan**.
 - For an **Update Run:** Select the **"Helios"** Strategy in **HBC** and HBC will follow the **Helios Strategy** according to the **Energy Plan**.
 - Check the **Output** of the Helios Optimizer on the **Helios Dashboard** ('Controls' Tab and 'Detailed Results' Tab)
+- Check the **Prices** in the Optimal Energy Plan Table, if not as expected then you may need to adapt price type and/or data/energy provider in the advanced parameters
 
 For a **detailed** installation procedure see [Helios Optimizer Installation](INSTALL.md).
 

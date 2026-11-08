@@ -188,13 +188,16 @@ Enable Helios Insight Mode to make these advanced parameters visible.
   <br>Remark: The sum of the 24 numbers does not have to be the same as the daily usage.
 - **Price Type used in HBC:** Specify which Price Type is used for the **Tarif Data Source** in HBC.
   <br>Helios will derive the other prices from the **HBC Dynamic Price Data** and needs to now which Price Type is used in HBC.
-  - **Import** Prices: Price applicable for importing energy from the grid (ct/kWh) 
+  - **Import** Prices (**Default**): Price applicable for importing energy from the grid (ct/kWh) 
   - **Export** Prices: Price applicable for exporting energy from the grid (ct/kWh) 
   - **Market** Prices: Import and Export Prices are based on the Market Price which does not contain taxes, provider markup etc..
 - **Price Data Provider:** Specify which Source Provider has been used to retrieve the HBC Price Data.
 The default value will be the 'HBC Data Source' as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Source (Data) Provider.
 - **Energy Provider (Contract):** Specify which Target Provider you want to use to calculated the prices for the Optimizer.
 The default value will be the 'HBC Data Source' as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Target (Energy) Provider.
+If you are using a Generic Data Provider in HBC (with marketing prices) then you **must** adapt the **Energy Provider** since otherwise
+you will have import and export prices without Energy Tax, VAT and Provider Markups. 
+Use the Custom Provider if your own provider is not available (default tax, vat and markups will be used for the Netherlands).
 - **Net Metering (Saldering 2026):** By Enabling Net Metering the Export Prices will include Energy Tax (this is only sensible as long as the Net Metering is applicable in the Netherlands, obsolete starting 2027)
   
 ### Battery Parameters

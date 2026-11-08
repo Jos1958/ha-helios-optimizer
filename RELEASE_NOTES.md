@@ -6,6 +6,10 @@
 - Graphs did not always use full width (especially in Windows), added update_interval: 5s to the apexcharts-card (Thanks to Gerrit_18808)
 - Improved Installation (Thanks Martijn), Readme, Documentation (Thanks Mike Da Spike)
 - Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026)
+- Disabled the resolution="hourly" option of the get_forecast service of Forecast.solar since it is giving some weird results in the last hour of sun (combining two hours), 
+- helios_forecast.py now has support for 15-min and 60-min forecast so disabling the "hourly" option should not be a problem
+- **Changed files:** All PyScript (*.py), Dashboard (yaml), Package (yaml), Dashboard (yaml), Documentation
+- **Not changed since 0.9.4:** Banner File (jpeg), Automation is Obsolete!
 
 ## 0.9.4 (2026-11-03) Improved Data and Energy Provider Handling 
 - Energy Provider split into a target and source provider which can be both different from the main provider (which determines the Source Price Data format)
