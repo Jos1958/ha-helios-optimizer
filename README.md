@@ -85,8 +85,8 @@ The Optimizer Model does not take this extra value into account.
 See [Helios Optimizer Release Notes](RELEASE_NOTES.md)
 
 ## Documentation with Input and Output
-For a detailed specification of the Input Parameters and the Output Results (Optimized Energy Plan)
-see [Helios Optimizer Documentation](DOC.md).
+For a detailed **Documentation** and specification of the **Input Parameters** and the **Output Results** (Optimized Energy Plan)
+see the [Helios Optimizer Documentation](DOC.md).
 
 ## Advanced
 **TODO**
@@ -109,6 +109,7 @@ Please raise an issue to report a bug or to request for new functionality.
 **[Helios Optimizer License](https://github.com/Jos1958/ha-helios-optimizer/blob/main/LICENSE)**
 
 # FAQ and Help
-**TODO**
+**[Helios Optimizer Frequently Asked Questions](docs/FAQ.md)**
+and **[Helios Optimizer Documentation](DOC.md)**
 
 **Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home and House Automation, Home Assistant, HBC, Linear Programming, Python, PyScript
