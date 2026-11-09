@@ -38,8 +38,7 @@ This means that the Node-Red Helios Flow received no value from the Helios Optim
 <br>This can have several reasons but the main reason is that the Helios Optimizer failed to run. 
 This can be due to input errors or due to installation errors.
 Check the Helios Dashboard to find out if any errors are given in the "Results Summary" - "Solver Status" area and try to fix to cause of the error.
-<br>
-If on the Helios Dashboard the Solver Status is "Optimization terminated successfully" then the error is not in the Helios Optimizer:
+<br><br>If on the Helios Dashboard the Solver Status is "Optimization terminated successfully" then the error is not in the Helios Optimizer:
 However the Helios Strategy flow could not retrieve the HBC sub-strategy from the Helios Optimizer HBC Sub Strategy
 (input_select.helios_optimizer_hbc_sub_strategy). Check that this entity has the expected sub strategy value.
 If the Sub Strategy value is correct then the Node-Red Flow (Strategy Helios) failed to retrieve the value.
