@@ -31,7 +31,9 @@ See [Helios Optimizer Why LP](WHY.md)
   <br>HBC will follow the **Dynamic Strategy**, dynamic price info is refreshed and the Helios Optimizer produces an **Energy Plan**.
 - For an **Update Run:** Select the **"Helios"** Strategy in **HBC** and HBC will follow the **Helios Strategy** according to the **Energy Plan**.
 - Check the **Output** of the Helios Optimizer on the **Helios Dashboard** ('Controls' Tab and 'Detailed Results' Tab)
-- Check the **Prices** in the Optimal Energy Plan Table, if not as expected then you may need to adapt price type and/or data/energy provider in the advanced parameters
+- Check the **Prices** in the Optimal Energy Plan Table, 
+if not as expected then you may need to adapt price type, data provider and/or energy provider in the advanced parameters.
+This is especially applicable when you are using a generic data provider with market prices.
 
 For a **detailed** installation procedure see [Helios Optimizer Installation](INSTALL.md).
 
