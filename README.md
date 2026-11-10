@@ -83,35 +83,53 @@ The Optimizer Model does not take this extra value into account.
 - **Heat Pump** (HP) operation parameters
 - **Boiler** operation parameters
 
-## What's New:
+## What's New and Updating instructions:
 See [Helios Optimizer Release Notes](RELEASE_NOTES.md)
 
-## Documentation with Input and Output
-For a detailed **Documentation** and specification of the **Input Parameters** and the **Output Results** (Optimized Energy Plan)
+## Documentation and Help
+For a detailed **Documentation** of the application and for specification of the **Input Parameters** and the **Output Results** (Optimized Energy Plan)
 see the [Helios Optimizer Documentation](DOC.md).
 
-## Advanced
-**TODO**
+# Help and FAQ
+For **help** on **specific** input **parameters** or output **results** use the links provided above **each section** of the dashboard 
+to link directly to the applicable information in the documentation.
 
-## Updating
-**TODO**
+For configuration problems and other **frequently asked questions** see [Helios Optimizer FAQ](docs/FAQ.md).
+For installation problems see the **detailed** [Helios Installation Instructions](INSTALL.md)
+
+## Advanced
+Some input parameters and output results are hidden to improve the usability of the Helios dashboard.
+A button is available on the top of the dashboard tabs 'Helios Inside Mode'. 
+Click this button to enable or disable the 'Helios Inside Mode'.
+Additional input and output sections will become available in 'Helios Inside Mode'.
 
 ## Credits
+I would like to thank all the testers that have been providing very useful feedback
+for improving the application and the documentation.
 
 ## Contributing
 At the moment it is not advised to develop additional features based on the current version.
-The current code is not very stable yet so your changes may not work on the next release.
+The current code is not yet stable so your changes may not work on the next release.
 Only small bug fixes will be accepted.
 Please raise an issue to report a bug or to request for new functionality.
-
-# Interest Poll (Dutch)
-**[Helios Optimizer Interest Poll Results in Dutch](docs/PEILING_HELIOS.md)**
-
-# License
-**[Helios Optimizer License](https://github.com/Jos1958/ha-helios-optimizer/blob/main/LICENSE)**
 
 # FAQ and Help
 **[Helios Optimizer Frequently Asked Questions](docs/FAQ.md)**
 and **[Helios Optimizer Documentation](DOC.md)**
+
+# Interest Poll (Dutch)
+**[Helios Optimizer Interest Poll Results in Dutch](docs/PEILING_HELIOS.md)**
+
+## License & Disclaimer
+This project is licensed under the GNU General Public License v3.0 (GPLv3). 
+As stated in the license, this software is provided "as is" without any warranty, 
+and installation or use is entirely at your own risk.
+
+A full description of the applicable license is available via this link:
+**[Helios Optimizer License](https://github.com/Jos1958/ha-helios-optimizer/blob/main/LICENSE)**
+
+The author(s) accept no responsibility or liability for any damage, financial loss, 
+battery degradation, or system disruption resulting from the use or misuse of this application. 
+Always verify system behavior and safety limits for your specific hardware setup.
 
 **Keywords:** Battery Management System, Energy Management System, Optimize your Energy Plan, Solar Panels, Home and House Automation, Home Assistant, HBC, Linear Programming, Python, PyScript

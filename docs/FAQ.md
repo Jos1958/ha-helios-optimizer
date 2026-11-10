@@ -11,10 +11,6 @@ If the Battery SoC is above the SoC-Max then it will start selling at any price.
 If the Battery SoC is below the Soc-Min then it will start buying at any price.
 <br>Adapt the Helios input parameter for the SoC-Min or adapted the mininum SoC in HBC to be inline then this situation will no longer occur.
 
-- Battery is **enabled** for in the Input Parameters for the Battery but in the Output the Battery is **disabled**.
-<br>For a Battery Capacity of 0 the Battery will be disabled.
-<br>You can verify using Insight Mode in the Derived Parameters section (field: Maximum Energy (All Batteries)) the value of Battery Capacity.
-
 - **Not Selling at the Highest Price**
 <br>When using the HBC dynamic strategy you may be used to selling at the highest price. 
 However when calculated over a two day period it may be cheaper to keep the energy in the battery for a later moment.
@@ -29,6 +25,11 @@ There are no rules in the model that define which strategy must be selected (no 
 It calculates a solution for the variables (grid power and battery power) that yields the lowest total cost for the entire 24–48 hour horizon. Its inputs are the solar production forecast, the house demand forecast, and the dynamic price data.
 Rather than guessing, it uses an open-source Linear Programming module specifically designed to solve these complex mathematical problems globally.
 While you might sometimes question why a specific strategy is chosen for a single hour, you should always look at the bigger picture—what is cheapest over the full 24–48 hour period. The best way to verify if the model is making the right choice is to construct an alternative strategy and calculate the total grid cost for it under the exact same circumstances (same forecasts and prices). If your alternative results in a lower total cost, your approach is better; otherwise, the model has found the true mathematical optimum.
+
+- Battery is **enabled** in the **Input** Parameters for the Battery but in the **Results** the Battery is **disabled**.
+<br>For a Battery Capacity of 0 the Battery will be disabled and no Battery Results will be available.
+<br>You can verify using 'Insight Mode' in the Derived Parameters section (field: Maximum Energy (All Batteries)) the value of Battery Capacity as used in Helios.
+This value is calculated using a Helios Template but based upon the HBC/Marstek Battery Entities.
 
 ## Strange Behaviour of the Helios Strategy (Flow) in HBC 
 - **HBC Sub-strategy 'Charge PV' is** is selected during the night (no solar).
