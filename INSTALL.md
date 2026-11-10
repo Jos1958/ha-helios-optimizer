@@ -144,21 +144,24 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
   - Battery Charge and Discharge Limit (e.g. 1.2kWh, total limit, depending on your battery configuration)
   - Battery Charge and Discharge Efficiency (2x 0.9 for a RTE of 81%)
 
-- **It is not necessary to adapt any of the Advanced Parameters for your first runs** (Available in Helios Insight Mode only):
+- For **advanced** configuration use the **'Helios Insights Mode'** button to make additional input parameters and output results visible (or to hide).
+
+- **It is not necessary to adapt any of the Advanced Parameters for your first runs**:
   - Steps: 48 or 192 with Step Size: 60 or 15 minutes and Start Step: 0 (for Automatic)
     <br>The preferred optimization horizon is 2 days (48 x 60m or 192 x 15m)!
     <br>Use only a specifiy start step for simulation/test runs!
   - House Daily Usage Distribution (e.g. [ 1, 1 ,1, 1, 1, 1, 1, 3, 3, 2, 2, 2, 3, 2, 2, 2, 2, 3,12,12, 8, 8, 3, 1])
-  - Price Source Data parameters (changes only needed when you have generic market prices in HBC instead of provider prices)
-  - Prices used by Helios per step can be checked in the Optimal Energy Plan Table
+  - Price Source Data parameters (changes only needed when you have generic market prices in HBC instead of provider prices).
+  - **Prices** used by Helios per step can be checked in the Optimal Energy Plan Table.
+    <br>If the prices are not as expected then you may need to adapt **price type**, **data provider** and/or **energy provider**.
   
 - **Run Helios Optimizer** (using the green button "**Start** Helios Optimizer Task"):
-- The button will turn yellow (at least 1 sec) while the Helios Optimizer is running
-- Check out the results in the Results Overview and the Optimized Energy Plan (as a Graph and as a Table)
-  <br>Especially check the 'Result' and the 'Solver Status' boxes on the Results Overview!
-  <br>The 'Solver Status' will display an error/exception message if the Optimizer failed.
-  <br>Refresh the browser page (Ctrl-F5) if the graph is not yet displayed.
-- The *Current* Values (for the Active Step) can be found in the 'Actuals' section
+  - The button will turn yellow (at least 1 sec) while the Helios Optimizer is running.
+  - Check out the results in the Results Overview and the Optimized Energy Plan (as a Graph and as a Table)
+    <br>Especially check the 'Result' and the 'Solver Status' boxes on the Results Overview!
+    <br>The 'Solver Status' will display an error/exception message if the Optimizer failed.
+    <br>Refresh the browser page (Ctrl-F5) if the graph is not yet displayed.
+  - The *Current* Values (for the Active Step) can be found in the 'Actuals' section.
 
 - **Important Remark:** Only when you select the **Helios** or the **Dynamic** Strategy in **HBC** the HBC Price Data will be generated.
 <br>Helios will still run with other strategies selected in HBC but will have no (recent) price data available.
