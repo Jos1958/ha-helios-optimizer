@@ -86,8 +86,7 @@ This value is calculated using a Helios Template but based upon the HBC/Marstek 
   <br>When the helios prices are not correct you may want to check other options:
     - When you have a data provider with market prices (without Tax, Vat and provider markups) you want to use 'Generic' as Data Provider
     - Select your own provider or your country as energy provider
-    - Select 'Custom' as provider when your own provider or own country is not available in the list or when the prices are still wrong.
-      In the near future each of the settings of the 'Custom' provider will be configurable on the Helios Dashboard or in a json settings file.
+    - Select 'Custom' as provider when your own provider or own country is not available in the list or when the prices are still wrong. In the near future each of the settings of the 'Custom' provider will be configurable on the Helios Dashboard or in a json settings file.
   - Use the table below to find the right combination more quickly (start at the top):
 
 ![Provider Selection](ProviderSelection.jpeg)
