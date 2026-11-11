@@ -90,6 +90,7 @@ This value is calculated using a Helios Template but based upon the HBC/Marstek 
       <br>In the near future each of the settings of the 'Custom' provider will be configurable on the Helios Dashboard or in a json settings file.
   - Use the table below to find the right combination more quickly (start at the top):
 
+
 ![Provider Selection](ProviderSelection.jpeg)
 
 ## Strange Behaviour of the Helios Strategy (Flow) in HBC 
