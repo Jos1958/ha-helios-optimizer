@@ -89,7 +89,7 @@ This value is calculated using a Helios Template but based upon the HBC/Marstek 
     - Select 'Custom' as provider when your own provider or own country is not available in the list or when the prices are still wrong.
       <br>In the near future each of the settings of the 'Custom' provider will be configurable on the Helios Dashboard or in a json settings file.
   Use the table below to find the right combination more quickly (start at the top)
-  ![Helios Optimizer](images/ProviderSelection.jpeg)
+[Provider Selection](images/ProviderSelection.jpeg)
 
 ## Strange Behaviour of the Helios Strategy (Flow) in HBC 
 - **HBC Sub-strategy 'Charge PV' is** is selected during the night (no solar).
