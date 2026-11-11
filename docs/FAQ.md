@@ -1,4 +1,8 @@
 # HA Helios Optimizer - Frequently Asked Questions
+Sometimes you will need to use the advanced sections to configure the Helios Optimizer.
+Advanced Input and Output Sections are only visible when 'Helios Insights Mode' is enabled.
+You can enable this mode with a button at the top of the Helios Dashboard Tabs.
+HBC also has an "Insights Mode" for the same purpose but these modes are independent.
 
 ## Strange Behaviour of the Strategy in Helios Optimizer
 - **Unexpected Selling/Discharging** of Energy from the Battery to the Grid
@@ -15,7 +19,7 @@ If the Battery SoC is below the Soc-Min then it will start buying at any price.
 <br>When using the HBC dynamic strategy you may be used to selling at the highest price. 
 However when calculated over a two day period it may be cheaper to keep the energy in the battery for a later moment.
 Especially when the Energy Tax is no longer compensated in the Netherlands in 2027.
-For 2026 you can enable 'Net Metering' in the advanced parameters (Helios Insight Mode).
+For 2026 you can enable 'Net Metering' in the advanced parameters (Helios Insights Mode).
 As a result the difference between import and export price will be much smaller and the Optimizer will buy and sell more often.
 When disabled you will notice that 'Self consumption' becomes a more preferred strategy.
 
@@ -28,8 +32,23 @@ While you might sometimes question why a specific strategy is chosen for a singl
 
 - Battery is **enabled** in the **Input** Parameters for the Battery but in the **Results** the Battery is **disabled**.
 <br>For a Battery Capacity of 0 the Battery will be disabled and no Battery Results will be available.
-<br>You can verify using 'Insight Mode' in the Derived Parameters section (field: Maximum Energy (All Batteries)) the value of Battery Capacity as used in Helios.
+<br>You can verify using 'Helios Insights Mode' in the Derived Parameters section (field: Maximum Energy (All Batteries)) the value of Battery Capacity as used in Helios.
 This value is calculated using a Helios Template but based upon the HBC/Marstek Battery Entities.
+
+- **Prices** in Helios Optimizer are **not correct**.
+  - Helios Dynamic Prices are based on the HBC Dynamic Prices (See entity 'sensor.hbc_energy_prices_data'). 
+  <br>You **cannot expect** valid prices in Helios when you do **not** have a **working Dynamic Strategy** with **valid** prices in **cents/kWh**.
+  Make sure the price unit in HBC is cents/kWh since a source provider price factor will be ignored when retrieving the price from HBC.
+  <br>Use the 'Timed/Dynamic' tab in HBC with 'Insights mode' enabled and verify the prices in the table.
+  - Helios assumes as a default that the prices in HBC are **import** prices (including Energy Tax, VAT and provider Markup).
+  <br>You may have to change the Price Type in the advanced parameters section to **market** or **export** depending on the price in HBC.
+  - Helios assumes that the Data Provider and the Energy Provider are the same as the **HBC Data Source**.
+  <br>First try this option and check out the resulting prices.
+  - When you have a generic data provider (without taxes and markups) you may want to use 'Generic' as Data Provider
+  - When you have a data provider (without taxes and markups) you may want to use 'Generic' as Data Provider
+  - When you have a generic data provider (without taxes and markups) you may want to use 'Generic' as Data Provider
+  - When everything fails use 'Custom' as your data provider and energy provider.
+  <br>In the near future each of the settings of the provider will be configurable on the Helios Dashboard.
 
 ## Strange Behaviour of the Helios Strategy (Flow) in HBC 
 - **HBC Sub-strategy 'Charge PV' is** is selected during the night (no solar).
@@ -45,7 +64,7 @@ Effectively during the night (without solar power) it will be the same as 'Stand
 Make sure that your State of Charge (SoC) Minimum and Maximum for your Batteries and the 'Charge until SoC' and 'Sell until SoC'.
 Be aware that Helios calculates with one big battery when you have multiple batteries.
 Use the sum of the Capacity of all batteries and the sum of the SoC Minimum and SoC Maximum values to calculate an overall SoC Minimum and Maximum.
-See the Derived Parameters section (Helios Insight Mode) for the (overall) Maximum Capacity, Remaining Energy and current SoC as calculated by Helios.
+See the Derived Parameters section (Helios Insights Mode) for the (overall) Maximum Capacity, Remaining Energy and current SoC as calculated by Helios.
 HBC uses a 'Available Energy' field but this value has already been compensated for the minimum and maximum SoC and is not used in Helios.
 
 - **HBC Sub-strategy 'Full stop'** for the Helios Strategy:
