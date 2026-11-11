@@ -11,16 +11,16 @@
   - **Forecast.Solar** Integration Installation and Configuration for your Solar Panels
     <br>WARNING: Currently ONLY Forecast.Solar is supported as a Solar Forecast!
   - **File Editor** (or Samba) via HACS: to create folders and upload files
-  - **PyScript** (installation via HACS) with **Imports** and **hass** access enabled:
+  - **PyScript** by @craigbarratt [installation via HACS](https://github.com/custom-components/pyscript) with **Imports** and **hass** access enabled:
     <br>**VERY IMPORTANT:** The Helios Optimizer PyScript Application **CANNOT** run without these options enabled!
     - Integrations: Pyscript Python scripting - pyscript - [Configurate]
       - **V** Allow All Imports? (Mandatory)
       - **V** Access hass as a global variable? (Mandatory)
       - _ Use legacy decorators? (Not required)
   - For the Helios **Dashboard** (UI-components):
-    - **ApexCharts Card** (via HACS)
-    - **card-mod** (via HACS)
-    - **button-card** (via HACS)
+    - **ApexCharts Card** by @RomRider [via HACS](https://github.com/RomRider/apexcharts-card)
+    - **card-mod** by @thomasloven [via HACS](https://github.com/thomasloven/lovelace-card-mod)
+    - **button-card** by @RomRider [via HACS](https://github.com/custom-cards/button-card)
     - Markdown Card (built-in)
     - Picture (built-in) for /local/HeliosOptimizerBanner.jpeg in www-folder
     
