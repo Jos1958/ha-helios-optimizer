@@ -14,16 +14,16 @@ The HBC Dashboard yaml should start with **views:** at the top of the configurat
 (Check on extra or missing spaces).
 - **Configuration Error** for the Dashboard
 <br>Make sure that all pre-requisites are installed (ApexCharts Card, card-mod and button-card) as specified in the installation guide.
-- '**Action** pyscript.helios_optimizer_hbc_task **not found**' is displayed when I press the green "Start" button
-<br>Make sure that you have copied all the *.py files to /pyscript and /pyscript/helios_python on your Home Assistant Server.
+- '**Action pyscript.helios_optimizer_hbc_task not found**' is displayed when I press the green **Start** button
+<br>Make sure that you have copied all the **\*.py files** to the **/pyscript** and **/pyscript/helios_python** folders on your Home Assistant Server.
 <br>Make sure that you have installed the prerequisite PyScript with the required configuration (for imports and hass) as specified in the installation guide.
-- Helios displays as Solved Status: **PyScript Import(s) Failed!** 
+- Helios displays a Solved Status: **PyScript Import(s) Failed!** 
 <br>Helios needs 'Allow all imports' to be enabled in the PyScript configuration. 
 Adapt the PyScript configuration as specified in the installation guide.
-- Helios displays as Solved Status: **Hass is NOT accessable by PyScript!**
+- Helios displays a Solved Status: **Hass is NOT accessable by PyScript!**
 <br>Helios needs 'Access Hass as a global variable' to be enabled in the PyScript configuration. 
 Adapt the PyScript configuration as specified in the installation guide.
-- Helios displays as Solved Status: **Solar is enabled but the Solar Energy Forecast is not available (Empty)!**
+- Helios displays a Solved Status: **Solar is enabled but the Solar Energy Forecast is not available (Empty)!**
 <br>Helios needs a Forecast.Solar configuration. 
 Make sure to configure the Forecast.Solar for your location (Declination, azimuth, total peak power).
 You can check in HBC if solar forecasts for today and tomorrow are available.
@@ -32,7 +32,7 @@ Helios will use a service of Forecast.Solar to retrieve the hour forecast for to
 At the moment you need a working **Forecast.Solar** configuration but in the near future **Solcast** will be supported.
 - Helios reports an invalid parameter in **Solved Status**
 <br>Adapt the specified parameter in the Optimization, Battery and/or Advanced Parameters Sections.
-- Helios displays another error/exception in **Solved Status**
+- Helios displays another **error/exception** in **Solved Status**
 <br>Try to fix the error but in case of an exception you can report an issue for helios.
 
 ## Strange Behaviour of the Strategy in Helios Optimizer
