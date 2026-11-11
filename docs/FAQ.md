@@ -75,18 +75,19 @@ While you might sometimes question why a specific strategy is chosen for a singl
 This value is calculated using a Helios Template but based upon the HBC/Marstek Battery Entities.
 
 - **Prices** in Helios Optimizer are **not correct**.
-  - Helios Dynamic Prices are based on the HBC Dynamic Prices (See entity 'sensor.hbc_energy_prices_data'). 
+  - Helios Dynamic Prices are **based on** the HBC Dynamic Prices (See entity 'sensor.hbc_energy_prices_data'). 
   <br>You **cannot expect** valid prices in Helios when you do **not** have a **working Dynamic Strategy** with **valid** prices in **cents/kWh**.
-  Make sure the price unit in HBC is cents/kWh since a source provider price factor will be ignored when retrieving the price from HBC.
-  <br>Use the 'Timed/Dynamic' tab in HBC with 'Insights mode' enabled and verify the prices in the table.
+  Make sure the price unit in HBC is **cents/kWh** since the HBC to Helios price factor cannot be changed!
+  - Use the 'Timed/Dynamic' tab in HBC with 'Insights mode' enabled and **verify** the **HBC prices** in the 'Price marks visualisation' Table.
+  - Use the 'Detailed Results' tab in Helios and **verify** the **Helios (import, export and market) prices** in the 'Optimal Energy Plan' Table.
   - Helios assumes as a default that the prices in HBC are **import** prices (including Energy Tax, VAT and provider Markup).
-  <br>You may have to change the Price Type in the advanced parameters section to **market** or **export** depending on the price in HBC.
+  <br>You may have to change the **Price Type** in the Advanced parameters section to select **market** or **export** depending on the prices available in HBC.
   - Helios assumes that the Data Provider and the Energy Provider are the same as the **HBC Data Source**.
-  <br>First try the default options and check out the resulting Helios prices.
-  <br>When the helios prices are not correct you may want to check other options:
+  <br>First try the **default** options and check out the resulting **Helios prices**.
+  <br>When the helios prices are **not correct** you may want to check other options:
     - When you have a data provider with market prices (without Tax, Vat and provider markups) you want to use 'Generic' as Data Provider
-    - Select your own provider or your country as energy provider
-    - Select 'Custom' as provider when your own provider or own country is not available in the list or when the prices are still wrong. In the near future each of the settings of the 'Custom' provider will be configurable on the Helios Dashboard or in a json settings file.
+    - Select your **own** **provider** or your **country** as the **energy** provider
+    - Select **'Custom'** as **energy** provider when your **own** **provider** or **country** is not available in the dropdown list or when the prices are still wrong. In the near future each of the settings of the 'Custom' provider will be configurable on the Helios Dashboard or in a json settings file.
   - Use the table below to find the right combination more quickly (start at the top):
 
 ![Provider Selection](ProviderSelection.jpeg)
