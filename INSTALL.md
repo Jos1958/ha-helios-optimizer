@@ -9,7 +9,8 @@
     <br>Helios retrieves the dynamic import prices from HBC and uses it to calculate the related market and export prices.
     <br>Only when a dynamic price strategy (Dynamic or Helios) is 'active' the HBC Price Data will be refreshed!
   - **Forecast.Solar** Integration Installation and Configuration for your Solar Panels
-    <br>WARNING: Currently ONLY Forecast.Solar is supported as a Solar Forecast!
+    <br>**WARNING**: Currently ONLY Forecast.Solar is supported as a Solar Forecast (Solcast support is expected soon)!
+    <br>For Forecast.Solar: Check that sensor.energy_production_today and sensor.energy_production_tomorrow contain valid values.
   - **File Editor** (or Samba) via HACS: to create folders and upload files
   - **PyScript** by @craigbarratt [installation via HACS](https://github.com/custom-components/pyscript) with **Imports** and **hass** access enabled:
     <br>**VERY IMPORTANT:** The Helios Optimizer PyScript Application **CANNOT** run without these options enabled!
@@ -50,6 +51,7 @@
   V      helios_prices.py              - Energy Price Parser Class (for HBC Price and Provider Price Data)
   !  [www]
   V    HeliosOptimizerBanner.jpeg      - banner picture for the Dashboard 
+  V    HeliosOptimizerBanner70.jpeg    - alternative banner picture for the Dashboard (70% height)
   -  [custom_components]               - Probably already exist for other Custom Components
   -    [helios_optimizer]              - This is for the future version as a Custom Component (not needed yet)
   !  [export]                          - This folder must exist for the output files of the optimizer!

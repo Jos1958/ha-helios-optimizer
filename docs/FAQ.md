@@ -4,6 +4,17 @@ Advanced Input and Output Sections are only visible when 'Helios Insights Mode' 
 You can enable this mode with a button at the top of the Helios Dashboard Tabs.
 HBC also has an "Insights Mode" for the same purpose but these modes are independent.
 
+## Helios Installation Problems
+Always check the detailed [Installation Guide](../INSTALL.md) when you are having problems with the simple installation in the [README](../README.md) file.
+- **Invalid Configuration** for the Dashboard
+<br>If you have created a **new** Helios Dashboard make sure the yaml starts with **views:**
+<br>If you have added the Helios yaml to the **HBC** Dashboard, make sure the Helios yaml part does **not** start with **views:**.
+The HBC Dashboard yaml should start with **views:** at the top of the configuration.
+<br>Indentation is very important for the yaml, make sure the indentation is exact as in the source of the yaml
+(Check on extra or missing spaces).
+- **Configuration Error** for the Dashboard
+<br>Make sure that all pre-requisites are installed 
+
 ## Strange Behaviour of the Strategy in Helios Optimizer
 - **Unexpected Selling/Discharging** of Energy from the Battery to the Grid
 <br>The Model follows the rules you have set for the Maximum State of Charge of the Battery very strict.
