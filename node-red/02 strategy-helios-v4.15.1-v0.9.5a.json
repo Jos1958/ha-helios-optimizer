@@ -1654,8 +1654,8 @@
         "type": "switch",
         "z": "7c7d18610e7fbc38",
         "g": "ca04767b3c1abf5f",
-        "name": "Has Helios strategy (not null/unknown)",
-        "property": "helios_strategy",
+        "name": "Has Helios Sub Strat (not null/unknown)",
+        "property": "helios_sub_strat",
         "propertyType": "flow",
         "rules": [
             {
@@ -1673,7 +1673,7 @@
         "checkall": "true",
         "repair": false,
         "outputs": 3,
-        "x": 510,
+        "x": 520,
         "y": 100,
         "wires": [
             [
@@ -2566,7 +2566,7 @@
         "enableGlobalContextStore": false
     },
     {
-        "id": "74972757d6913374",
+        "id": "48a1f50c0e2ee9eb",
         "type": "global-config",
         "env": [],
         "modules": {
