@@ -150,11 +150,12 @@ and can be **manually** started with the green **Start Helios** button.<br>
 
 ### Optimization Parameters
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
-  <br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
-  <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
-- **Max Grid Import:** Maximum Grid Import Power in kW
-  <br>Remark: A low maximum grid import (or export) level can make the energy plan infeasible since a power balance must always be maintained.
+- **Max Grid Import:** Maximum Grid Import Power in kW 
+  <br>This is the Import limit for your **fuse box** (all phases together) and not directly related to the battery limits.
+  <br>See [Fuse Box Limits](#fuse_box_limits) for common connections and their power capacity
+  <br>**Remark:** A low maximum grid import (or export) value can make the energy plan infeasible since a power balance must always be maintained.
 - **Max Grid Export:** Maximum Grid Export Power in kW
+  <br>This is the Export limit for your **fuse box** (all phases together) and not directly related to the battery limits.
 - **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
   <br>In the future the House Energy Usage will be retrieved from history data but at the moment you need to make an estimate for the average energy usage in the house. 
   <br>See the advanced parameters section if you want to change the distribution of the daily usage over the day.
@@ -173,31 +174,40 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>See [Solar Forecast Configuration](#solar-forecast-configuration) for more information.
 
 ### Advanced Parameters
-Enable Helios Insight Mode to make these advanced parameters visible.
+Enable the **'Helios Insight Mode'** to make these **advanced** parameters visible.
 - **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow)
+  <br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** 
+  (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
   <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
   Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
-- **Start Step:** Start the Optimization in the specified step (0..Steps). 
+- <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
+    **Start Step:** Start the Optimization in the specified step (0..Steps). 
   <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
   <br>All steps prior to the Start Step are **Skipped**. Therefore starting at the **current** time (by setting the start step to 0) is the logical choice to begin the optimization.
   <br>Other Start Step values are **only** to be used for (Regression) **Testing** or Simulation Runs of the Optimizer!
+
 - **House Daily Usage Distribution (24 Hours):** 
   <br>How is the energy usage spread over the day (an array of 24 values, 1 value for each hour of the day).
   <br>Each value represents only the relative energy usage for a specific hour during the day and not the exact energy usage.
   <br>If you specify 1 for the first hour (00:00-01:00) and 3 for the 7th hour (06:00-07:00) this only means that you are using 3x times more energy in the 7th hour.
   <br>Remark: The sum of the 24 numbers does not have to be the same as the daily usage.
+
 - **Price Type used in HBC:** Specify which Price Type is used for the **Tarif Data Source** in HBC.
   <br>Helios will derive the other prices from the **HBC Dynamic Price Data** and needs to now which Price Type is used in HBC.
   - **Import** Prices (**Default**): Price applicable for importing energy from the grid (ct/kWh) 
   - **Export** Prices: Price applicable for exporting energy from the grid (ct/kWh) 
   - **Market** Prices: Import and Export Prices are based on the Market Price which does not contain taxes, provider markup etc..
 - **Price Data Provider:** Specify which Source Provider has been used to retrieve the HBC Price Data.
-The default value will be the 'HBC Data Source' as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Source (Data) Provider.
+The default value will be the **'HBC Data Source'** as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Source (Data) Provider.
 - **Energy Provider (Contract):** Specify which Target Provider you want to use to calculated the prices for the Optimizer.
-The default value will be the 'HBC Data Source' as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Target (Energy) Provider.
+The default value will be the **'HBC Data Source'** as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Target (Energy) Provider.
 If you are using a Generic Data Provider in HBC (with marketing prices) then you **must** adapt the **Energy Provider** since otherwise
 you will have import and export prices without Energy Tax, VAT and Provider Markups. 
-Use the Custom Provider if your own provider is not available (default tax, vat and markups will be used for the Netherlands).
+Use your Country if your own provider is not available in the list.
+Use the Custom Provider if your own provider and country are not available or when the resulting prices are incorrect.
+In the near future the settings (energy tax, vat, markups and loss factors) of the Custom Provider will be customizable. 
+<br>See the [Frequenty Asked Questions](docs/FAQ.md) for a discussion about **Prices** in Helios Optimizer are **not correct**'.
+
 - **Net Metering (Saldering 2026):** By Enabling Net Metering the Export Prices will include Energy Tax (this is only sensible as long as the Net Metering is applicable in the Netherlands, obsolete starting 2027)
   
 ### Battery Parameters
@@ -401,6 +411,19 @@ The Helios Optimizer requires a Solar Forecast Array that matches the step size 
 If the forecast is only provided for today while you are optimizing a two-day horizon, the array will be automatically extended to two days by repeating the final day's data.
 Similarly, if the step size is incorrect (e.g., 60 minutes instead of 15 minutes), the array will be automatically resampled to match the step size.
 
+## Fuse Box Limits
+The maximum power capacity of your fuse box depends on your connection capacity (the number of phases and the amperage) 
+provided by your grid operator (such as Enexis, Liander, or Stedin).
+<br>You can roughly calculate the maximum capacity using the formula: Amperage × 230 Volts × number of phases.
+<br>Common connections and their power capacity:
+- 1-phase connection (230V):
+  - 1 × 25A: ±6 kW (5,750 Watts)
+  - 1 × 35A: ±8 kW
+  - 1 × 40A: ±9 kW
+- 3-phase connection (400V / 3×230V):
+  - 3 × 25A: ±17 kW (17,250 Watts – the most common 3-phase household connection)
+  - 3 × 35A: ±24 kW
+  
 ## Installation
 [Helios Optimizer - Installation](INSTALL.md)
 
