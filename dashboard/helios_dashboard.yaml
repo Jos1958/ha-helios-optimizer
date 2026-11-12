@@ -9,8 +9,13 @@ views:
       card:
         type: markdown
         content: |
-          ### Helios Controls Dashboard v0.9.3 for {{ user }} 
+          ### Helios Controls Dashboard v0.9.5 for {{ user }} 
            
+        visibility:
+          - condition: state
+            entity_id: input_boolean.helios_optimizer_debug_mode
+            state:
+              - 'on'
       badges_position: bottom
       badges_wrap: scroll
     badges:
@@ -27,7 +32,7 @@ views:
           action: navigate
           navigation_path: helios-results
         icon: mdi:shield-star-outline
-        text: Helios Detailed Results
+        text: Detailed Results
     sections:
       - type: grid
         column_span: 3
@@ -95,6 +100,17 @@ views:
                   --tile-color: {% if state_attr('input_number.helios_optimizer_energy_plan', 'success') == true %} green {% else %} red {% endif %} !important;
                 }
           - type: tile
+            entity: input_select.helios_optimizer_battery_strategy
+            name: Helios Strategy
+            icon: mdi:strategy
+            vertical: false
+            features_position: bottom
+          - type: tile
+            entity: input_select.helios_optimizer_hbc_sub_strategy
+            name: HBC Sub-Strat
+            vertical: false
+            features_position: bottom
+          - type: tile
             grid_options:
               columns: 12
               rows: 1
@@ -107,6 +123,21 @@ views:
               - last_service_begin
               - calc_exec_time_ms
               - solver_exec_time_ms
+            vertical: false
+            features_position: bottom
+          - type: tile
+            grid_options:
+              columns: 12
+              rows: auto
+            entity: input_number.helios_optimizer_energy_plan
+            name: Battery Cap, Start & End (kWh)
+            icon: mdi:battery-60
+            show_entity_picture: false
+            hide_state: false
+            state_content:
+              - capacity_kwh
+              - soc_start_kwh
+              - soc_end_kwh
             vertical: false
             features_position: bottom
           - type: tile
@@ -149,21 +180,6 @@ views:
             state_content:
               - end_step
               - end_time
-            vertical: false
-            features_position: bottom
-          - type: tile
-            grid_options:
-              columns: 12
-              rows: auto
-            entity: input_number.helios_optimizer_energy_plan
-            name: Battery Cap, Start & End (kWh)
-            icon: mdi:battery-60
-            show_entity_picture: false
-            hide_state: false
-            state_content:
-              - capacity_kwh
-              - soc_start_kwh
-              - soc_end_kwh
             vertical: false
             features_position: bottom
           - type: tile
@@ -219,9 +235,13 @@ views:
             content: >-
               <font color="grey"><i>The <b>Helios Optimizer</b> will typically
               run every <b>15 minutes</b> and can be <b>manually</b> started
-              with the <b>Start</b> button. <b>TIP:</b> Use the <b>links</b>
-              above the sections for <b>general</b> Documentation and a
-              description of <b>individual</b> parameters.</i></font>
+              with the <b>Start</b> button below. <b>TIP:</b> Use the
+              <b>links</b> above the <u>sections</u> for the <b>parameters</b>
+              description 
+
+              or use the [General
+              Documentation](https://jos1958.github.io/ha-helios-optimizer/) and
+              [FAQ](https://jos1958.github.io/ha-helios-optimizer/docs/FAQ.html).</i></font> 
             grid_options:
               columns: full
           - type: custom:button-card
@@ -353,8 +373,8 @@ views:
             content: >-
               <font color="grey"><i>The Model works <b>best</b> if you select a
               horizon of **2 days** (e.g. *48 x 60 min* or *192 x 15 min*). A
-              *shorter horizon* may give unexpected behaviour!</b>. Zero
-              DISABLES the Model.</i></font>
+              *shorter horizon* may give unexpected behaviour!</b>. Zero (0)
+              **DISABLES** the Model.</i></font>
           - type: entities
             entities:
               - entity: input_select.helios_optimizer_horizon
@@ -363,8 +383,8 @@ views:
             content: >-
               <font color="grey"><i> The advanced <b>settings</b> of the Helios
               Optimizer are only needed in special situations (e.g. Regression
-              Testing, Specific House Demand or Different Price Data and Energy
-              Provider).</i></font>
+              Testing, Specific House Demand, Different Price Data and Energy
+              Provider or Net Metering/Salderingsregeling 2026).</i></font>
           - type: entities
             entities:
               - entity: input_number.helios_optimizer_start_step
@@ -377,6 +397,8 @@ views:
                 name: Price Data Provider
               - entity: input_select.helios_optimizer_target_provider
                 name: Energy Provider (Contract)
+              - entity: input_boolean.helios_optimizer_net_metering_enabled
+                name: Net Metering (Saldering 2026)
       - type: grid
         column_span: 1
         background:
@@ -395,8 +417,10 @@ views:
             heading: Actuals for Current Step
           - type: markdown
             content: >-
-              <font color="grey"><i>The <b>information</b> below shows the power
-              values in the current step.
+              <font color="grey"><i>The <b>information</b> below shows the
+              **power** values in the **current** step. For more results
+              including the **Energy Plan** see the other Helios tab **'Detailed
+              Results'**.
 
               </i></font>
           - type: markdown
@@ -405,29 +429,24 @@ views:
               state_attr('input_number.helios_optimizer_energy_plan', 'current')
               -%}
 
-              {%- set key    =
-              state_attr('input_number.helios_optimizer_energy_plan',
-              'provider_key') %}
-
-              {%- set source =
-              state_attr('input_number.helios_optimizer_energy_plan',
-              'source_provider') %}
-
-              {%- set target =
-              state_attr('input_number.helios_optimizer_energy_plan',
-              'target_provider') %}
-
               {%- if c is defined and c is not none -%}
                 {%- set base  = state_attr('input_number.helios_optimizer_energy_plan', 'base_step') | default(None) -%}
                 {%- set step  = state_attr('input_number.helios_optimizer_energy_plan', 'active_step') | default(None) -%}
                 {%- set end   = state_attr('input_number.helios_optimizer_energy_plan', 'end_step') | default(None) -%}
                 {%- set start = state_attr('input_number.helios_optimizer_energy_plan', 'active_time') | default('')  -%}
+                {%- set main_provider   = state_attr('input_number.helios_optimizer_energy_plan', 'main_provider') %}
+                {%- set source_provider = state_attr('input_number.helios_optimizer_energy_plan', 'source_provider') %}
+                {%- set target_provider = state_attr('input_number.helios_optimizer_energy_plan', 'target_provider') %}
+                {%- set main_key   = state_attr('input_number.helios_optimizer_energy_plan', 'main_key') %}
+                {%- set source_key = state_attr('input_number.helios_optimizer_energy_plan', 'source_key') %}
+                {%- set target_key = state_attr('input_number.helios_optimizer_energy_plan', 'target_key') %}
+
                 🐾 **Steps** {{ base }}-{{ end }} **Active Step:** {{ step }}
                 🕰️ **Step Start Time:** {{ start }}
                 |Component | State | Power |
                 |:--- | :---: | :---: |
-                |💎 **Helios Strategy**   | **{{ c.battery_strategy }}**                                       | {{key   }} |
-                |♟️ **HBC Sub Strat**     | **{{ c.hbc_sub_strategy }}**                                       | {{target}} |
+                |💎 **Helios Strategy**   | **{{ c.battery_strategy }}**                                       | |
+                |♟️ **HBC Sub Strat**     | **{{ c.hbc_sub_strategy }}**                                       | | 
                 |🔋 **Net Battery**       | {{ '🔻 Discharge' if c.battery_net_power_w  < 0 else ('🔺 Charge' if c.battery_net_power_w > 0 else '⚪ Standby') }} | {{"%5.0f"| format(c.battery_net_power_w)}} W |
                 |🔌 **Grid Power**        | {{ '🟠 Export'    if c.grid_power_w         < 0 else ('🟢 Import' if c.grid_power_w        > 0 else '⚪ NOM'    ) }} | {{"%5.0f"| format(c.grid_power_w       )}} W |
                 |☀️ **Solar Production**  | {{ '🟡 Active'    if c.solar_production_w   > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.solar_production_w )}} W |
@@ -437,6 +456,10 @@ views:
                 |🔸 **Discharge Limit**   | {{ '🟤 Active'    if c.max_discharge_w      > 0 else '⚪ Disabled'}} | {{"%5.0f"| format(c.max_discharge_w    )}} W |
                 |🔸 **Max Grid Import**   | {{ '🟤 Active'    if c.max_grid_import_w    > 0 else '⚪ Off-Grid'}} | {{"%5.0f"| format(c.max_grid_import_w  )}} W |
                 |🔸 **Max Grid Export**   | {{ '🟤 Active'    if c.max_grid_export_w    > 0 else '⚪ Disabled'}} | {{"%5.0f"| format(c.max_grid_export_w  )}} W |
+                |🗼 **Providers:**        | | |
+                |🗼 **Main Provider**     | {{ main_provider   }}  | {{ main_key   }} |
+                |🗼 **Source Provider**   | {{ source_provider }}  | {{ source_key }} |
+                |🗼 **Target Provider**   | {{ target_provider }}  | {{ target_key }} |
                {%- elif false -%}  
                 |⚡ **Battery Power**     | {{ '⚡ Active'    if c.battery_power_w      > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.battery_power_w    )}} W |
                 |🔺 **Charge Power**      | {{ '🔵 Active'    if c.battery_charge_w     > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.battery_charge_w   )}} W |
@@ -600,7 +623,12 @@ views:
       card:
         type: markdown
         content: |
-          ### Helios Detailed Results Dashboard v0.9.3 for {{ user }}
+          ### Helios Detailed Results Dashboard v0.9.5 for {{ user }}
+        visibility:
+          - condition: state
+            entity_id: input_boolean.helios_optimizer_debug_mode
+            state:
+              - 'on'
       badges_position: bottom
       badges_wrap: scroll
     badges:
@@ -611,7 +639,7 @@ views:
         entity: input_boolean.helios_optimizer_debug_mode
         tap_action:
           action: toggle
-        name: Insights mode
+        name: Helios Insights Mode
       - type: shortcut
         tap_action:
           action: navigate
@@ -624,7 +652,7 @@ views:
         cards:
           - type: picture
             image:
-              media_content_id: /local/HeliosOptimizerBanner.jpeg
+              media_content_id: /local/HeliosOptimizerBanner70.jpeg
               media_content_type: ''
               metadata:
                 navigateIds:
@@ -660,6 +688,7 @@ views:
             span:
               start: day
             graph_span: 48h
+            update_interval: 5s
             now:
               show: true
               color: '#009ac7'
@@ -968,7 +997,7 @@ views:
                     - padding: 2px
                     - border-radius: 4px
               - type: custom:button-card
-                name: Disabled
+                name: Standby
                 color_type: card
                 styles:
                   card:
@@ -1102,6 +1131,7 @@ views:
             span:
               start: day
             graph_span: 48h
+            update_interval: 5s
             now:
               show: true
               color: '#009ac7'
@@ -1433,14 +1463,15 @@ views:
                 | **Helios Version**    | {{ a.get('version')     }} |
                 | **SciPy Version**     | {{ a.get('scipy')       }} |
                 | **Price Type**        | {{ a.get('price_type')  }} |
-                | **Source Provider**   | {{ a.get('source_provider'     ) }} |
-                | **Target Provider**   | {{ a.get('target_provider'     ) }} |
-                | **Run Started**       | {{ a.get('last_run_started'    ) }} | 
-                | **Run Stopped**       | {{ a.get('last_run_stopped'    ) }} |
-                | **Run Time** (ms)     | {{ a.get('service_calc_time_ms') }} |  
-                | **Solver Time** (ms)  | {{ a.get('solver_execution_time_ms') }} |
-                | **Solver Iterations** | {{ a.get('solver_iterations')        }} |
-                | **Solver Message**    | {{ a.get('solver_message')           }} |
+                | **Source Provider**   | {{ a.get('source_provider'      ) }} |
+                | **Target Provider**   | {{ a.get('target_provider'      ) }} |
+                | **Service Begin**         | {{ a.get('last_service_begin'     ) }} | 
+                | **Service Computed**      | {{ a.get('last_service_computed'  ) }} |
+                | **Service Time excl HA Update** (ms)     | {{ a.get('service_compute_time_ms') }} |  
+                | **Optimizer Time** (ms)   | {{ a.get('calc_exec_time_ms'   ) }} |  
+                | **Solver Time** (ms)  | {{ a.get('solver_exec_time_ms') }} |
+                | **Solver Iterations** | {{ a.get('solver_iterations')   }} |
+                | **Solver Message**    | {{ a.get('solver_message'   )   }} |
 
               {% if a.get('error_trace') or a.get('performance_ms') %}
                 **Debug Information:**

@@ -81,10 +81,12 @@ RC_SUCCESS                 = 0  # The HiGHS solver found a feasible solution
 RC_INFEASIBLE              = 1  # The HiGHS solver could not find a feasible solution within the specified boundaries and rules
 RC_INVALID_COST            = 2  # Cost validation failed (fun cost output is checked and not valid, e.g. total cost != sum of step cost)
 RC_INVALID_BALANCE         = 3  # Balance validation failed (overall sum of the energy balance is checked and not valid, e.g. overall balance != 0)
-RC_VALIDATION_FAILED       = 6  # Cost Validation Exception (during invalid cost check an exception occured)
-RC_OPTIMIZER_EXCEPTION     = 7  # helios_optimizer_calc_plan() Exception
-RC_SERVICE_EXCEPTION       = 8  # helios_optimizer_service() Exception in the call to helios_optimizer_calc_plan()
-RC_SETSTATE_EXCEPTION      = 9  # helios_optimizer_service() Exception in the call to HA state.set() 
+RC_VALIDATION_FAILED       = 5  # Cost Validation Exception (during invalid cost check an exception occured)
+RC_OPTIMIZER_EXCEPTION     = 6  # helios_optimizer_calc_plan() Exception
+RC_SERVICE_EXCEPTION       = 7  # helios_optimizer_service() Exception in the call to helios_optimizer_calc_plan()
+RC_SETSTATE_EXCEPTION      = 8  # helios_optimizer_service() Exception in the call to HA state.set() 
+RC_TASK_EXCEPTION          = 9  # helios_optimizer_hbc_task() Exception in retrieving of input parameters from HA
+RC_IMPORTS_FAILED          =10  # helios_optimizer_hbc_task() and/or helios_optimizer_service() failed since Imports are not enabled for PyScript
 
 INSIGHT_STD         = 9         # Default Insight Level (0=No Calculation, 1=Optimize, 5=Create Plan Arrays, 9=Maximum Info)
 INSIGHT_OFF         = 0         # No Calculation

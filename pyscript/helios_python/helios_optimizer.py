@@ -45,6 +45,8 @@
 #   2026-10-28: JR  v0.93  First public release with HBC Output (works together with Helios Strategy in HBC)
 #   2026-10-28: JR  v0.93a Added Test on solar_energy_forecast (not None) before convert the forecast to floats (like for the prices)
 #   2026-10-29: JR  v0.93a For Solar Enabled a Solar Energy Forecast must be available, raise an error when not available (optimizer stops)
+#   2026-11-07: JR  v0.94c Improved error handling for installation (pyscript import and hass)
+#   2026-11-08: JR  v0.94c Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026)
 #
 #   Remark: For the full helios history see helios_main.py
 #   
@@ -76,7 +78,7 @@ except ImportError: # Mock Logger not found (hopefully we are running in Home As
 from helios_python.helios_common import * # Import the Pure Python Helios Common Functions    (used also by the Helios Main)
 from helios_python.helios_prices import * # Import the Pure Python Helios Energy Price Parser (used also by the Helios Main)
 
-HELIOS_VERSION      = "0.9.4"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
+HELIOS_VERSION      = "0.9.5"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
 HELIOS_CALC_NAME    = "Helios Optimizer Calc Plan"
 MINUTES_PER_HOUR    = 60.0      # Conversion factor (float) from hours to minutes
 SECONDS_PER_MIN     = 60.0      # Conversion factor (float) from minutes to seconds
@@ -143,38 +145,41 @@ MAX_DELTA_BALANCE   = 0.02      # Allow a difference in sum of balance variables
 POWER_100W = 0.1 # Significant Margin for Power (100 W = 0.1 kWh )
 PCT_0_1    = 0.1 # Significant Percentage       (0.1 %)
 HELIOS_STR_UNK  = 'Unknown'      # No Strategy determined yet 
-HELIOS_STR_SKIP = 'Skipped'      # No Strategy applicable since step in the past
-HELIOS_STR_SELL = 'Sell'         # Sell for a profit
+HELIOS_STR_SKIP = 'Skipped'      # No Strategy applicable for steps in the past (not used as current strategy)
+HELIOS_STR_SELL = 'Sell'         # Sell for a profit (Discharges the Battery) at high price
+HELIOS_STR_BUY  = 'Buy'          # Buy for a profit  (Charges    the Battery) at low  price
 HELIOS_STR_DIS  = 'Discharge'    # Discharge (when battery SOC is above Maximum)
-HELIOS_STR_BUY  = 'Buy'          # Buy for low prices
 HELIOS_STR_CHG  = 'Charge'       # Charge    (when battery SOC is below Minimum) 
-HELIOS_STR_SOL  = 'Charge Solar' # Charge with Solar only (No Grid / Buy)
-HELIOS_STR_NOM  = 'NOM'          # Prevent Import and Export by Discharging or Charging the Battery
+HELIOS_STR_SOL  = 'Charge Solar' # Charge with Solar only (No charging from Grid)
+HELIOS_STR_NOM  = 'NOM'          # Prevent Import and Export by Discharging or Charging the Battery (Self Consumption)
 HELIOS_STR_NOMC = 'NOM-C'        # Zero Export, No Discharge of Battery (Battery Empty)
 HELIOS_STR_NOMD = 'NOM-D'        # Zero Import, No Charge of Battery    (Battery Full )
-HELIOS_STR_OFF  = 'Disabled'     # No Activity (Standby, peak shaving may be applicable)
+HELIOS_STR_OFF  = 'Standby'      # No Activity (Standby, peak shaving may be applicable)
+HELIOS_STR_STOP = 'Stop'         # Stop the Battery (No Charge, Discharge or Peak Shave) - Currently not used by Helios
 
 HBC_SS_UNK  = 'Unknown'          # For Helios Unknown
-HBC_SS_SKIP = 'Skipped'          # For Helios Skipped
+HBC_SS_SKIP = 'Skipped'          # For Helios Skipped (should not occur in the current step) 
 HBC_SS_SELL = 'Sell'             # For Helios Sell and Discharge
 HBC_SS_BUY  = 'Charge'           # For Helios Buy  and Charge
-HBC_SS_SOL  = 'Charge PV'        # For Helios Charge Solar
+HBC_SS_SOL  = 'Charge PV'        # For Helios Charge Solar or NOM-C (Zero Export)
 HBC_SS_NOM  = 'Self-consumption' # For Helios NOM
 HBC_SS_NOMD = 'Zero import'      # For Helios NOM-D 
-HBC_SS_SBY  = 'Standby / peak shave' # For Helios Disabled and NOM-C (Zero Export)
+HBC_SS_SBY  = 'Standby / peak shave' # For Helios Standby 
+HBC_SS_FS   = 'Full stop'        # For Helios Stop                                
 
 CONVERT_STRATEGY = {
     HELIOS_STR_UNK : HBC_SS_UNK , 
     HELIOS_STR_SKIP: HBC_SS_SKIP,
     HELIOS_STR_SELL: HBC_SS_SELL,
-    HELIOS_STR_DIS : HBC_SS_SELL, 
     HELIOS_STR_BUY : HBC_SS_BUY ,
+    HELIOS_STR_DIS : HBC_SS_SELL, 
     HELIOS_STR_CHG : HBC_SS_BUY ,  
     HELIOS_STR_SOL : HBC_SS_SOL ,
     HELIOS_STR_NOM : HBC_SS_NOM ,
     HELIOS_STR_NOMC: HBC_SS_SOL , # No HBC Zero Export exists but Charge PV is simular
     HELIOS_STR_NOMD: HBC_SS_NOMD,
-    HELIOS_STR_OFF : HBC_SS_SBY
+    HELIOS_STR_OFF : HBC_SS_SBY , # Standby but peak shaving is allowed
+    HELIOS_STR_STOP: HBC_SS_FS  , # Disable all Battery Activity (including Peak Shaving) - Not used in the Optimizer yet)
 }
 
 # Helios Optimizer Calculate Plan with a return response 
@@ -196,11 +201,12 @@ def helios_optimizer_calc_plan(
     house_daily_usage_kwh=None,  # Optional House Daily Usage (kWh) as a total value, alternative for house forecast array, will be spread over the day using house_daily_distr
     house_daily_distr=None,      # Optional House Daily Distribution over the Day as a list of 24 values (kWh) for each hour of the day (Remark: This field can be a list but also a string with a list of values)
 
-    provider_key=None,           # Provider Key for the Source Price Data (e.g. "hbc_marks" for HBC Energy Prices, "frank_energie" for Frank Energie Import Prices, etc)
+    main_provider=None,          # Main Provider Key for the Source Price Data (e.g. "hbc_marks" for HBC Energy Prices, "frank_energie" for Frank Energie Import Prices, etc)
     price_type=None,             # Source (Price) Type (Market, Import or Export) for Source Price Data, removed see Provider Profiles
     source_provider=None,        # Source (Energy) Provider Key (Only applicable when the Source Price Provider is not the same as the provider_key) 
     target_provider=None,        # Target (Energy) Provider Key (Only applicable when the Target Price Provider is not the same as the provider_key) 
     source_price_sensor=None,    # Source Price Sensor (Entity Id) (Info Only, since the Source Price Data is already retrieved from HA in the service) - Used by the Helios Service but not in Calculate Plan Function
+    net_metering_enabled=False,  # Optional Net Metering Enabled (True/False) - Salderingsregeling Enabled (only for 2026, includes Energy Tax in Export Price)
 
     # Solver limitations, Debug and Testing arguments:
     max_time=None,               # Maximum time in seconds for the HiGHS Solver
@@ -258,6 +264,8 @@ def helios_optimizer_calc_plan(
     if (insight            == None): insight            = INSIGHT_STD
 
     try:
+#       _LOGGER.error(f"Net metering enabled3={net_metering_enabled}")
+
         # ------------------------ PHASE ZERO A ----------------------------#
         # 0a. INITIALIZE ALL VARIABLES and ARRAYS                           #    
         # ------------------------------------------------------------------#      
@@ -286,7 +294,7 @@ def helios_optimizer_calc_plan(
 
         # Initialize the indexes and enable/mode variables:
         T, start_index, base_index, active_index, end_index, base_ts, active_ts = 0, 0, 0, 0, 0, None, None # No number of steps, start/active/end index and base timestamp available yet (assume length of 0, start at 1, optimize/base at None)
-        solar_enabled, bat_enabled, ev_enabled, hp_enabled, boiler_enabled, solar_mode = None, None, None, None, None, None
+        solar_enabled, bat_enabled, ev_enabled, hp_enabled, boiler_enabled, solar_mode, solar_forecast_source = None, None, None, None, None, None, None
 
         # Initialize the Strategy, Power (kW) and Sum values for the active step (used later in the Current dictionary in the payload so init in case an exception occurs)
         active_strategy, active_hbc_sub_strat = HELIOS_STR_UNK, HBC_SS_UNK # No Strategies available yet 
@@ -298,7 +306,7 @@ def helios_optimizer_calc_plan(
 
         # Initialize the (Output) Plan Arrays (used later in the Plan dictionary in the payload so init in case an exception occurs):
 #       import_prices, export_prices, house_energy_forecast, # input arrays (DO NOT initialize!)
-        processed_price_data = None # Not yet applicable
+        processed_price_data, main_key, source_key, target_key = None, None, None, None # Not yet applicable
         solar_energy_forecast = None # Solar Energy is an Input array but inside solar dictionary so needs to be initialized
         timestamps , strategy_plan, hbc_sub_strat_plan = [], [], [] # Timestamps array for the optimization steps (length of 0 indicates that no optimization has been performed)) and Strategy Plan array
         house_for_plan, house_usg_plan, solar_for_plan, solar_prod_plan, grid_imp_plan, grid_exp_plan = [], [], [], [], [], []
@@ -374,7 +382,8 @@ def helios_optimizer_calc_plan(
             config_override = {}
             if source_provider: config_override["source_provider"] = source_provider # Override the source provider key but only when specified (source_provider can also be specified in the profile)
             if target_provider: config_override["target_provider"] = target_provider # Override the target provider key but only when specified (target_provider can also be specified in the profile)
-            energy_price_parser = HeliosEnergyPriceParser(provider_key=provider_key, config_override=config_override, target_tz=optimize_off_min) # Default Max Fallback Days is 1, Target timezone from now (+60 or 120min in NL) 
+            energy_price_parser = HeliosEnergyPriceParser(main_provider=main_provider, config_override=config_override, target_tz=optimize_off_min, target_export_tax=net_metering_enabled) # Default Max Fallback Days is 1, Target timezone from now (+60 or 120min in NL) 
+            main_key, source_key, target_key = energy_price_parser.base_key, energy_price_parser.source_key, energy_price_parser.target_key, 
             processed_price_data = energy_price_parser.get_day_prices(price_data=source_price_data, price_type=price_type, target_step_size=step_size, lookup_ts=optimize_ts) # Get Energy Prices (Market, Import and Export) for the Optimize Day(s)
 
         if import_prices is None and (processed_price_data != None) and (len(processed_price_data) > 0): # No Import Price Array specified but Source Price Parsing succeeded?
@@ -458,9 +467,11 @@ def helios_optimizer_calc_plan(
         t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, '1b-Ext') # Phase 1b time in msec
 
         if (solar_enabled):
-            solar_mode     = solar.get("mode", SOLAR_ALL).lower() if solar_enabled else "disabled" # Mode: all (default, no dimming or switch), modulating (dimming), binary (on/off)
-            solar_mode     = solar_mode if (solar_mode in [SOLAR_ALL, SOLAR_MOD, SOLAR_BIN]) else SOLAR_ALL if solar_enabled else SOLAR_DIS # prevent invalid solar modes
-            if (solar_energy_forecast == None):
+            solar_mode = solar.get("mode", SOLAR_ALL).lower() if solar_enabled else "disabled" # Mode: all (default, no dimming or switch), modulating (dimming), binary (on/off)
+            solar_mode = solar_mode if (solar_mode in [SOLAR_ALL, SOLAR_MOD, SOLAR_BIN]) else SOLAR_ALL if solar_enabled else SOLAR_DIS # prevent invalid solar modes
+            solar_forecast_source = solar.get("forecast_source", "Not Specified")
+            if (solar_energy_forecast == None): # Solar Energy Forecast Array NOT available
+                solar_forecast_source = solar.get("forecast_source", "No Forecast Available!")
                 raise ValueError("Solar is enabled but the Solar Energy Forecast is not available (empty)!")
         
         # JR2026-09-11: Conversion from Solar and House Energy Forecasts to Power Forecasts,
@@ -941,7 +952,7 @@ def helios_optimizer_calc_plan(
 #                       strat = 'NOM' # Self Consumption
 #                       hbc_sub_strat = 'Self-consumption'
 #                   else: # No Significant Battery Activity (both Charge and Discharge are small), Battery can be empty or full but could also be cheaper to do nothing
-#                       strat = 'Disabled' # User may decide: Self Consumption, Zero Import, Standby
+#                       strat = 'Standby' ser may decide: Self Consumption, Zero Import, Standby
 ##                      hbc_sub_strat = 'Self-consumption'
 #                       hbc_sub_strat = 'Standby / peak shave'
 ##                      hbc_sub_strat = 'Zero import'
@@ -978,7 +989,7 @@ def helios_optimizer_calc_plan(
                         elif battery_high and (net_grid_kw < 0): # Grid Export due to high Battery?
                             strat = HELIOS_STR_NOMD # Only Discharge for Zero Import (Charge is not possible for full battery) (hbc: 'Zero import')
                         else: # Grid Import or Export due to decision by the Optimizer to disable the battery for cost reasons (not for full or empty battery)!
-                            strat = HELIOS_STR_OFF # Disabled Battery, Assume cost are lower when Grid is used instead of Battery (hbc: 'Standby / peak shave')
+                            strat = HELIOS_STR_OFF # Standby Battery, Assume cost are lower when Grid is used instead of Battery (hbc: 'Standby / peak shave')
 
                     # No Battery and Grid Activity:
                     else: # No Significant Activity at All (both Net Grid and Net Battery are (almost) zero), Assume NOM is the strategy
@@ -1142,7 +1153,7 @@ def helios_optimizer_calc_plan(
         calc_result, calc_code = "Optimizer Exception", RC_OPTIMIZER_EXCEPTION
         _LOGGER.error(f"\n[{HELIOS_CALC_NAME}] Exception: {error_message}")
         _LOGGER.error(f"Full Exception Message for [{HELIOS_CALC_NAME}]:")
-        _LOGGER.error(error_stack)        
+        _LOGGER.error(error_stack + "\n")        
     
     t_current, t_start, phase_ms, total_ms = performance_count(t_current, t_start, 8) # Phase 8 time in msec
 
@@ -1187,6 +1198,7 @@ def helios_optimizer_calc_plan(
         "end_time"        : datetime_string(end_ts     ) if (end_ts      != None) else None, # Start of Last Interval   (YYYY-MM-DD HH:MM)
 
         "solar_mode"      : solar_mode, # Values: "all", "modulating", "binary", "disabled" (solar not enabled)
+        "solar_forecast_source": solar_forecast_source, # Info only (Description of the Source of the Solar Forecast array)
 
         "battery_mode"    : "enabled" if bat_enabled else "disabled",
         "capacity_kwh"    : round(capacity_kwh  , ROUND_ENERGY_KWH) if bat_enabled else 0.0,
@@ -1235,10 +1247,13 @@ def helios_optimizer_calc_plan(
         "python_info"             : PYTHON_INFO    if (insight >= INSIGHT_MAX) else None,
         "scipy"                   : SCIPY_VERSION,
         "source_price_sensor"     : source_price_sensor, # Source Price Sensor (used to retrieve the Price Data)
-        "provider_key"            : provider_key,        # Main Provider Key for parsing the Price Data
         "price_type"              : price_type,          # Price Type of the Price Data Source
+        "main_provider"           : main_provider,       # Main Provider Key for parsing the Price Data
         "source_provider"         : source_provider,     # Price/Tariff Data Provider
         "target_provider"         : target_provider,     # Energy Provider
+        "main_key"                : main_key,            # Main Provider Key as found in the Provider Profiels 
+        "source_key"              : source_key,          # Source Provider Key as found in the Provider Profiels (only when source profile applicable)
+        "target_key"              : target_key,          # Target Provider Key as found in the Provider Profiels (only when target profile applicable)
 
         "now_ts"                  : datetime_isoformat_msec(now_ts) if (now_ts != None) else None, # Now (=last_service_begin) as provided in the call by the Helios Service
         "now_tz"                  : str(now_tz), # Now Related Timezone String
@@ -1246,12 +1261,12 @@ def helios_optimizer_calc_plan(
         "last_service_begin"      : None, # Begin of the Service will be set by the Service itself
         "last_calc_started"       : datetime_isoformat_msec(start_ts) if (start_ts != None) else None, # Start of the Calculation (YYYY:MM:DD HH:MM:SS:TTT)
         "last_calc_stopped"       : datetime_isoformat_msec(stop_ts ) if (stop_ts  != None) else None, # End   of the Calculation (YYYY:MM:DD HH:MM:SS:TTT)
-        "last_service_computed"   : None, # Plan Computed        will be set by the Service itself
-        "last_service_end"        : None, # End of the Service   will be set by the Service itself
+        "last_service_computed"   : None, # Plan Computed        will be set by the Service itself (saved     in the Energy Plan in the HA Entity) 
+        "last_service_end"        : None, # End of the Service   will be set by the Service itself (not saved in the Energy Plan in the HA Entity)
 
-        "service_total_time_ms"   : None, # Service     Total     time is set in the helios_optimizer_service function (helios_services.py), Total Service Time including Entity Update
-        "service_compute_time_ms" : None, # Service     Compute   time is set in the helios_optimizer_service function (helios_services.py), Total Service Time without   Entity Update
         "calc_exec_time_ms"       : None, # Calculation Execution time (will be set at the end of the helios_optimizer calculate plan function)
+        "service_compute_time_ms" : None, # Service     Compute   time is set in the helios_optimizer_service function (helios_services.py), Total Service Time without   Entity Update (saved     in the Energy Plan in the HA Entity)
+        "service_total_time_ms"   : None, # Service     Total     time is set in the helios_optimizer_service function (helios_services.py), Total Service Time including Entity Update (not saved in the Energy Plan in the HA Entity)
 
         "solver_exec_time_ms"     : exec_time  if (exec_time != None) else 0,
         "solver_iterations"       : res.nit     if (res != None) and (res.nit != None      ) else 0,

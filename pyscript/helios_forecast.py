@@ -9,6 +9,9 @@
 #   2026-10-16: JR: v0.92a Create the Helios Solar Forecast parser
 #   2026-10-19: JR  v0.92b Added Helios Forecast which calls the forecast_solar.get_forecast services to retrieve the forecast solar hours (not available in an entity of the forecast.solar integration), config entry retrieved from hass
 #   2026-10-28: JR  v0.93  First public release with HBC Output (works together with Helios Strategy in HBC)
+#   2026-11-04: JR  v0.94b Disabled the resolution="hourly" option of the get_forecast service of Forecast.solar since it is giving some weird results in the last hour of sun (combining two hours)
+#   2026-11-05: JR  v0.94b Support for 15-min and 60-min forecasts in Forecast.Solar, so disabling the "hourly" option should not be a problem
+#   2026-11-06: JR  v0.94b Improved error handling for Forecast.Solar (helios_forecast.py)
 
 import sys  # For sys.path.append() to add the Home Assistant /config/pyscript folder to the path to allow /config/pyscript/helios_python to be found !!!
 from datetime    import datetime, timedelta, time, timezone
@@ -31,7 +34,7 @@ except ImportError: # Mock Logger not found (hopefully we are running in Home As
 #   pass  # In Home Assistant no mock is needed since service/state/log etc already exist globally!
 
     try: # Use Home Assistant Datetime for Price and Forecast Lookups
-        import homeassistant.util.dt as dt_util # Get the HA Datetime Utility (especially important for container environments)
+        import homeassistant.util.dt as dt_util # pyright: ignore[reportMissingImports] # Get the HA Datetime Utility (especially important for container environments)
     except:
         pass # use OS datetime 
     
@@ -56,20 +59,32 @@ from helios_python.helios_common import * # Import the Pure Python Helios Common
 @service(supports_response="optional")
 def helios_optimizer_retrieve_forecast_solar_hours(
     now_ts_str: str         = None               , # Timestamp to select the solar forecast data (Use default is None to retrieve data for today and tomorrow)
-    solar_config_entry: str = FORECAST_SOLAR_NAME, # Forecast Solar Name (needed to retrieve the Config Entry Id)
+    config_entry_name: str  = FORECAST_SOLAR_NAME, # Forecast Solar Name (needed to retrieve the Config Entry Id)
+    config_entry_id         = None               , # Forecast Solar Entry Id (when already an Entry Id is available)
     return_response         = None               , # Return a result (Must be a dictionary!)
 ):
-    config_entry_id, response, error_msg = None, None, None
-    forecast_response = {"result": {"hours_kwh": [], "start" : None, "end": None, "interval": None, "days_kw": {}, "days_kwh": {}, "message": None} }
+    response, error_msg, success_msg, total_today_kwh = None, None, None, 0.0
+    forecast_response = {"result": {"hours_kwh": [], "start" : None, "end": None, "interval": None, "days_kw": {}, "days_kwh": {}}, "message": None }
+
+    # Determine which dates to use for today and tomorrow (using the Home Assistant Date Utility or regular datetime when in Visual Studio):
+    if now_ts_str is None: # No specific date specified
+        if dt_util is None: # Not in Home Assistant?
+            today = datetime.now() # Regular Now
+        else: # Home Assistant Environment?
+            today = dt_util.now() # Home Assistant Now (Important for container environments)
+    else:
+        today = datetime.fromisoformat(now_ts_str)
+    today = today.replace(tzinfo=None)   
+    tomorrow = today + timedelta(days=1)
 
     # The Service (forecast_solar.get_forecast) requires an Config Entry Id
     # We retrieve it from the hass config entries for the forecast_solar entry name and take the first one 
     # This will then be using the Forecast.Solar configuration with Declination, Azimut and Total Peakpower of the solarpanels (as configured in HA Forecast.Solar)
-    if not config_entry_id:
-        entries = hass.config_entries.async_entries(FORECAST_SOLAR_NAME)   
+    if not config_entry_id: # Not already a Config Entry Id?
+        entries = hass.config_entries.async_entries(config_entry_name)   
         if entries and (len(entries) > 0):
             config_entry_id = entries[0].entry_id
-        log.info(f"Found {len(entries)} Forecast.Solar Config Entry ID: {config_entry_id}")
+        log.info(f"Found {len(entries)} Forecast.Solar Config Entry ID: '{config_entry_id}'") # Config Entry Found!
 
 #   if not config_entry_id:
 #       # DID NOT WORK !!!!!!
@@ -97,72 +112,67 @@ def helios_optimizer_retrieve_forecast_solar_hours(
 #           config_entry_id = attributes.get("config_entry_id")  
 
     if not config_entry_id: # No Config Entry ID found?
-        error_msg = f"No active Forecast.Solar Config Entry ID found in Home Assistant for {FORECAST_SOLAR_NAME}!" 
+        error_msg = f"No active Forecast.Solar Config Entry ID found in Home Assistant for '{config_entry_name}'!" 
     
     else: # Config Entry Found for Forecast Solar:
         # Call the Solar Forecast Service with the dynamically found Config Entry ID:
-        response = forecast_solar.get_forecast(
-            config_entry=config_entry_id,
-            resolution="hourly", # Return hourly data (removes sunrise and sunset times, combines sunset with previous hour)
-    #       resolution="raw"   , # Free account only has hourly but a paid account could return 15-min so we ask specically for hour resolution
-    #       start="2026-10-13 00:00:00", # Default is today and tomorrow!
-    #       end="2026-10-15 00:00:00",
-            return_response=True,
-        )
+        try:
+            response = forecast_solar.get_forecast(
+                config_entry=config_entry_id,
+        #       resolution="hourly", # Return hourly data (removes sunrise and sunset times, for hourly resolution: Sunset is COMBINED with the previous hour which gives a strange drop of power in the next hour!)
+        #       resolution="raw"   , # Free account only has hourly but a paid account could return 15-min so we ask specically for hour resolution
+        #       start="2026-10-13 00:00:00", # Default is today and tomorrow!
+        #       end="2026-10-15 00:00:00",
+                return_response=True,
+            )
 
-        # Determine which dates to use for today and tomorrow:
-        if now_ts_str is None: # No specific date specified
-            if dt_util is None: # Not in Home Assistant?
-                today = datetime.now() # Regular Now
-            else: # Home Assistant Environment?
-                today = dt_util.now() # Home Assistant Now (Important for container environments)
-        else:
-            today = datetime.fromisoformat(now_ts_str)
-        today = today.replace(tzinfo=None)   
-        tomorrow = today + timedelta(days=1)
-
-        # Parse the response from forecast.solar:
-        # The Solar Forecast response only contains hours with sun
-        # The Solar Forecast REST API returns the first slot starting at sunrise (e.g. 08:19 instead of 08:00) for sun between 08:00-08:19, usually 0, next slot is 09:00 for sun between 08:19-09:00
-        # The Solar Forecast REST API returns the last slot starting at sunset   (e.g. 18:29 instead of 19:00) for sun between 18:00-19:00
-        # WARNING: In mode "hourly" the sunrise hour is changed to the start of the hour (e.g. from 08:19 to 08:00) and the sunset hour is combined with the previous hour (e.g. 18:00 and 18:29 are now both in 18:00)
-        found_today, found_tomorrow, total_today_wh, total_tomorrow_wh = False, False, 0.0, 0.0
-        forecasts_watt_hour = {}
-        if response != None and isinstance(response, dict): # response is valid?
-            response = response.get('wh_period', None) # Limit the response to the Watt Hours per Hour
-            if response != None and isinstance(response, dict): # wh_period is valid?
-                try:
-                    ts_keys, dt_prev_period = list(response.keys()), None
-                    if len(ts_keys) >= 3: # Enough forecast periods to determine the step size
-                        step_size = int((datetime.fromisoformat(ts_keys[2]) - datetime.fromisoformat(ts_keys[1])).total_seconds() / 60) # Step Size in Minutes (comparing the 3rd and 2nd timestamp in the forecast)
-                    else: # Should not happen but assume default of 60 min as step size
-                        step_size = 60
-                    for ts_str in ts_keys: # For each timestamp_str of the forecast keys
-                        dt = datetime.fromisoformat(ts_str) # Get the datetime for the key (which is the datetime END of the period)
-                        dt = dt.replace(tzinfo=None) # Remove the timezone
-                        base_dt = dt.replace(hour=0, minute=0, second=0, microsecond=0) # Start of the day
-                        dt_index = int((dt - base_dt).total_seconds() / 60) // step_size - 1 # Determine the index of the period in the day (from the timestamp at the end of the period)
-                        dt_period = base_dt + timedelta(minutes=dt_index * step_size) # Determine the start of the period for the dt (dt - step_size, adapted for sunset and sunrise periods)
-                        if (dt_period == dt_prev_period): # for sunset the period start is the same as the previous period
-                            dt_period = dt_period + timedelta(minutes=step_size) # Add an additional period for sunset (e.g. sunset at 18:29 and step size is 60min then next period start is 19:00)
-                        forecast_wh = float(response.get(ts_str, None)) # Convert the forecast (wh) into a float
-                        if dt.date() == today.date(): # Is this a forecast for today? 
-                            found_today = True 
-                            total_today_wh += forecast_wh # Add to the today total (wh)
-                        elif dt.date() == tomorrow.date(): # Is this a forecast for tomorrow? 
-                            found_tomorrow = True 
-                            total_tomorrow_wh += forecast_wh # Add to the tomorrow total (wh)
-                        forecasts_watt_hour[dt_period] = forecast_wh
-                        dt_prev_period = dt_period
-        #               print(f"Price {dt}: {forecasts_watt_hour[dt]}")
-                except Exception as e: # Exception (e.g. invalid date or float)
-                    error_msg = f"Parsing of data from Forecast.Solar failed {repr(e)}!" 
+            # Parse the response from forecast.solar:
+            # The Solar Forecast response only contains hours with sun
+            # The Solar Forecast REST API returns the first slot starting at sunrise (e.g. 08:19 instead of 08:00) for sun between 08:00-08:19, usually 0, next slot is 09:00 for sun between 08:19-09:00
+            # The Solar Forecast REST API returns the last slot starting at sunset   (e.g. 18:29 instead of 19:00) for sun between 18:00-19:00
+            # WARNING: In mode "hourly" the sunrise hour is changed to the start of the hour (e.g. from 08:19 to 08:00) and the sunset hour is combined with the previous hour (e.g. 18:00 and 18:29 are now both in 18:00)
+            found_today, found_tomorrow, total_today_wh, total_tomorrow_wh = False, False, 0.0, 0.0
+            forecasts_watt_hour = {}
+            if not response:
+                error_msg = f"No Response from Get Forecast Service of Forecast.Solar!" 
+            elif not isinstance(response, dict):
+                error_msg = f"No Dictionary returned by Get Forecast Service of Forecast.Solar!" 
+            else: # response is valid?
+                response = response.get('wh_period', None) # Limit the response handling to the Watt Hours per Hour
+                if response != None and isinstance(response, dict): # wh_period is valid?
+                    try:
+                        ts_keys, dt_prev_period = list(response.keys()), None
+                        if len(ts_keys) >= 3: # Enough forecast periods to determine the step size
+                            step_size = int((datetime.fromisoformat(ts_keys[2]) - datetime.fromisoformat(ts_keys[1])).total_seconds() / 60) # Step Size in Minutes (comparing the 3rd and 2nd timestamp in the forecast)
+                        else: # Should not happen but assume default of 60 min as step size
+                            step_size = 60
+                        for ts_str in ts_keys: # For each timestamp_str of the forecast keys
+                            dt = datetime.fromisoformat(ts_str) # Get the datetime for the key (which is the datetime END of the period)
+                            dt = dt.replace(tzinfo=None) # Remove the timezone
+                            base_dt = dt.replace(hour=0, minute=0, second=0, microsecond=0) # Start of the day
+                            dt_index = int((dt - base_dt).total_seconds() / 60) // step_size - 1 # Determine the index of the period in the day (from the timestamp at the end of the period)
+                            dt_period = base_dt + timedelta(minutes=dt_index * step_size) # Determine the start of the period for the dt (dt - step_size, adapted for sunset and sunrise periods)
+                            if (dt_period == dt_prev_period): # for sunset the period start is the same as the previous period
+                                dt_period = dt_period + timedelta(minutes=step_size) # Add an additional period for sunset (e.g. sunset at 18:29 and step size is 60min then next period start is 19:00)
+                            forecast_wh = float(response.get(ts_str, None)) # Convert the forecast (wh) into a float
+                            if dt.date() == today.date(): # Is this a forecast for today? 
+                                found_today = True 
+                                total_today_wh += forecast_wh # Add to the today total (wh)
+                            elif dt.date() == tomorrow.date(): # Is this a forecast for tomorrow? 
+                                found_tomorrow = True 
+                                total_tomorrow_wh += forecast_wh # Add to the tomorrow total (wh)
+                            forecasts_watt_hour[dt_period] = forecast_wh
+                            dt_prev_period = dt_period
+            #               print(f"Price {dt}: {forecasts_watt_hour[dt]}")
+                    except Exception as e: # Exception (e.g. invalid date or float)
+                        error_msg = f"Parsing of data from Forecast.Solar failed {repr(e)}!" 
+                        response = None
+                else:
+                    error_msg = f"Watt Hours does not exist or contains no valid data from Forecast.Solar!" 
                     response = None
-            else:
-                error_msg = f"Watt Hours does not exist or contains no valid data from Forecast.Solar!" 
-                response = None
-        else:
-            error_msg = f"No valid data from Forecast.Solar!" 
+
+        except Exception as e: # Service Failed/Not Available or an other Exception during parsing
+            error_msg = f"Get Forecast Service of Forecast.Solar failed: {repr(e)}"
             response = None
 
         # Built a single Solar Forecast Array (for today and tomorrow) and Update the Solar Forecast Sensor:
@@ -177,6 +187,7 @@ def helios_optimizer_retrieve_forecast_solar_hours(
                 total_today_kwh = total_today_wh / 1000
                 forecast_response["result"]["days_kw" ][today.strftime("%Y-%m-%d")] = int(total_today_wh) # Total Wh today (integer)
                 forecast_response["result"]["days_kwh"][today.strftime("%Y-%m-%d")] = round(total_today_kwh, 1) # Total kWh today (float, 1 decimal)
+
             # Totals for Tomorrow:
             total_tomorrow_kwh = 0
             if found_tomorrow: # Save the tomorrow totals (in kW and kWh)
@@ -196,22 +207,26 @@ def helios_optimizer_retrieve_forecast_solar_hours(
                     forecast_kwh = forecasts_watt_hour.get(current_time, 0.0) / 1000 # Get the forecast for the hour (or 0 when not available in the early or late hours)
                     forecast_response["result"]["hours_kwh"].append(forecast_kwh)
                     current_time += timedelta(minutes=step_size) # Next period
-
+            
                 forecast_response["result"]["end"] = current_time.strftime("%Y-%m-%d %H:%M")
+                success_msg = f"Forecast.Solar Data Retrieved for {today}"
+            else: # No Data for today or tomorrow
+                error_msg = f"No valid data from Forecast.Solar for {today}!" 
 
-            # Update the Entity (if it does not exist it will be created)
-            state.set( # Update the status and attributes of the Forecast Entity
-                HELIOS_SOLAR_FORECAST2,
-                value=round(total_today_kwh, 1), # State value is total for today in kwh
-                friendly_name=HELIOS_SOLAR_FORECAST_NAME2,
-                unit_of_measurement="kWh", # Kilo Watt Hour
-                device_class="energy",
-                new_attributes=forecast_response
-            )
-
+    # Update the Solar Forecast (PyScript) Entity (if it does not exist it will be created)
+    # Remark: If the retrieval of the forecast failed then the error message will be set else the message will be None
+    forecast_response["message"] = error_msg if error_msg else success_msg
+    state.set( # Update the status and attributes of the Forecast Entity
+        HELIOS_SOLAR_FORECAST2,
+        value=round(total_today_kwh, 1), # State value is total for today in kwh
+        friendly_name=HELIOS_SOLAR_FORECAST_NAME2,
+        unit_of_measurement="kWh", # Kilo Watt Hour
+        device_class="energy",
+        new_attributes=forecast_response
+    )
     if error_msg != None: 
-        log_error(f"[{HELIOS_FORECAST_NAME}] Error: {error_message}")
-        forecast_response["message"] = error_msg
+        log.error(f"[{HELIOS_FORECAST_NAME}] Error: {error_msg}") # pyright: ignore[reportUndefinedVariable]
+
 #   return response # Return the parsed service response or an error message
 #   return forecasts_watt_hour # Return the parsed service response or an error message
     return forecast_response # Return the parsed service response or an error message

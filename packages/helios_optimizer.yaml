@@ -258,20 +258,7 @@ input_select:
       - "binary"
       - "disabled"
     #initial: "all"
-
-  helios_optimizer_provider_key:
-    name: "Helios Optimizer Provider Key"
-    icon: mdi:key
-    options:
-      - "hbc_mark"
-      - "frank_energie"
-      - "zonneplan"
-      - "tibber"
-      - "energy_zero"
-      - "nordpool"
-      - "custom"
-    #initial: "import"
-    
+   
   helios_optimizer_price_entity_id:
   # Select an Entity Id for the sensor that contains the Source Price Data (input for Import and Export Price Arrays)
   # Currently only HBC Price Data is supported but more sources will be supported in the future
@@ -307,10 +294,12 @@ input_select:
       - "Energy Zero"
       - "Tibber"
       - "Engie"
+      - "Netherlands"
+      - "Belgium"
+      - "Custom"
       - "Grid Clock"
       - "Nordpool"
       - "Generic"
-      - "Custom"
     #initial: "HBC Data Source"
 
   helios_optimizer_target_provider:
@@ -325,6 +314,8 @@ input_select:
       - "Energy Zero"
       - "Tibber"
       - "Engie"
+      - "Netherlands"
+      - "Belgium"
       - "Custom"
     #initial: "HBC Data Source"
 
@@ -350,34 +341,65 @@ input_select:
   #   - "pyscript.helios_optimizer_forecast_solar_hours"
   #   - "sensor.forecast_solar_total_hours"
       
+  helios_optimizer_battery_strategy:
+  # Output from the Helios Optimizer 
+  # Defines the Current Battery Strategy as selected by the Optimizer for the current step
+    name: "Helios Optimizer Battery Strategy"
+    icon: mdi:strategy
+    options:
+      - unknown          # No Strategy determined yet 
+      - Skipped          # No Strategy applicable for steps in the past (not used as current strategy)
+      - Sell             # Sell for a profit (Discharges the battery) at high price
+      - Buy              # Buy for a profit  (Charges    the battery) at low  price
+      - Discharge        # Discharge (when battery SoC is above the Maximum)
+      - Charge           # Charge    (when battery SoC is below the Minimum)
+      - Charge Solar     # Charge when surplus PV is available, batteries will not discharge     
+      - NOM              # Prevent Import and Export by Discharging and Charging of the Battery (Self Consuption)
+      - NOM-C            # Zero Export, No Discharge of Battery (Battery Empty)
+      - NOM-D            # Zero Import, No Charge of Battery    (Battery Full )
+      - Standby          # No Activity (Standby, peak shaving may be applicable)
+      - Stop             # Stop the Battery (No Charge, Discharge or Peak Shave) - Currently not used by Helios
+    initial: "unknown"  
+
   helios_optimizer_hbc_sub_strategy:
   # Output from the Helios Optimizer and Input for the HBC Helios Sub Strategy
   # Defines the Current Sub Strategy that should be made active by the Helios Strategy in the HBC Node-Red Flow
     name: "Helios Optimizer Current Sub Strategy for HBC"
-    icon: mdi:lightning-bolt
+    icon: mdi:strategy
     options:
       - unknown          # No Helios Sub Strategy has been set or could be defined for HBC
-      - Full stop        # Stop (dis)charging and disengage grid relay
-      - Self-consumption # Use your own solar production. Don't buy or sell. Target grid consumption = 0, e.g. "Nul op de meter (NoM)" in Dutch.
+      - Sell             # Discharge batteries
       - Charge           # Uses self-consumption strategy with smart settings and target grid consumption > 0
       - Charge PV        # Charge when surplus PV is available, batteries will not discharge
-      - Sell             # Discharge batteries
+      - Self-consumption # Use your own solar production. Don't buy or sell. Target grid consumption = 0, e.g. "Nul op de meter (NoM)" in Dutch.
       - Zero import      # Use battery to prevent grid import, surplus PV exports to grid
       - Standby / peak shave # Standby, peak shave only. Requires power limits to be set!
-    #initial: "unknown"  
+      - Full stop        # Stop (dis)charging and disengage grid relay
+    initial: "unknown"  
 
 ###########################################################################################################
 # INPUT_BOOLEAN
 ###########################################################################################################
 input_boolean:
+  # Helios Optimizer is running or not 
+  # The Helios Optimizer HBC Task will set the value to True before starting the Helios Optimizer Service
+  # The Helios Optimizer HBC Task will set the value to False after completion of the Helios Optimizer Service
   helios_optimizer_running:
     name: "Helios Optimizer Running"      
     icon: mdi:run
     initial: false  
 
+  # Enable or Disable the Battery in the Model
   helios_optimizer_battery_enabled:
     name: "Helios Optimizer Battery Enabled"      
     icon: mdi:battery-charging-medium
+    # initial: false  
+
+  # Enable or Disable the Net Metering (Salderingsregeling) in the calculation of the Export Price
+  # When enabled the Export Price will be increased with the Energy Tax (like for the Import Price)
+  helios_optimizer_net_metering_enabled:
+    name: "Helios Optimizer Net Metering Enabled"      
+    icon: mdi:swap-horizontal
     # initial: false  
 
   # Insights

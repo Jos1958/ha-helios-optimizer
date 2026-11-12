@@ -1,0 +1,33 @@
+Hallo, 
+Er is een test versie van Helios beschikbaar.
+https://github.com/Jos1958/ha-helios-optimizer/releases/tag/0.9.5
+
+Nieuwere versies kun je altijd vinden met:
+https://github.com/Jos1958/ha-helios-optimizer/releases
+
+Lees goed de installatie beschrijving: 
+https://jos1958.github.io/ha-helios-optimizer/INSTALL.html
+
+Een simpele versie van de installatie staat in de readme: 
+https://jos1958.github.io/ha-helios-optimizer/ 
+
+De documentation van Helios Optimizer staat hier: 
+https://jos1958.github.io/ha-helios-optimizer/DOC.html
+
+TIP: Details over input en output parameters kun je vinden via de LINKS boven de SECTIES op het dashboard!
+
+Voorwaarden:
+- PyScript moet geinstalleerd staan en heel belangrijk met een aantal opties (import en hass) enabled.
+- Je hebt Forecast.Solar Integratie nodig (Solcast support is nog niet beschikbaar)
+- Extra Dashboard Cards (via HACS): ApexCharts, card-mod and button-card .
+- 
+- De Dynamisch Strategy moet geconfigureerd zijn in HBC met prijs gegevens
+
+De documentation van Helios Optimizer staat hier: https://jos1958.github.io/ha-helios-optimizer/DOC.html
+Feedback via een prive of publiek.
+
+Er is nu ook een Frequently Asked Questions (FAQ): https://jos1958.github.io/ha-helios-optimizer/docs/FAQ.html
+Vragen over de installatie graag publiek zodat we samen problemen kunnen oplossen: 
+https://discord.com/channels/1422227123925680228/1570215392713117706
+
+Groeten, Jos

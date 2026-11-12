@@ -2,7 +2,7 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 
-## 0.9.5 (2026-11-??) Net Metering Mode (Salderingsregeling) and Minor Fixes
+## 0.9.5 (2026-11-12) Net Metering Mode (Salderingsregeling) and Minor Fixes
 - Graphs did not always use full width (especially in Windows), added update_interval: 5s to the apexcharts-card (Thanks to Gerrit_18808)
 - Improved Installation (Thanks Martijn), Readme, Documentation (Thanks Mike Da Spike)
 - Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026)
@@ -11,7 +11,9 @@
 - Improved error handling for Forecast.Solar (helios_forecast.py)
 - Simplied the Node-Red Helios Strategy Flow, Disabled Dynamic Price Sections, Relies now fully on the Dynamic Strategy Flow for dynamic price retrieval (Thanks Rubbere)
 - Alternative Banner with a height of 70% (now used on the Detailed Results Tab, Let me know which one you prefer)
-- **Changed files:** All PyScript (*.py), Dashboard (yaml), Package (yaml), Dashboard (yaml), NR Helios Strategy Flow(json), Documentation, Alternative Banner 70%
+- Extra fields on the Dashboard for Helios Battery Strategy, HBC Sub Strategy, Price Profiles (3x) and Keys (3x)
+- Improved Documentation and a new Frequently Asked Questions (FAQ)
+- **Changed files (ALL!):** All PyScript (*.py), Dashboard (yaml), Package (yaml), Dashboard (yaml), NR Helios Strategy Flow(json), Documentation, Alternative Banner 70%
 - **Not changed since 0.9.4:** Banner File (jpeg), Automation is Obsolete!
 
 ## 0.9.4 (2026-11-03) Improved Data and Energy Provider Handling 

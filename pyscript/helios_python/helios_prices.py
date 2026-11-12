@@ -77,6 +77,7 @@ class HeliosEnergyPriceParser:
     DEFAULT_PROV_MARKUP       = 0.01653     # Default Provider Markup (Opslag) in euro before VAT, Applies to both Import and Export Prices (incl btw 0.0200, excl btw 0.01653)
     DEFAULT_LOSS_FACTOR       = 1.0         # Default Net Loss Factor                            , Applies to both Import and Export Prices 
     DEFAULT_VAT_RATE          = 0.21        # Default Dutch VAT (BTW) rate
+    BELGIUM_VAT_RATE          = 0.06        # Default Belgium VAT (BTW) rate
     DEFAULT_ENERGY_TAX        = 0.09161     # Default Dutch Energy Tax (Nederlandse Energiebelasting voor 2026) excluding VAT (incl VAT 0.1108, excl VAT: 0.09161 euro)
     DEFAULT_MAX_FB_DAYS       = 1           # Default Maximum Number of Fallback Days when prices for the Lookup Day are not available in the Source Price
     DEFAULT_SOURCE_PRICE      = 0.30        # Default Input Price when no Hour Price and no First Price Found is (In principle this should not happen since a Day is not used when it has no price at all) 
@@ -92,7 +93,7 @@ class HeliosEnergyPriceParser:
         "source_provider"    : None                     , # None        , Retrieve the 'Source Has VAT' and Markup (Opslag) from a different Source Provider (None=n/a)
         "source_has_vat"     : DEFAULT_SRCE_HAS_VAT     , # True        , VAT Included in Source Price (Not applicable for Market Price as Source Type, Applicable for Import or Export Prices as Source Type)
         "target_provider"    : None                     , # None        , Retrieve the 'Target Needs VAT' and Markup (Opslag) from a different Target Provider (None=n/a)
-        "target_needs_vat"   : DEFAULT_TARGET_NEEDS_VAT , # True        , Tax included for Import and Export Prices in the Target Price Arrays
+        "target_needs_vat"   : DEFAULT_TARGET_NEEDS_VAT , # True        , VAT included for Import and Export Prices in the Target Price Arrays
         "markup_import"      : DEFAULT_PROV_MARKUP      , # 0.02   euro , Provider Markup for Import (only used when no provider markup specified, typically each provider has its own markups)
         "markup_export"      : DEFAULT_PROV_MARKUP      , # 0.02   euro , Provider Markup for Export (only used when no provider markup specified, typically each provider has its own markups)
         "factor_import"      : DEFAULT_LOSS_FACTOR      , # 1           , Net losses for import, Import price is factor_import * marketing_price (e.g. 1.039 for import, higher price)
@@ -168,9 +169,47 @@ class HeliosEnergyPriceParser:
                 "markup_export"      : 0.013135           , # 0.01 * 1.3135 ct/kWh -> 0.013135 euro/kWh
                 "factor_import"      : 1.039              , # Net losses for import (0.1039 is from euro/MWh to ct/kWh but espot15 in HBC is already in ct/kWh and already converted to euro/kWh)
                 "factor_export"      : 1.000              , # Net losses for export (1.0000 idem as import, no losses currently for export)
-                "vat_rate"           : 0.06               , # Belgium VAT 6%
+                "vat_rate"           : BELGIUM_VAT_RATE   , # Belgium VAT 6%
                 "energy_tax"         : 0.0                , # Belgium Energy Tax is zero
             },
+            "netherlands": { # Dutch Provider (default markups, vat and energy tax and market price, use only as Source Provider)
+                "name"               : "Dutch Provider Profile",
+#               "price_type"         : "import"           , # Assuming Import Prices as Source Price (specified on the Helios Dashboard)
+#               "price_factor"       : 1.0                , # Assuming Source Prices are in cents/kWh (when coming from HBC the main provider will be used for the price factor of 0.01)
+                "source_has_vat"     : True               , # Assuming Source Prices include VAT
+                "target_needs_vat"   : True               , # Assuming Target Prices include VAT
+                "markup_import"      : DEFAULT_PROV_MARKUP, # Estimated Provider (Import) Markup
+                "markup_export"      : DEFAULT_PROV_MARKUP, # Estimated Provider (Export) Markup
+                "vat_rate"           : DEFAULT_VAT_RATE   , # Dutch VAT is not applicable
+                "energy_tax"         : DEFAULT_ENERGY_TAX , # Dutch Energy Tax is applicable
+            },
+            "belgium": { # Belgium Provider (default markups, vat and energy tax and market price, use only as Source Provider)
+                "name"               : "Belgium Provider Profile",
+#               "price_type"         : "import"           , # Assuming Import Prices as Source Price (specified on the Helios Dashboard)
+#               "price_factor"       : 1.0                , # Assuming Source Prices are in cents/kWh (when coming from HBC the main provider will be used for the price factor of 0.01)
+                "source_has_vat"     : True               , # Assuming Source Prices include VAT
+                "target_needs_vat"   : True               , # Assuming Target Prices include VAT
+                "markup_import"      : DEFAULT_PROV_MARKUP, # Estimated Provider (Import) Markup
+                "markup_export"      : DEFAULT_PROV_MARKUP, # Estimated Provider (Export) Markup
+                "factor_import"      : 1.000              , # Net losses for import (see Engie for an example, here assumed to be disabled with 1.0)
+                "factor_export"      : 1.000              , # Net losses for export (see Engie for an example, here assumed to be disabled with 1.0)
+                "vat_rate"           : BELGIUM_VAT_RATE   , # Belgim VAT is not applicable
+                "energy_tax"         : 0,                   # Energy Tax is not applicable in Belgium
+            },
+            "custom": { # Default Provider (used when the provider key does not exist or when no provider key is specified, in the near future the settings can be configured on the Helios Dashboard)
+                "name"               : "Custom Provider Profile",
+#               "price_type"         : "import"           , # Assuming Import Prices as Source Price (specified on the Helios Dashboard)
+#               "price_factor"       : 1.0                , # Assuming Source Prices are in cents/kWh (when coming from HBC the main provider will be used for the price factor of 0.01)
+                "source_has_vat"     : True               , # Assuming Source Prices include VAT (do we need a source has tax?)
+                "target_needs_vat"   : True               , # Assuming Target Prices include VAT
+                "markup_import"      : DEFAULT_PROV_MARKUP, # Estimated Provider (Import) Markup
+                "markup_export"      : DEFAULT_PROV_MARKUP, # Estimated Provider (Export) Markup
+                "factor_import"      : 1.000              , # Net losses for import (see Engie for an example, here assumed to be disabled with 1.0)
+                "factor_export"      : 1.000              , # Net losses for export (see Engie for an example, here assumed to be disabled with 1.0)
+                "vat_rate"           : DEFAULT_VAT_RATE   , # Belgim VAT is not applicable
+                "energy_tax"         : DEFAULT_ENERGY_TAX , # Energy Tax is not applicable in Belgium
+            },
+
             "grid_clock": { # Generic Provider for Source Prices (from HBC), cannot be used for Target Profiles!
                 "name"               : "Grid Clock XX (any country)", 
                 "price_type"         : "market"           , # Source Prices are Grid Clock BE with eSpot15 in ct/kWh (in HBC, in Grid Clock euro/MWh)
@@ -191,7 +230,7 @@ class HeliosEnergyPriceParser:
                 "ts_key"             : "start"            , # Provider Timestamp Key, ts_end: "end"
                 "price_key"          : "value"            , # Provider Price     Key
                 "price_type"         : "market"           , # Price Type of the Source Price Data of the provider ("market", "import", "export"), determines how to convert to output prices
-                "price_factor"       : 1.0                , # Conversion Factor for the Source Price to euro/kWh
+#               "price_factor"       : 1.0                , # Conversion Factor for the Source Price to euro/kWh
                 "source_has_vat"     : False              , # VAT excluded in the Source Prices of the provider (since price_type is market it will not be applied anyway for source)
                 "markup_import"      : 0.0                , # Provider Markup (Opslag) for the Import Price 
                 "markup_export"      : 0.0                , # Provider Markup (Opslag) for the Export Price (sometimes negative value)
@@ -199,22 +238,14 @@ class HeliosEnergyPriceParser:
                 "energy_tax"         : 0.0                , # Energy Tax is not applicable
             },
             "generic": { # Generic Provider (no markups, vat and energy tax and market price, use only as Source Provider)
-                "name"               : "Custom Provider Profile",
+                "name"               : "Generic Provider Profile (Market Price)",
                 "price_type"         : "market"           , # Assuming Import Prices as Source Price
-                "price_factor"       : 0.01               , # Assuming Source Prices are in cents/kWh (since coming from HBC)
-                "source_has_vat"     : False              , # Assuming Source Prices include VAT
+                "price_factor"       : 1.0                , # Assuming Source Prices are in euro/kWh 
+                "source_has_vat"     : False              , # Assuming Source Prices exclude VAT
                 "markup_import"      : 0.0                , # Estimated Provider (Import) Markup
                 "markup_export"      : 0.0                , # Estimated Provider (Export) Markup
                 "vat_rate"           : 0.0                , # VAT is not applicable
                 "energy_tax"         : 0.0                , # Energy Tax is not applicable
-            },
-            DEFAULT_PROVIDER: { # Default Provider (used when the provider key does not exist or when no provider key is specified)
-                "name"               : "Custom Provider Profile",
-                "price_type"         : "import"           , # Assuming Import Prices as Source Price
-                "price_factor"       : 0.01               , # Assuming Source Prices are in cents/kWh (since coming from HBC)
-                "source_has_vat"     : True               , # Assuming Source Prices include VAT
-                "markup_import"      : DEFAULT_PROV_MARKUP, # Estimated Provider (Import) Markup
-                "markup_export"      : DEFAULT_PROV_MARKUP, # Estimated Provider (Export) Markup
             },
         },
     }
@@ -226,20 +257,23 @@ class HeliosEnergyPriceParser:
         "Tibber (core)"                : "tibber"       ,
         "Tibber (custom)"              : "tibber"       ,
         "Engie"                        : "engie"        , # Temporary All Grid Clock XX Data Sources are converted to Target Profile "Engie"      in Helios Optimizer HBC Task
+        "Netherlands"                  : "netherlands"  ,
+        "Belgium"                      : "belgium"      , 
         "Grid Clock"                   : "grid_clock"   , # Temporary All Grid Clock XX Data Sources are converted to Source Profile "Grid Clock" in Helios Optimizer HBC Task
         "Grid Clock BE"                : "grid_clock"   , # All Grid Clock Countries can be handled by the same source profile
         "Grid Clock NL"                : "grid_clock"   , # All Grid Clock Countries can be handled by the same source profile
-        "Nordpool (core)"              : "nordpool"     ,
-        "Nordpool (custom)"            : "nordpool"     ,
-        "ENTSO-E"                      : "generic"      ,
-        "Amber Electric"               : "custom"       ,
-        "GE-Spot"                      : "custom"       ,
-        "PVPC (Spain)"                 : "custom"       ,
-        "Octopus Energy"               : "custom"       ,
-        "Omie"                         : "custom"       ,
+        "Nordpool (core)"              : "nordpool"     , # No Tax, VAT and markup, market price
+        "Nordpool (custom)"            : "nordpool"     , # No Tax, VAT and markup, market price
+        "Generic"                      : "generic"      , # No Tax, VAT and markup, market price
+        "ENTSO-E"                      : "custom"       , # ENTSO-E provides a market price but additional components like tax, vat and markups can be added in the configuration (use Generic)
+        "Amber Electric"               : "custom"       , # No specific data known (may require user customization)
+        "GE-Spot"                      : "custom"       , # No specific data known (may require user customization)
+        "PVPC (Spain)"                 : "custom"       , # No specific data known (may require user customization)
+        "Octopus Energy"               : "custom"       , # No specific data known (may require user customization)
+        "Omie"                         : "custom"       , # No specific data known (may require user customization)
     }
 
-    def __init__(self, provider_key: str = DEFAULT_PROVIDER, config_override: dict = None, target_tz: Any = NO_TIME_ZONE, target_step_size: int = TARGET_STEP_SIZE, round_prices: int = ROUND_PRICES_EURO, raise_error: bool = True):
+    def __init__(self, main_provider: str = DEFAULT_PROVIDER, config_override: dict = None, target_tz: Any = NO_TIME_ZONE, target_step_size: int = TARGET_STEP_SIZE, target_export_tax: bool = False, round_prices: int = ROUND_PRICES_EURO, raise_error: bool = True):
         """Initialize the parser using a provider key and optional custom overrides."""
         # Get the generic defaults for the price profiles (applicable to all providers when not specified in the provider profile):
         default_data_path          = self.PROVIDER_PROFILES.get('data_path'          , self.DEFAULT_DATA_PATH        )
@@ -261,16 +295,17 @@ class HeliosEnergyPriceParser:
         default_max_fb_days        = self.PROVIDER_PROFILES.get('max_fallback_days'  , self.DEFAULT_MAX_FB_DAYS      )
 
 #       providers = self.PROVIDER_PROFILES.get('providers', {}) # Get all Providers from the Price Profiles Dictionary
-#       provider_key = provider_key.lower() if provider_key else self.DEFAULT_PROVIDER
-#       base_profile = providers.get(provider_key, providers[]) # Get the Price Profile for the specified Provider Key (Or use the Custom Profile when key not found)
-        base_profile = self.get_provider_profile(provider_key, self.DEFAULT_PROVIDER)
-        if not base_profile:
-            raise ValueError(f"No Provider Profile Available for provider key '{provider_key}'")
+#       main_provider = main_provider.lower() if main_provider else self.DEFAULT_PROVIDER
+#       self.base_profile = providers.get(main_provider, providers[]) # Get the Price Profile for the specified Provider Key (Or use the Custom Profile when key not found)
+        self.base_key, self.base_profile = self.get_provider_profile(main_provider, self.DEFAULT_PROVIDER)
+        if not self.base_profile:
+            raise ValueError(f"No Provider Profile Available for provider key '{main_provider}'")
         # Determine the Provider Profile (with optional overrrides) and Target Time Zone:
         config_override       = config_override or {} # Optional Provider Config override in the constructor
-        self.config           = {**base_profile, **config_override} # Optionally Override the Provider Profile in the constructor
+        self.config           = {**self.base_profile, **config_override} # Optionally Override the Provider Profile in the constructor
         self.target_tz        = self._resolve_timezone(target_tz)   # Resolve the specified Target Time Zone
         self.target_step_size = target_step_size  # Step Size of the Target Price Arrays
+        self.target_export_tax= target_export_tax # Export Tax enabled (when Net Metering Enabled (Salderingsregeling) for 2026, if enabled Energy Tax will be included in Export Price
         self.round_prices     = round_prices      # Rounding of prices of the Target Price Arrays
         self.default_ts_key   = default_ts_key    # Default Timestamp key will also work (next to the Provider Timestamp key)
         self.default_price_key= default_price_key # Default Price     key will also work (next to the Provider Price     key)
@@ -308,30 +343,30 @@ class HeliosEnergyPriceParser:
         self.source_provider = self.config.get("source_provider", default_source_provider)
         if (self.source_provider != None): # Is another Source Provider Applicable (e.g. for HBC)?
 #           source_profile = providers.get(self.source_provider.lower(), providers[self.DEFAULT_PROVIDER]) # Get the Price Profile for the Source Provider (or use the Custom)
-            source_profile = self.get_provider_profile(self.source_provider, self.DEFAULT_PROVIDER) # Get the Price Profile for the Source Provider (or use the Custom)
-            if (source_profile != None): # Source Provider Found?
-                self.source_vat_rate      = source_profile.get("vat_rate"        , self.source_vat_rate     )
-                self.source_energy_tax    = source_profile.get("energy_tax"      , self.source_energy_tax   )
-                self.source_has_vat       = source_profile.get("source_has_vat"  , self.source_has_vat      )
-                self.source_markup_import = source_profile.get("markup_import"   , self.source_markup_import)
-                self.source_markup_export = source_profile.get("markup_export"   , self.source_markup_export)
-                self.source_factor_import = source_profile.get("factor_import"   , self.source_factor_import)
-                self.source_factor_export = source_profile.get("factor_export"   , self.source_factor_export)
+            self.source_key, self.source_profile = self.get_provider_profile(self.source_provider, self.DEFAULT_PROVIDER) # Get the Price Profile for the Source Provider (or use the Custom)
+            if (self.source_profile != None): # Source Provider Found?
+                self.source_vat_rate      = self.source_profile.get("vat_rate"        , self.source_vat_rate     )
+                self.source_energy_tax    = self.source_profile.get("energy_tax"      , self.source_energy_tax   )
+                self.source_has_vat       = self.source_profile.get("source_has_vat"  , self.source_has_vat      )
+                self.source_markup_import = self.source_profile.get("markup_import"   , self.source_markup_import)
+                self.source_markup_export = self.source_profile.get("markup_export"   , self.source_markup_export)
+                self.source_factor_import = self.source_profile.get("factor_import"   , self.source_factor_import)
+                self.source_factor_export = self.source_profile.get("factor_export"   , self.source_factor_export)
 
         # Some Source Providers are used to generate prices for another (Target) Provider
         # Warning: If the current provider (e.g. HBC) has these attributes specified in the profile then these will be overwritten by the target provider attributes 
         self.target_provider = self.config.get("target_provider", default_target_provider)
         if (self.target_provider != None): # Is another Target Provider Applicable (e.g. your own provider has no API to retrieve dynamic prices)?
 #           target_profile = providers.get(self.target_provider.lower(), providers[self.DEFAULT_PROVIDER]) # Get the Price Profile for the Target Provider (or use the Custom)
-            target_profile = self.get_provider_profile(self.target_provider, self.DEFAULT_PROVIDER) # Get the Price Profile for the Target Provider (or use the Custom)
-            if (target_profile != None): # Target Provider Found?
-                self.target_vat_rate      = target_profile.get("vat_rate"        , self.target_vat_rate     )
-                self.target_energy_tax    = target_profile.get("energy_tax"      , self.target_energy_tax   )
-                self.target_needs_vat     = target_profile.get("target_needs_vat", self.target_needs_vat    )
-                self.target_markup_import = target_profile.get("markup_import"   , self.target_markup_import)
-                self.target_markup_export = target_profile.get("markup_export"   , self.target_markup_export)
-                self.target_factor_import = target_profile.get("factor_import"   , self.target_factor_import)
-                self.target_factor_export = target_profile.get("factor_export"   , self.target_factor_export)
+            self.target_key, self.target_profile = self.get_provider_profile(self.target_provider, self.DEFAULT_PROVIDER) # Get the Price Profile for the Target Provider (or use the Custom)
+            if (self.target_profile != None): # Target Provider Found?
+                self.target_vat_rate      = self.target_profile.get("vat_rate"        , self.target_vat_rate     )
+                self.target_energy_tax    = self.target_profile.get("energy_tax"      , self.target_energy_tax   )
+                self.target_needs_vat     = self.target_profile.get("target_needs_vat", self.target_needs_vat    )
+                self.target_markup_import = self.target_profile.get("markup_import"   , self.target_markup_import)
+                self.target_markup_export = self.target_profile.get("markup_export"   , self.target_markup_export)
+                self.target_factor_import = self.target_profile.get("factor_import"   , self.target_factor_import)
+                self.target_factor_export = self.target_profile.get("factor_export"   , self.target_factor_export)
 
     # Converts a Single Source Price (for a specific Price Type) into the Target Prices (All Types: Market, Import and Export Price).
     def _convert_price(self, step_ts, source_price, price_type = None, price_factor: float = None, source_has_vat: bool = None, target_needs_vat = None):
@@ -367,8 +402,9 @@ class HeliosEnergyPriceParser:
 
             # Calculate the Target (Market, Import and Export) Price:
             target_vat_factor = (1.0 + self.target_vat_rate) if needs_vat else 1.0 # Output VAT applicable? -> Use VAT Factor else 1.0
-            import_price = target_vat_factor * ((self.target_factor_import * market_price) + self.target_markup_import + self.target_energy_tax) # Import Price with optional VAT
-            export_price = target_vat_factor * ((self.target_factor_export * market_price) - self.target_markup_export                         ) # Export Price with optional VAT
+            target_export_energy_tax = self.target_energy_tax if self.target_export_tax else 0.0
+            import_price = target_vat_factor * ((self.target_factor_import * market_price) + self.target_markup_import + self.target_energy_tax  ) # Import Price with optional VAT
+            export_price = target_vat_factor * ((self.target_factor_export * market_price) - self.target_markup_export + target_export_energy_tax) # Export Price with optional VAT (for 2026 in NL: Energy Tax may be included in the Export Price))
 
         return { # Return a Dictionary with the Step Datetime and the 3 Target (Market, Import and Export) Prices
             TARGET_DT_KEY: step_ts                               , # Step Datetime 
@@ -714,8 +750,8 @@ class HeliosEnergyPriceParser:
             else:
                 provider_key = clean_key # Found the original cleaned key
 
-        _LOGGER.warning(f"[{PRICE_PARSER_NAME}-Get-Provider-Profile] Provider Profile for Key '{name_or_key}': {provider_key}")               
-        return provider_profile # Return the profile (for the helios or HBC key) or the default profile when not found
+        _LOGGER.info(f"[{PRICE_PARSER_NAME}-Get-Provider-Profile] Provider Profile for Key '{name_or_key}': {provider_key}")               
+        return (provider_key, provider_profile) # Return the Key and the Profile (for the helios or HBC key) or the default profile when not found
 
     # Convert the Processed Prices List (with timestamp and 3 prices) into a Simple Price List (without timestamps and with a specific price)
     def get_simple_price_list(self, processed_prices: list, price_key: str = TARGET_MP_KEY):

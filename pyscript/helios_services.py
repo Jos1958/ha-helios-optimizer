@@ -26,19 +26,21 @@
 #   2026-10-29: JR  v0.93a Handle invalid PyScript Configuration ('Allow All Imports' and 'Access hass as a global variable') must be enabled
 #   2026-10-31: JR  v0.94  Added Price Type, Source Provider and Target Provider for Price Conversions
 #   2026-11-02: JR  v0.94  Introduced Horizon (in Days) as a input parameter replacing steps, steps will be calculated from horizon and step size, the steps entity will be updated after a optimization run
+#   2026-11-03: JR  v0.94a Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026)
+#   2026-11-08: JR  v0.94c Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026)
 #
 #   Remark: For a full history see helios_main.py
 
 # Modules used by Home Assistant with PyScript must be in the "modules" folder of the Home Assistant configuration directory. 
 # Modules used by Visual Studio must be in the same folder as the Main Python script.
 # Pure Python Modules used by Home Assistant Visual Studio Code must be in the sub-folder helios_python (in HA pyscript/helios_python, in VS: c:\$code\VisualStudio2026\HeliosOptimizer\helios_python)
-IMPORTS_FAILED = False
+IMPORTS_FAILED = False #
 try:
     import sys  # For sys.path.append() to add the Home Assistant /config/pyscript folder to the path to allow /config/pyscript/helios_python to be found !!!
     import traceback # Traceback for Exception Handling (to get the full error message with line-nbr, etc)  
     from io import TextIOWrapper
 except (ImportError, Exception) as e:
-    IMPORTS_FAILED = True # Allow the helios_services.py to be loaded without imports, report the error later on
+    IMPORTS_FAILED = True # Allow the helios_services.py to be loaded without imports and report the error later on
 
 # Determine the environment (Visual Studio or Home Assistant):
 dt_util = None # Home Assistant Datetime Utility not yet available
@@ -73,6 +75,7 @@ if not IMPORTS_FAILED: # Sys functions are not possible when imports have failed
 # Home Assistant Entities used by the Helios Optimizer Service (these entities must be created in Home Assistant before the service can be used)
 HELIOS_ENERGY_PLAN       = 'input_number.helios_optimizer_energy_plan'          # Sensor Helios Optimizer Result with Status, Current and Plan in the attributes
 HELIOS_ENERGY_PLAN_OLD   = 'pyscript.helios_energy_plan'                        # Sensor Helios Result with Status, Current and Plan in the attributes
+HELIOS_BAT_STRAT         = 'input_select.helios_optimizer_battery_strategy'     # Sensor Helios BatteryStrategy for the current step
 HELIOS_HBC_SUB_STRAT     = 'input_select.helios_optimizer_hbc_sub_strategy'     # Sensor Helios Sub Strategy for HBC
 HELIOS_HBC_NET_POWER     = 'input_number.helios_optimizer_hbc_net_power'        # Sensor Helios Net Battery Power for HBC (Charge is Positive, Discharge is Negative), Translated later to Charge and Discharge Power (both Positive)
 HELIOS_RUNNING           = 'input_boolean.helios_optimizer_running'             # Sensor Helios Automation is running (True/False) for the UI Button to show the service is running (extra second added for short service calls)
@@ -88,6 +91,7 @@ HELIOS_INPUT_MAX_GRID_IMP= 'input_number.helios_optimizer_max_grid_import'      
 HELIOS_INPUT_MAX_GRID_EXP= 'input_number.helios_optimizer_max_grid_export'      # Sensor Helios Optimizer Maximum Grid Export in kW
 HELIOS_INPUT_HOUSE_USAGE = 'input_number.helios_optimizer_house_daily_usage'    # Sensor Helios Optimizer House Daily Usage over the Day in kWh
 HELIOS_INPUT_HOUSE_DISTR = 'input_text.helios_optimizer_house_daily_distr'      # Sensor Helios Optimizer House Daily Distribution of the House Usage over the Day as a list of 24 or 96 relative values for each hour or quarter of an hour of the day
+HELIOS_INPUT_NET_METERING= 'input_boolean.helios_optimizer_net_metering_enabled'# Sensor Helios Optimizer Net Metering Enabled (True/False, On/Off) - Salderingsregeling Enabled (only for 2026, includes Energy Tax in Export Price)
 
 HELIOS_INPUT_BAT_ENABLED = 'input_boolean.helios_optimizer_battery_enabled'     # Sensor Helios Optimizer Battery Enabled (True/False, On/Off)
 HELIOS_INPUT_SOC_TARGET  = 'input_number.helios_optimizer_soc_target_pct'       # Sensor Helios Optimizer Battery Target SOC (State of Charge) in % for the Optimization (for End of Optimizaton Period/Horizon)
@@ -123,6 +127,7 @@ HBC_ENERGY_PRICE_DATA    = 'sensor.hbc_energy_prices_data'                      
 HELIOS_PLAN_NAME     = 'Helios Optimizer Energy Plan'              # Friendly Name for the Helios Result Entity
 HELIOS_RUNNING_NAME  = 'Helios Optimizer Running'                  # Friendly Name for the Helios Running Entity  
 HELIOS_SERVICE_NAME  = 'Helios Optimizer Service'                  # Name of the Helios Optimizer Service
+HELIOS_TASK_NAME     = 'Helios Optimizer HBC Task'                 # Name of the Helios Optimizer HBC Task
 HELIOS_ASYNC_FF_NAME = 'Helios Async File Functions'               # Name of the Helios Async File Functions      
 HELIOS_MAIN_NAME     = 'Helios Optimizer Regression Test'          # Name of the Helios Optimizer Main Routine (Regression Test)
 
@@ -164,8 +169,9 @@ async def helios_optimizer_service(
     # Use House Energy Forecast or House Daily Usage and Distribution:
     house_daily_usage_kwh=None,  # House Daily Usage (kWh) as a total value, Alternative when house forecast array is not available, will be spread over the day using house_daily_distr
     house_daily_distr=None,      # House Daily Distribution of the House Usage over the Day as a list of 24 or 96 relative values for each hour or quarter of an hour of the day
+    net_metering_enabled=False,  # Net Metering Enabled (True/False, On/Off) - Salderingsregeling Enabled (only for 2026, includes Energy Tax in Export Price)
 
-    provider_key=None,           # Provider Key (used to retrieve the provider profile to calculate the Import/Export Prices from the Source Price Data), Not needed when import_prices and export_prices are provided directly
+    main_provider=None,          # Main Provider Key (used to retrieve the provider profile to calculate the Import/Export Prices from the Source Price Data), Not needed when import_prices and export_prices are provided directly
     price_type=None,             # Price Type are Market, Import or Export for the source_price_data
     source_provider=None,        # Source (Energy) Provider, Needed when the Source Price Data is provided indirectly by the Energy Provider (e.g. for HBC Price Data which is retrieved from original Provider Price Data using Cheapest Hours)
     target_provider=None,        # Target (Energy) Provider, Needed when the Source Price Data is provided by a different Provider then the Provider used for Providing Energy
@@ -182,6 +188,7 @@ async def helios_optimizer_service(
     now_off_min=None,            # Ignored and calculated again (offset in minutes)
     optimize_ts_str=None,        # Optimization Timestamp String (ts), for (regression) testing/debugging, typically this will be None and the Current (HA) Timestamp will be used
     optimize_off_min=None,       # Optimization Timestamp Timezone Offset in Minutes
+    earlier_message=None,        # An earlier error occurred (e.g. in HBC Task), the service is only called to report the error to the user interface
 
     battery=None,                # Battery Parameters (dict)
     solar=None,                  # Solar Parameters (dict)
@@ -211,24 +218,30 @@ async def helios_optimizer_service(
     try:
         task.unique("helios_optimizer_service_lock", kill_me=True)  # This will kill this new instance (of the helios_optimizer_service_lock) immediately when another instance of the service is already running
 #       log.error(f"Steps 2 = {steps}")
+#       log.error(f"Net metering enabled2={net_metering_enabled}")
 
+        service_error_message = None
         service_begin_ts, service_computed_ts, service_end_ts = None, None, None
         calc_code, calc_result, total_fun_cost = None, None, "unavailable" # calc_code is changed to RC_SUCCESS below
 
         # Check if "Allow all imports?" is enabled in the PyScript Configuration:
         if IMPORTS_FAILED: # Report the import error that occured at the top of the helios_services.py (and/or in helios_common.py)
-            raise ImportError("PyScript Import(s) Failed! Helios needs 'Allow all imports' to be enabled. ADAPT the PyScript configuration!")
+            raise ImportError("PyScript Import(s) Failed!")
+
+        service_begin_ts = datetime.now() 
+        calc_code = RC_SUCCESS # Default to success, will be changed if an exception occurs
+        log.info(f"{HELIOS_SERVICE_NAME}: Started at {service_begin_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+
+        # Handle Earlier Errors (error is displayed on the Helios Dashboard but the Optimizer will not be called)
+        if earlier_message: # An error occured earlier in helios_optimizer_hbc_task()
+            raise ValueError(earlier_message)
 
         # Check if "Access Hass as a global variable?" is enabled in the PyScript Configuration:
         try:
             # Check if access to hass.config_entries is available (needed for helios_forecast.py, otherwise no solar forecast will be available)
             config_entries = hass.config_entries
         except NameError as e:
-            raise NameError("Hass is not accessable by PyScript! Helios needs 'Access Hass as a global variable' to be enabled. ADAPT the PyScript configuration!")
-
-        service_begin_ts = datetime.now() 
-        calc_code = RC_SUCCESS # Default to success, will be changed if an exception occurs
-        log.info(f"{HELIOS_SERVICE_NAME}: Started at {service_begin_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]}")
+            raise NameError("Hass is NOT accessable by PyScript! Helios needs 'Access Hass as a global variable' to be enabled. ADAPT the PyScript configuration!")
 
         now_ts  = service_begin_ts # Local Timestamp (does not have a timezone yet)
         now_tz  = now_ts.astimezone().tzinfo # Get Timezone info object from timestamp (but we can get it from the datetime)
@@ -292,11 +305,12 @@ async def helios_optimizer_service(
             "house_daily_usage_kwh": house_daily_usage_kwh, # Optional House Daily Usage in kWh as a total value
             "house_daily_distr"    : house_daily_distr,     # Optional House Daily Distribution of the House Usage over the Day
 
-            "provider_key"         : provider_key,          # Provider Key (used to retrieve the provider profile to calculate the Import/Export Prices from the Source Price Data)
+            "main_provider"        : main_provider,         # Main Provider Key (used to retrieve the provider profile to calculate the Import/Export Prices from the Source Price Data)
             "price_type"           : price_type,            # Price Types are Market, Import or Export
             "source_provider"      : source_provider,       # Optional Source (Energy) Provider (Only applicable when the Price Provider is not the Original Source for the Price Data) 
             "target_provider"      : target_provider,       # Optional Target (Energy) Provider (Only applicable when the Price Provider is not the Target for the Price Data) 
             "source_price_sensor"  : source_price_sensor,   # Source Price Sensor (Entity ID) (info only since the service already retrieved the related source price data)
+            "net_metering_enabled" : net_metering_enabled,  # Optional Net Metering Enabled - Salderingsregeling Enabled (only for 2026, includes Energy Tax in Export Price)
 
             "max_time"             : max_time,
             "max_iterations"       : max_iterations,
@@ -348,25 +362,42 @@ async def helios_optimizer_service(
         payload["last_service_computed"  ] = datetime_isoformat_msec(service_computed_ts ) if (service_computed_ts  != None) else None # End Calculation      (YYYY:MM:DD HH:MM:SS:TTT)
         payload['service_compute_time_ms'] = round(service_compute_ms,1) # Add Total Calculation Execution Time for the Calculation to the payload (without the state.set)
 
-    # HANDLE SERVICE EXCEPTIONS (Remark: Exceptions are more likely to be handled by the Exception handler of the helios_optimizer_calc_plan):
+    # HANDLE SERVICE EXCEPTIONS 
+    # Remark: Exceptions are more likely to be handled by the Exception handler of the helios_optimizer_calc_plan:
+    # Exceptions in helios_optimizer_hbc_task() are handled here aswell using the earlier_message (no error_stack will be available)
     except Exception as e:
-        error_message = repr(e)
+        error_stack = None
         if not IMPORTS_FAILED: # Imports are required for the following info
-            error_stack = traceback.format_exc() # Retrieve the python error stack from traceback
-            calc_code      = RC_SERVICE_EXCEPTION
+            if earlier_message: # Earlier Exception/Error in helios_optimizer_hbc_task()?
+                error_stack = None # Trace from helios_service() is not applicable
+                calc_code = RC_TASK_EXCEPTION
+                calc_result = "Task Exception"
+                service_error_message = earlier_message
+            else:
+                error_stack = traceback.format_exc() # Retrieve the python error stack from traceback
+                calc_code = RC_SERVICE_EXCEPTION
+                calc_result = "Service Exception" if steps > 0 else "Service Disabled"
+                service_error_message = repr(e) # Only for a service exception we use the message from the current exception
             helios_version = HELIOS_VERSION
             scipy_version  = SCIPY_VERSION
-        else:
+        
+        else: # Import(s) Failed: PyScript configuration must be adapted by the user!
             error_stack = None
-            calc_code      = 8 # RC_SERVICE_EXCEPTION is not available when imports failed
+            calc_code      = 10 # RC_IMPORTS_FAILED is not available when imports have failed (since it is defined in import helios_common.py)
+            calc_result = "Import(s) Failed"
+            service_error_message  = f"PyScript Import(s) Failed! Helios needs 'Allow all imports' to be enabled. ADAPT the PyScript configuration!"
             helios_version = "Unknown"
             scipy_version  = "Unknown"
 
-        log.error(f"[{HELIOS_SERVICE_NAME}] Exception in Calculate Plan: {error_message}")
+        log.error(f"[{HELIOS_SERVICE_NAME}] Exception: {service_error_message}")
+        if error_stack: # Error stack only applicable for local errors
+            log.error(f"Full Exception Message for [{HELIOS_SERVICE_NAME}]:")
+            log.error(error_stack + "\n")
+
         payload = { # Construct a simple version of the payload for the service exception
             "success"                 : False, 
             "calc_code"               : calc_code, 
-            "calc_result"             : "Service Exception" if steps > 0 else "Service Disabled", 
+            "calc_result"             : calc_result, 
             "version"                 : helios_version,
             "scipy"                   : scipy_version,
 
@@ -382,7 +413,7 @@ async def helios_optimizer_service(
 
             "solver_exec_time_ms"     : None, # Calculation did not complete (no solver time available)
             "solver_iterations"       : 0,    # Calculation did not complete (no solver iterations available)
-            "solver_message"          : error_message, # Calculation did not complete (no solver message available, an error message will be returned instead)
+            "solver_message"          : service_error_message, # Calculation did not complete (no solver message available, an error message will be returned instead)
             "error_trace"             : error_stack,   # exception stack, for debugging only
         } 
   
@@ -403,9 +434,14 @@ async def helios_optimizer_service(
             # The Helios Optimizer Energy Plan Entity is now updated with the new payload (two fields from this payload also have their own Home Assistant Entities)
             # The HBC Sub Strategy and Net Battery Power are also updated in their respective entities for use in the Home Assistant Node-Red Flow for the Helios Strategy:
             current = payload.get('current', None)
+            if ha_exist(HELIOS_BAT_STRAT): # The Helios Battery Strategy Entity and payload['current'] must exist?
+                helios_battery_strategy = current.get('battery_strategy', HELIOS_STR_UNK) if current else HELIOS_STR_UNK # Get the Helios Battery Strategy from the payload (use 'Unknown' when not available)
+                ha_set_state(HELIOS_BAT_STRAT, value=helios_battery_strategy) # Set the Helios Battery Strategy in the HA Entity
+            else: log.error(f"[{HELIOS_SERVICE_NAME}]: Entity {HELIOS_BAT_STRAT} does not exist!")    
+
             if ha_exist(HELIOS_HBC_SUB_STRAT): # The HBC Sub Strategy Entity and payload['current'] must exist?
                 hbc_sub_strategy = current.get('hbc_sub_strategy', HBC_SS_UNK) if current else HBC_SS_UNK # Get the HBC Sub Strategy from the payload (use 'Unknown' when not available)
-                ha_set_state(HELIOS_HBC_SUB_STRAT, value=hbc_sub_strategy)       # Set the HBC Sub Strategy in the HA Entity
+                ha_set_state(HELIOS_HBC_SUB_STRAT, value=hbc_sub_strategy) # Set the HBC Sub Strategy in the HA Entity
             else: log.error(f"[{HELIOS_SERVICE_NAME}]: Entity {HELIOS_HBC_SUB_STRAT} does not exist!")    
 
             if ha_exist(HELIOS_HBC_NET_POWER): # The HBC Net Battery Power Entity and payload['current'] must exist 
@@ -423,13 +459,14 @@ async def helios_optimizer_service(
 
     #   task.sleep(1)
     #   task.sleep(0.001)
-        service_end_ts = datetime.now()
-        service_end_ms = round(1000*(service_end_ts - service_begin_ts).total_seconds(), 1) # Performance of the calculation and the state.set:
-        log.debug(f"[{HELIOS_SERVICE_NAME}]: Run Time (including state.set)={service_end_ms:.1f}ms")
-        log.debug(f"[{HELIOS_SERVICE_NAME}]: Run Finished at {service_end_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} with result '{calc_result}'")
+        if service_begin_ts:
+            service_end_ts = datetime.now()
+            service_end_ms = round(1000*(service_end_ts - service_begin_ts).total_seconds(), 1) # Performance of the calculation and the state.set:
+            log.debug(f"[{HELIOS_SERVICE_NAME}]: Run Time (including state.set)={service_end_ms:.1f}ms")
+            log.debug(f"[{HELIOS_SERVICE_NAME}]: Run Finished at {service_end_ts.strftime('%Y-%m-%d %H:%M:%S.%f')[:-3]} with result '{calc_result}'")
 
-        payload['last_service_end'     ] = datetime_isoformat_msec(service_end_ts) if (service_end_ts != None) else None # End of the Service Run (YYYY:MM:DD HH:MM:SS:TTT)
-        payload['service_total_time_ms'] = round(service_end_ms,1) # Add Total Service Execution Time including the Set Entity States to the payload
+            payload['last_service_end'     ] = datetime_isoformat_msec(service_end_ts) if (service_end_ts != None) else None # End of the Service Run (YYYY:MM:DD HH:MM:SS:TTT)
+            payload['service_total_time_ms'] = round(service_end_ms,1) # Add Total Service Execution Time including the Set Entity States to the payload
     
     # HANDLE SET STATE EXCEPTIONS:
     except Exception as e:
@@ -487,7 +524,7 @@ async def helios_optimizer_hbc_task(optimize_ts_str: str = None, optimize_off_mi
     task.unique("helios_optimizer_task_lock", kill_me=True)  # This will kill this new instance (of the helios_optimizer_task_lock) immediately when another instance of the task is already running
 #   task.unique("helios_optimizer_task_lock", kill_me=False) # This will not kill this instance (of the helios_optimizer_task_lock) but will kill another (earlier) instance of the task that is still running, use this when using long sleeps in the optimizer
 
-    if trigger_time == "startup": # Triggered by startup (wait until other pyscript have completed, e.g. helios_forecast.py)
+    if trigger_time == "startup": # Triggered by startup (wait until other pyscript(s) have completed, e.g. helios_forecast.py which retrieves the new forecast at startup)
         log.warning(f"[{HELIOS_SERVICE_NAME}]-HBC-Task: Trigger Time={trigger_time}: Waiting 10 seconds ...")
         task.sleep(8) # Wait 8 seconds
     log.info(f"[{HELIOS_SERVICE_NAME}]-HBC-Task: Started after trigger type={trigger_type} at time={trigger_time}")
@@ -495,134 +532,155 @@ async def helios_optimizer_hbc_task(optimize_ts_str: str = None, optimize_off_mi
     # 1. Turn on the helios optimizer running status (switches the button to orange)
     ha_set_bool(HELIOS_RUNNING, True, existing_only = True) # Set the Helios Running entity On (only when it exists)
 
-    if not IMPORTS_FAILED:
+    # Initialize all parameters (making a call to the service possible without an exception, independent of availability of entities):
+    task_error_message = None # No Errors yet
+    steps, step_size, start_step, price_size, house_size, solar_size = None, None, None, None, None, None
+    house_daily_usage_kwh, house_daily_distr, max_grid_import_kw, max_grid_export_kw = None, None, None, None
+    source_price_sensor, source_price_data, main_provider, price_type, source_provider, target_provider, net_metering_enabled = None, None, None, None, None, None, None
+    solar_config, battery_config = None, None
+
+    if IMPORTS_FAILED:
+        task_error_message = "PyScript Import(s) Failed!" # Further handling in helios_optimizer_service()
+    
+    else: # Import of other modules did not fail (processing can continue)
         # Initialize the Helios Optimizer Entities (executed only once until new entities are added in the next release)
         helios_optimizer_init()
 
-    payload = None
-    raise_error = True # For all input parameters: An exception is thrown when an entity does not exist or contains an invalid format (e.g. not float) 
-    try:
-        # 2a. Retrieve the input parameters for the Helios Optimizer from the Helios Dashboard
-        days                  = ha_get_int  (HELIOS_INPUT_HORIZON     , default_value=None, raise_error=raise_error) 
-#       steps                 = ha_get_int  (HELIOS_INPUT_STEPS       , default_value=None, raise_error=raise_error) 
-        step_size             = ha_get_int  (HELIOS_INPUT_STEP_SIZE   , default_value=None, raise_error=raise_error) 
-        start_step            = ha_get_int  (HELIOS_INPUT_START_STEP  , default_value=None, raise_error=raise_error) 
-        steps =  days * int(24 * 60 / step_size) if (days and step_size and (step_size > 0)) else 0 # Calculate the number of steps from the number of days and the step size (when both are available)
-#       log.error(f"The values of steps {steps} size {step_size} start {start_step} have been retrieved!")
+        payload = None
+        raise_error = True # For all input parameters: An exception is thrown when an entity does not exist or contains an invalid format (e.g. not float) 
+        try:
+            # 2a. Retrieve the input parameters for the Helios Optimizer from the Helios Dashboard
+            days                  = ha_get_int  (HELIOS_INPUT_HORIZON     , default_value=None , raise_error=raise_error) 
+    #       steps                 = ha_get_int  (HELIOS_INPUT_STEPS       , default_value=None , raise_error=raise_error) 
+            step_size             = ha_get_int  (HELIOS_INPUT_STEP_SIZE   , default_value=None , raise_error=raise_error) 
+            start_step            = ha_get_int  (HELIOS_INPUT_START_STEP  , default_value=None , raise_error=raise_error) 
+            steps =  days * int(24 * 60 / step_size) if (days and step_size and (step_size > 0)) else 0 # Calculate the number of steps from the number of days and the step size (when both are available)
+    #       log.error(f"The values of steps {steps} size {step_size} start {start_step} have been retrieved!")
 
-        max_grid_import_kw    = ha_get_float(HELIOS_INPUT_MAX_GRID_IMP, default_value=None, raise_error=raise_error) 
-        max_grid_export_kw    = ha_get_float(HELIOS_INPUT_MAX_GRID_EXP, default_value=None, raise_error=raise_error) 
-        house_daily_usage_kwh = ha_get_float(HELIOS_INPUT_HOUSE_USAGE , default_value=None, raise_error=raise_error) 
-        house_daily_distr     = ha_get_text (HELIOS_INPUT_HOUSE_DISTR , default_value=None, raise_error=raise_error) 
+            max_grid_import_kw    = ha_get_float(HELIOS_INPUT_MAX_GRID_IMP, default_value=None , raise_error=raise_error) 
+            max_grid_export_kw    = ha_get_float(HELIOS_INPUT_MAX_GRID_EXP, default_value=None , raise_error=raise_error) 
+            house_daily_usage_kwh = ha_get_float(HELIOS_INPUT_HOUSE_USAGE , default_value=None , raise_error=raise_error) 
+            house_daily_distr     = ha_get_text (HELIOS_INPUT_HOUSE_DISTR , default_value=None , raise_error=raise_error) 
+            net_metering_enabled  = ha_get_bool (HELIOS_INPUT_NET_METERING, default_value=False, raise_error=False) # Net Metering Enabled (Salderingsregeling) is optional and defaults to False when not specified, since it is only applicable for 2026 
+    #       log.error(f"Net metering enabled1={net_metering_enabled}")
 
-        # 2b. Check that house daily usage distribution is not an empty string (replace by None if so):
-        house_size = None
-        if isinstance(house_daily_distr, str) and (house_daily_distr.strip(' ') == ''): # Nothing specified (empty string) for the house usage distribution
-            house_daily_distr = None # Disable the distribution (house daily usage will be divided evenly over the day)
-        else:
-            # Do a dummy generate of the forecast to determine the house forecast step size (but just send the house daily distribution!)
-            house_energy_forecast = generate_forecast_for_distribution(house_daily_usage_kwh, house_daily_distr, expected_sizes=[24,48,96], name="house_daily_distr", decimals=ROUND_ENERGY_KWH2, raise_error=False)
-            if len(house_energy_forecast) > 0:
-                house_size = int(24 * MINUTES_PER_HOUR / len(house_energy_forecast)) # Daily forecast length determines number of steps per day for the house daily usage distribution array
+            # 2b. Check that house daily usage distribution is not an empty string (replace by None if so):
+            house_size = None
+            if isinstance(house_daily_distr, str) and (house_daily_distr.strip(' ') == ''): # Nothing specified (empty string) for the house usage distribution
+                house_daily_distr = None # Disable the distribution (house daily usage will be divided evenly over the day)
+            else:
+                # Do a dummy generate of the forecast to determine the house forecast step size (but just send the house daily distribution!)
+                house_energy_forecast = generate_forecast_for_distribution(house_daily_usage_kwh, house_daily_distr, expected_sizes=[24,48,96], name="house_daily_distr", decimals=ROUND_ENERGY_KWH2, raise_error=False)
+                if len(house_energy_forecast) > 0:
+                    house_size = int(24 * MINUTES_PER_HOUR / len(house_energy_forecast)) # Daily forecast length determines number of steps per day for the house daily usage distribution array
 
-        # 2c. Determine the Solar Settings:
-        solar_energy_forecast, solar_size = None, None  
-        solar_mode    = ha_get_state(HELIOS_INPUT_SOLAR_MODE, default_value=None, raise_error=raise_error) 
-        solar_enabled = solar_mode != "disabled" # SOLAR_DIS (cannot use this constant when helios_common.py is not available due to import problems)
-        if (solar_enabled): # Solar Mode Enabled (not Disabled)?
-            solar_forecast_srce = ha_get_text (HELIOS_INPUT_SOLAR_SOURCE, default_value=None, raise_error=raise_error) 
-            if solar_forecast_srce == FORECAST_FS_REST: # Forecast.Solar REST api?
-                solar_forecast_sensor = HELIOS_SOLAR_FORECAST # Sensor filled with template after retrieval via REST api
-            elif solar_forecast_srce == FORECAST_FS_INTEGR: # Forecast.Solar Integration
-                solar_forecast_sensor = HELIOS_SOLAR_FORECAST2 # Sensor filled with Pyscript (helios_forecast.py) after retrieval via service of Forecast.Solar Integration
+            # 2c. Determine the Solar Settings:
+            solar_energy_forecast, solar_size = None, None  
+            solar_mode    = ha_get_state(HELIOS_INPUT_SOLAR_MODE, default_value=None, raise_error=raise_error) 
+            solar_enabled = solar_mode != "disabled" # SOLAR_DIS (cannot use this constant when helios_common.py is not available due to import problems)
+            if (solar_enabled): # Solar Mode Enabled (not Disabled)?
+                solar_forecast_srce = ha_get_text (HELIOS_INPUT_SOLAR_SOURCE, default_value=None, raise_error=raise_error) 
+                if solar_forecast_srce == FORECAST_FS_REST: # Forecast.Solar REST api?
+                    solar_forecast_sensor = HELIOS_SOLAR_FORECAST # Sensor filled with template after retrieval via REST api
+                elif solar_forecast_srce == FORECAST_FS_INTEGR: # Forecast.Solar Integration
+                    solar_forecast_sensor = HELIOS_SOLAR_FORECAST2 # Sensor filled with Pyscript (helios_forecast.py) after retrieval via service of Forecast.Solar Integration
             
-            if solar_forecast_sensor: # Solar Forecast Sensor available
-                solar_forecast_result = ha_get_attr(solar_forecast_sensor, 'result', None) # Get the result attribute for the sensor
-#               log.error(f"Solar Forecast {solar_forecast_result}")
-                if solar_forecast_result: # Result attribute available?
-                    solar_energy_forecast = solar_forecast_result.get('hours_kwh', None)
-                    solar_size            = solar_forecast_result.get('interval' , None) # step size for the solar forecast
+                if solar_forecast_sensor: # Solar Forecast Sensor available
+                    solar_forecast_result = ha_get_attr(solar_forecast_sensor, 'result', None) # Get the result attribute for the sensor
+    #               log.error(f"Solar Forecast {solar_forecast_result}")
+                    if solar_forecast_result: # Result attribute available?
+                        solar_energy_forecast = solar_forecast_result.get('hours_kwh', None)
+                        solar_size            = solar_forecast_result.get('interval' , None) # step size for the solar forecast
 
-#           solar_energy_forecast = None # Testing what happens with an empty forecast array (same as when helios_forecast.py fails to write to the forecast entity)
-            solar_config = {
-                "enabled": solar_enabled, "mode": solar_mode, "energy_forecast": solar_energy_forecast
-            }
-        else:
-            solar_config = None
+    #           solar_energy_forecast = None # Testing what happens with an empty forecast array (same as when helios_forecast.py fails to write to the forecast entity)
+                solar_config = {
+                    "enabled": solar_enabled, "mode": solar_mode, "energy_forecast": solar_energy_forecast, "forecast_source": solar_forecast_srce
+                }
+            else:
+                solar_config = None
 
-        # 2d. Determine the Battery Settings:
-        battery_enabled = ha_get_bool(HELIOS_INPUT_BAT_ENABLED, default_value=False, raise_error=raise_error) 
-        if battery_enabled: # Battery Enabled?
-            capacity_kwh           = ha_get_float(HELIOS_TEMPL_HBC_MAX_CAP , default_value=None, raise_error=raise_error)
-            soc_start_pct          = ha_get_float(HELIOS_TEMPL_HBC_TOT_SOC , default_value=None, raise_error=raise_error)
-            soc_target_pct         = ha_get_float(HELIOS_INPUT_SOC_TARGET  , default_value=None, raise_error=raise_error)
-            soc_min_pct            = ha_get_float(HELIOS_INPUT_SOC_MIN     , default_value=None, raise_error=raise_error)
-            soc_max_pct            = ha_get_float(HELIOS_INPUT_SOC_MAX     , default_value=None, raise_error=raise_error)
-            max_charge_power_kw    = ha_get_float(HELIOS_INPUT_CHARGE_LIMIT, default_value=None, raise_error=raise_error)
-            max_discharge_power_kw = ha_get_float(HELIOS_INPUT_DISCH_LIMIT , default_value=None, raise_error=raise_error)
-            charge_efficiency      = ha_get_float(HELIOS_INPUT_CHARGE_EFF  , default_value=None, raise_error=raise_error)
-            discharge_efficiency   = ha_get_float(HELIOS_INPUT_DISCH_EFF   , default_value=None, raise_error=raise_error)
-#           capacity_kwh, soc_start_pct = 0, "unknown" # Testing templates unavailable
-            battery_config = {
-                "enabled": battery_enabled,
-                "capacity_kwh": capacity_kwh, "soc_start_pct": soc_start_pct,
-                "soc_target_pct": soc_target_pct, "soc_min_pct": soc_min_pct, "soc_max_pct": soc_max_pct,
-                "max_charge_power_kw": max_charge_power_kw, "max_discharge_power_kw": max_discharge_power_kw, 
-                "charge_efficiency": charge_efficiency, "discharge_efficiency": discharge_efficiency,
-                "charge_cost": None, "discharge_cost": None, # Using the default charge cost (when None specified)
-            }
-        else:
-            battery_config = None
+            # 2d. Determine the Battery Settings:
+            battery_enabled = ha_get_bool(HELIOS_INPUT_BAT_ENABLED, default_value=False, raise_error=raise_error) 
+            if battery_enabled: # Battery Enabled?
+                capacity_kwh           = ha_get_float(HELIOS_TEMPL_HBC_MAX_CAP , default_value=None, raise_error=raise_error)
+                soc_start_pct          = ha_get_float(HELIOS_TEMPL_HBC_TOT_SOC , default_value=None, raise_error=raise_error)
+                soc_target_pct         = ha_get_float(HELIOS_INPUT_SOC_TARGET  , default_value=None, raise_error=raise_error)
+                soc_min_pct            = ha_get_float(HELIOS_INPUT_SOC_MIN     , default_value=None, raise_error=raise_error)
+                soc_max_pct            = ha_get_float(HELIOS_INPUT_SOC_MAX     , default_value=None, raise_error=raise_error)
+                max_charge_power_kw    = ha_get_float(HELIOS_INPUT_CHARGE_LIMIT, default_value=None, raise_error=raise_error)
+                max_discharge_power_kw = ha_get_float(HELIOS_INPUT_DISCH_LIMIT , default_value=None, raise_error=raise_error)
+                charge_efficiency      = ha_get_float(HELIOS_INPUT_CHARGE_EFF  , default_value=None, raise_error=raise_error)
+                discharge_efficiency   = ha_get_float(HELIOS_INPUT_DISCH_EFF   , default_value=None, raise_error=raise_error)
+    #           capacity_kwh, soc_start_pct = 0, "unknown" # Testing templates unavailable
+                battery_config = {
+                    "enabled": battery_enabled,
+                    "capacity_kwh": capacity_kwh, "soc_start_pct": soc_start_pct,
+                    "soc_target_pct": soc_target_pct, "soc_min_pct": soc_min_pct, "soc_max_pct": soc_max_pct,
+                    "max_charge_power_kw": max_charge_power_kw, "max_discharge_power_kw": max_discharge_power_kw, 
+                    "charge_efficiency": charge_efficiency, "discharge_efficiency": discharge_efficiency,
+                    "charge_cost": None, "discharge_cost": None, # Using the default charge cost (when None specified)
+                }
+            else:
+                battery_config = None
 
-        # 2e. Determine Source Price Data by reading the HBC Energy Price Data Entity:
-        price_type      = ha_get_state(HELIOS_INPUT_PRICE_TYPE , default_value=None, raise_error=raise_error) # Get the Source Price Type ('market', 'import' or 'export')
-        source_provider = ha_get_state(HELIOS_INPUT_SOURCE_PROV, default_value=None, raise_error=raise_error) # Get the Data   Provider of the Price (Tariff) Data
-        target_provider = ha_get_state(HELIOS_INPUT_TARGET_PROV, default_value=None, raise_error=raise_error) # Get the Energy Provider (Contract)
-        source_price_sensor = HBC_ENERGY_PRICE_DATA
-        if ha_exist(source_price_sensor): # HBC Price Data exists in Home Assistant, retrieve the attributes of the entity as a dictionary
-            hbc_price_data_source = ha_get_state(HBC_PRICE_DATA_SOURCE  , default_value=None, raise_error=raise_error) # Get the Source Provider used in HBC to retrieve the Source Price Data
-            source_price_data     = ha_get_all_attr(source_price_sensor) # Get the attributes of the Source Price Data Entity as a dictionary 
+            # 2e. Determine Source Price Data by reading the HBC Energy Price Data Entity:
+            price_type      = ha_get_state(HELIOS_INPUT_PRICE_TYPE , default_value=None, raise_error=raise_error) # Get the Source Price Type ('market', 'import' or 'export')
+            source_provider = ha_get_state(HELIOS_INPUT_SOURCE_PROV, default_value=None, raise_error=raise_error) # Get the Data   Provider of the Price (Tariff) Data
+            target_provider = ha_get_state(HELIOS_INPUT_TARGET_PROV, default_value=None, raise_error=raise_error) # Get the Energy Provider (Contract)
+            source_price_sensor = HBC_ENERGY_PRICE_DATA
+            if ha_exist(source_price_sensor): # HBC Price Data exists in Home Assistant, retrieve the attributes of the entity as a dictionary
+                hbc_price_data_source = ha_get_state(HBC_PRICE_DATA_SOURCE  , default_value=None, raise_error=raise_error) # Get the Source Provider used in HBC to retrieve the Source Price Data
+                source_price_data     = ha_get_all_attr(source_price_sensor) # Get the attributes of the Source Price Data Entity as a dictionary 
 
-            # Convert All 'Grid Clock XX' Price Data Sources to 'Grid Clock'
-            if (hbc_price_data_source.startswith("Grid Clock")): # HBC Price Source (provider) Key starts with Grid Clock?
-                hbc_price_data_source = 'Grid Clock' # Convert all Grid Clock countries to the General Grid Clock Provider Profile (no taxes or markups involved and all are market prices without vat)
+                # Convert All 'Grid Clock XX' Price Data Sources to 'Grid Clock'
+                if (hbc_price_data_source.startswith("Grid Clock")): # HBC Price Source (provider) Key starts with Grid Clock?
+                    hbc_price_data_source = 'Grid Clock' # Convert all Grid Clock countries to the General Grid Clock Provider Profile (no taxes or markups involved and all are market prices without vat)
 
-            # User already has selected the Data and/or Energy Provider in HBC as the Price (Tariff) Data Source
-            # Note: HBC Data Source are not exactly the same as the Helios Profile keys but a Conversion Table is used when the (HBC) profile key is not found in the Helios Profiles
-            if source_provider == HBC_DATA_SOURCE: source_provider = hbc_price_data_source # Use the HBC Data Source as the Source (Data  ) Provider in Helios
-            if target_provider == HBC_DATA_SOURCE: target_provider = hbc_price_data_source # Use the HBC Data Source as the Target (Energy) Provider in Helios
+                # User already has selected the Data and/or Energy Provider in HBC as the Price (Tariff) Data Source
+                # Note: HBC Data Source are not exactly the same as the Helios Profile keys but a Conversion Table is used when the (HBC) profile key is not found in the Helios Profiles
+                if source_provider == HBC_DATA_SOURCE: source_provider = hbc_price_data_source # Use the HBC Data Source as the Source (Data  ) Provider in Helios
+                if target_provider == HBC_DATA_SOURCE: target_provider = hbc_price_data_source # Use the HBC Data Source as the Target (Energy) Provider in Helios
 
-            # Determine the steps size (in minutes) for the Price Data (convert HBC Datapoints per hour to step size: 60 / datapoints_per_hour)
-            try: 
-                hbc_datapoints_per_hour = convert_int(source_price_data.get('datapoints_per_hour', None), "HBC Price Data: Datapoints per Hour", default_int = None, allow_none=True)
-            except:
-                hbc_datapoints_per_hour = None
-            price_size = int(round(60 / hbc_datapoints_per_hour, 0)) if hbc_datapoints_per_hour else None
-        else:
-            source_price_data, price_size = {}, None # Optimizer will fail without price data, JR2026-10-28 JR: replace None by {}, optimizer will report that no price info available
+                # Determine the steps size (in minutes) for the Price Data (convert HBC Datapoints per hour to step size: 60 / datapoints_per_hour)
+                try: 
+                    hbc_datapoints_per_hour = convert_int(source_price_data.get('datapoints_per_hour', None), "HBC Price Data: Datapoints per Hour", default_int = None, allow_none=True)
+                except:
+                    hbc_datapoints_per_hour = None
+                price_size = int(round(60 / hbc_datapoints_per_hour, 0)) if hbc_datapoints_per_hour else None
+            else:
+                source_price_data, price_size = {}, None # Optimizer will fail without price data, JR2026-10-28 JR: replace None by {}, optimizer will report that no price info available
 
+        except Exception as e:
+            # An error occured while reading the input parameters
+            task_error_message = e
+            log.error(f"[{HELIOS_TASK_NAME}] Exception: {task_error_message}")
+            error_stack = traceback.format_exc() # Retrieve the python error stack from traceback
+            log.error(f"Full Exception Message for [{HELIOS_TASK_NAME}]:")
+            log.error(error_stack + "\n")
+
+    # Whatever happened we will call the Helios Optimizer Service 
+    # Note: An earlier error message will be passed so the user interface can be updated in helios optimizer service (in this case no further action will be taken by the service)
+    try:
         # 3. Call the HA Service with the input parameters
-#       log.error(f"Steps 1 = {steps}")
         payload = await helios_optimizer_service(
             steps=steps, step_size=step_size, start_step=start_step, price_size=price_size, house_size=house_size, solar_size=solar_size,
             house_daily_usage_kwh=house_daily_usage_kwh, house_daily_distr=house_daily_distr,
             max_grid_import_kw=max_grid_import_kw, max_grid_export_kw=max_grid_export_kw,
-            source_price_sensor=source_price_sensor, provider_key='hbc_marks', price_type=price_type, source_provider=source_provider, target_provider=target_provider, # Price configuration info
+            source_price_sensor=source_price_sensor, main_provider='hbc_marks', price_type=price_type, source_provider=source_provider, target_provider=target_provider, # Price configuration info
+            net_metering_enabled=net_metering_enabled, # Net Metering Enabled (True/False) 
             optimize_ts_str=optimize_ts_str, optimize_off_min=optimize_off_min, # Use only for simulation purposes (Helios Optimizer service will add the current time and offset)
+            earlier_message=task_error_message, # Earlier Error Message (no actual calculation will be done by the helios optimizer service when an error message is specified!)
             solar=solar_config, 
             battery=battery_config,
             source_price_data=source_price_data, # HBC Price Data (Provider is HBC)
         )
 
-        # 4. Wait an extra 1 second otherwise the color change of the start button will not be visible if the optimization is very fast (e.g. less than 200 millisecond)
-        task.sleep(1)
-    
     except Exception as e:
-        # An error occured while reading the input parameters
+        # An error occured in calling the Helios Optimizer Service
         # The output is currently not applied to the Helios Output entity (and not visible on the user interface)
         # A Notification will be sent to the HA Persistent Notification Framework
-        error_message = repr(e)
-        log.error(f"[{HELIOS_SERVICE_NAME}]-HBC-Task Exception: {error_message}")
+        error_message = e
+        log.error(f"[{HELIOS_TASK_NAME}]-Service] Exception: {error_message}")
         if not IMPORTS_FAILED:
             error_stack = traceback.format_exc() # Retrieve the python error stack from traceback
             log.error(f"Full Exception Message for [{HELIOS_SERVICE_NAME}]:")
@@ -634,6 +692,9 @@ async def helios_optimizer_hbc_task(optimize_ts_str: str = None, optimize_off_mi
         )
         payload = {"success": False, "automation_message": error_message, "error_trace": error_stack} # Simplified payload for errors
 
+    # 4. Wait an extra 1 second otherwise the color change of the start button will not be visible if the optimization is very fast (e.g. less than 200 millisecond)
+    task.sleep(1)
+    
     # 5. Turn off the helios optimizer running status (switches the button back to green)
     ha_set_bool(HELIOS_RUNNING, False, existing_only = True)
 
@@ -689,11 +750,14 @@ def helios_optimizer_init():
             if (previous_version_tuple < (0,9,3)): # Below v0.9.3 initialize the solar forecast Resource
                 init_count += helios_optimizer_init_entity(HELIOS_INPUT_SOLAR_SOURCE, FORECAST_FS_INTEGR)
 
-            if (previous_version_tuple < (0,9,4)): # Below v0.9.4 initialize the price data
+            if (previous_version_tuple < (0,9,4)): # Below v0.9.4 initialize the price data and Horizon
                 init_count += helios_optimizer_init_entity(HELIOS_INPUT_PRICE_TYPE  , PT_IMPORT)
                 init_count += helios_optimizer_init_entity(HELIOS_INPUT_SOURCE_PROV , HBC_DATA_SOURCE)
                 init_count += helios_optimizer_init_entity(HELIOS_INPUT_TARGET_PROV , HBC_DATA_SOURCE)
                 init_count += helios_optimizer_init_entity(HELIOS_INPUT_HORIZON     , DEFAULT_HORIZON)
+
+            if (previous_version_tuple < (0,9,5)): # Below v0.9.5 initialize the Net Metering 
+                init_count += helios_optimizer_init_entity(HELIOS_INPUT_NET_METERING, False)
 
             # Update the Helios Optimizer Version (above initializations will not happen again afterwards until the version is increased):
             ha_set_text(HELIOS_INPUT_VERSION, HELIOS_VERSION) # Store the latest version in HA Entity 
@@ -946,7 +1010,7 @@ def ha_get_state(entity_id: str, default_value: str = FAILED_STATE, ignore_undef
     Convert HA unknown and unavailable to "Unknown" and "Unavailable" unless ignore undefined is True (then the default value (FAILED_STATE) is returned)
     Warning: Use ha_exist for separate handling of entities that do not exist (this function will throw an exception or return the default when raise_error is False)
     """
-    state_value = NONAME_STATE # Initial value is not the default (NONAME_STATE will be returned when no entity id specified)
+    state_value, error_msg = NONAME_STATE, None # Initial value is not the default (NONAME_STATE will be returned when no entity id specified)
     try:
         if (entity_id != None): # Entity Id specified?
             state_value = state.get(entity_id) # Retrieve the state of the HA Entity
@@ -965,11 +1029,13 @@ def ha_get_state(entity_id: str, default_value: str = FAILED_STATE, ignore_undef
             error_msg = f"State Conversion Failed for HA Entity '{entity_id}' with value '{state_value}': {repr(e)}"
         else: # Get performed but failed since entity does not exist
             error_msg = f"HA State Entity {entity_id} does NOT Exist!"
-        if raise_error:
-            raise ValueError(error_msg)
-        log.error(f"[{HELIOS_SERVICE_NAME}-ha-get-state] Exception: {error_msg}")
+
+        log.error(f"[{HELIOS_SERVICE_NAME}-HA-Get-State] Exception: {error_msg}")
         state_value = default_value # Usually: FAILED_STATE
-            
+    
+    if error_msg and raise_error:
+        raise ValueError(error_msg) # Raise a (new) exception with the error message (instead of returning the default value)
+        
     return str(state_value) if (state_value != None) else None # Always return as string unless None
 
 # Get Text from Home Assistant Entity State 
@@ -980,7 +1046,7 @@ def ha_get_text(entity_id, default_value: str = None, ignore_undefined: bool = T
     By default "unknown" or "unavailable" values will return None but when ignore undefined is False the values will be returned as-is.
     Warning: Use ha_exist for separate handling of entities that do not exist (this function will throw an exception or return the default when raise_error is False)
     """
-    state_value = None
+    state_value, error_msg = None, None
     try:
         if (entity_id != None): # Entity Id specified?
             state_value = state.get(entity_id) # Retrieve the state of the HA Entity
@@ -993,11 +1059,13 @@ def ha_get_text(entity_id, default_value: str = None, ignore_undefined: bool = T
             error_msg = f"Text Retrieve Failed for HA Entity '{entity_id}': {repr(e)}"
         else: # Get performed but failed since entity does not exist
             error_msg = f"HA Text Entity {entity_id} does NOT Exist!"
-        if raise_error:
-            raise ValueError(error_msg)
-        log.error(f"[{HELIOS_SERVICE_NAME}-ha-get-text] Exception: {error_msg}")
+
+        log.error(f"[{HELIOS_SERVICE_NAME}-HA-Get-Text] Exception: {error_msg}")
         state_value = default_value
             
+    if error_msg and raise_error:
+        raise ValueError(error_msg) # Raise a (new) exception with the error message (instead of returning the default value)
+
     return str(state_value) if (state_value != None) else None # Always return as string unless None
 
 # Get Float from Home Assistant Entity State (copied from state_get_float in _batmgt_util.py)
@@ -1011,7 +1079,7 @@ def ha_get_float(entity_id: str, default_value: float = None, ignore_undefined: 
     Warning: Use ha_exist for separate handling of entities that do not exist (this function will throw an exception or return the default when raise_error is False)
     Returns Float Value or None when HA state is unavailable, unknown or for an invalid number (string)!
     """
-    state_value, float_value = None, None
+    state_value, float_value, error_msg = None, None, None
     try:
         if (entity_id != None): # Entity Id specified?
             state_value = state.get(entity_id) # Retrieve the state of the HA Entity (throws an exception when the entity does not exist)
@@ -1029,10 +1097,12 @@ def ha_get_float(entity_id: str, default_value: float = None, ignore_undefined: 
             error_msg = f"Float or Integer Conversion Failed for HA Entity '{entity_id}' with value '{state_value}': {repr(e)}"
         else: # Get performed but failed since entity does not exist
             error_msg = f"HA Float or Integer Entity {entity_id} does NOT Exist!"
-        if raise_error:
-            raise ValueError(error_msg)
-        log.error(f"[{HELIOS_SERVICE_NAME}-ha-get-float] Exception: {error_msg}")
+
+        log.error(f"[{HELIOS_SERVICE_NAME}-HA-Get-Float] Exception: {error_msg}")
         float_value = default_value
+
+    if error_msg and raise_error:
+        raise ValueError(error_msg) # Raise a (new) exception with the error message (instead of returning the default value)
 
     return float_value
 
@@ -1041,7 +1111,7 @@ def ha_get_bool(entity_id: str, default_value: bool = False, ignore_undefined: b
     Get a boolean value for a Home Assistant state value. 
     Warning: Use ha_exist for separate handling of entities that do not exist (this function will throw an exception or return the default when raise_error is False)
     """
-    state_value, bool_value = None, None
+    state_value, bool_value, error_msg = None, None, None
     try:
         if (entity_id != None): 
             state_value = state.get(entity_id) # Retrieve the state of the HA Entity
@@ -1051,16 +1121,19 @@ def ha_get_bool(entity_id: str, default_value: bool = False, ignore_undefined: b
 
         # Convert the value to bool (only for state_value is 'on')
         bool_value = (state_value == HA_ON) if (state_value != None) else None # Convert from string to bool unless None
+#       log.info(f"[{HELIOS_SERVICE_NAME}-ha-get-bool] Boolean Value: {state_value} -> {bool_value}")
 
     except (Exception) as e: # Conversion Error for Boolean
         if state.exist(entity_id): # Entity exist but Boolean conversion failed?
             error_msg = f"Boolean Conversion Failed for HA Entity '{entity_id}' with value '{state_value}': {repr(e)}"
         else: # Get performed but failed since entity does not exist
             error_msg = f"HA Boolean Entity {entity_id} does NOT Exist!"
-        if raise_error:
-            raise ValueError(error_msg)
-        log.error(f"[{HELIOS_SERVICE_NAME}-ha-get-bool] Exception: {error_msg}")
+
+        log.error(f"[{HELIOS_SERVICE_NAME}-HA-Get-Bool] Exception: {error_msg}")
         bool_value = default_value
+
+    if error_msg and raise_error:
+        raise ValueError(error_msg) # Raise a (new) exception with the error message (instead of returning the default value)
 
     return bool_value
 
