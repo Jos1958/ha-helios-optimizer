@@ -46,7 +46,8 @@
 #   2026-10-28: JR  v0.93a Added Test on solar_energy_forecast (not None) before convert the forecast to floats (like for the prices)
 #   2026-10-29: JR  v0.93a For Solar Enabled a Solar Energy Forecast must be available, raise an error when not available (optimizer stops)
 #   2026-11-07: JR  v0.94c Improved error handling for installation (pyscript import and hass)
-#   2026-11-08: JR  v0.94c Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026)
+#   2026-11-08: JR  v0.94c Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026) 
+#   2026-11-12: JR  v0.95  Adapted the release number to v0.9.5
 #
 #   Remark: For the full helios history see helios_main.py
 #   
