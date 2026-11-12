@@ -20,7 +20,7 @@ See [Helios Optimizer Why LP](WHY.md)
 - Create the **missing folders** in Home Assistant.
 - Copy the **py files** to /pyscript and /pyscript/helios_python
 - Copy the **configuration** file (helios_optimizer.yaml) to /packages
-- Copy the **banner** file (HeliosOptimizerBanner.jpeg) to /www
+- Copy the **banner** file (HeliosOptimizerBanner.jpeg and HeliosOptimizerBanner70.jpeg) to /www
 - **Create** a new Home Assistant **Dashboard** for Helios (from helios_dashboard.yaml including the **views:** line at the top).
 - Or **Add** the Helios Tabs to the HBC Dashboard yaml (from helios_dashboard.yaml but excluding the **views:** line).
 - Import the **Helios Strategy Flow** (02 strategy-helios-vx.xx.x-vy.y.y.json) in Node-RED and [Deploy].
