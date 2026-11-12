@@ -175,9 +175,9 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
   * Not supported yet (see Helios Calculator)
 
 ## Upgrade
-See the [Helios Optimizer Release Notes](RELEASE_NOTES.md) for a list of the **updated files** per Helios release.
-<br>Depending on the release(s) you may have to perform the following steps for update files
-(do not forget to check earlier releases when you skip a release or just update all files):
+<br>Depending on the release(s) you may have to perform the following steps for updated files
+<br>(do not forget to check earlier releases when you skip a release or just update all files):
+Tip: See the [Helios Optimizer Release Notes](RELEASE_NOTES.md) for a list of the **updated files** per Helios release.
 
 - **Package** File (\*.yaml): Copy the updated file to /packages
 
@@ -193,7 +193,6 @@ Edit the Dashboard using the 'Raw Configuration Editor' and copy/paste the updat
   - Delete the existing Strategy Helios vx.xx.x in Node-Red
   - Import the updated flow file again into Node-Red (see the instructions in the installation above)
   - Press [Deploy] after importing the flow!
-  
 
 - **Restart** Home Assistant after the updates
 
