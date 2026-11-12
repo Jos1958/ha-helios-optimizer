@@ -2,6 +2,11 @@
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 [README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 
+## 0.9.5a (2026-11-12) Quickfix
+- Adapted the Node-Red Helios Strategy flow (wrong test on helios_sub_strat field in execute)
+- **Updated file:**
+  - Node-Red Helios Strategy Flow (json), 
+
 ## 0.9.5 (2026-11-12) Installation Improvements and Net Metering Mode (Salderingsregeling)
 - Graphs did not always use full width (especially in Windows), added update_interval: 5s to the apexcharts-card (Thanks to Gerrit_18808).
 - Improved Installation (Thanks Martijn), Handling PyScript Imports and Hass configuration errors.
