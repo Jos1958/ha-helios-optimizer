@@ -152,11 +152,13 @@ and can be **manually** started with the green **Start Helios** button.<br>
 ### Optimization Parameters
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
 - **Max Grid Import:** Maximum Grid Import Power in kW (=kVA)
-  <br>This is the Import limit for your **fuse box** (all phases together) and not directly related to the battery limits.
-  <br>See [Fuse Box Limits](#fuse-box-limits) for common connections and their power capacity
-  <br>**Warning:** A low maximum grid import (or export) value can make the energy plan infeasible since a power balance must always be maintained by the model.
+  <br>This is the Import limit for your **fuse box** (all phases together) and **not** directly related to the battery charge limit.
+  See [Fuse Box Limits](#fuse-box-limits) for common connections and their power capacity
+  <br>**Warning:** A low maximum grid import (or export) value can make the energy plan infeasible 
+  since a power balance must always be maintained by the model and the model can never exceed this value.
+  However in case a capacity charges you may want to keep this limit at a lower level (peak shaving).
 - **Max Grid Export:** Maximum Grid Export Power in kW (=kVA)
-  <br>This is the Export limit for your **fuse box** (all phases together) and not directly related to the battery limits.
+  <br>This is the Export limit for your **fuse box** (all phases together) and **not** directly related to the battery discharge limit.
 - **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
   <br>In the future the House Energy Usage will be retrieved from history data but at the moment you need to make an estimate for the average energy usage in the house. 
   <br>See the advanced parameters section if you want to change the distribution of the daily usage over the day.
@@ -418,7 +420,6 @@ provided by your grid operator (such as Enexis, Liander, or Stedin).
 You can roughly calculate the maximum capacity (kW or kVA) using the formula: Amperage × 230 Volts × number of phases.
 The default value in Helios is 11.0 kW but you can change both the import and the output limit in the 
 [Optimization Parameters](#optimization-parameters).
-
 <br>Common connections and their power capacity:
 - 1-phase connection (230V):
   - 1 × 25A: ±6 kW (5,750 Watts)
