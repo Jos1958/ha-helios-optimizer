@@ -4,7 +4,7 @@
 
 ## 0.9.5 (2026-11-12) Installation Improvements and Net Metering Mode (Salderingsregeling)
 - Graphs did not always use full width (especially in Windows), added update_interval: 5s to the apexcharts-card (Thanks to Gerrit_18808)
-- Improved Installation (Thanks Martijn), Readme, Documentation (Thanks Mike Da Spike)
+- Improved Installation (Thanks Martijn), Readme, Documentation (Thanks Mike Da Spike), Handling PyScript Imports and Hass configuration errors
 - Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026)
 - Disabled the resolution="hourly" option of the get_forecast service of Forecast.solar since it is giving some weird results in the last hour of sun (combining two hours)
 - Support for 15-min and 60-min forecasts in Forecast.Solar, so disabling the "hourly" option should not be a problem
