@@ -151,11 +151,11 @@ and can be **manually** started with the green **Start Helios** button.<br>
 
 ### Optimization Parameters
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
-- **Max Grid Import:** Maximum Grid Import Power in kW 
+- **Max Grid Import:** Maximum Grid Import Power in kW (=kVA)
   <br>This is the Import limit for your **fuse box** (all phases together) and not directly related to the battery limits.
   <br>See [Fuse Box Limits](#fuse-box-limits) for common connections and their power capacity
-  <br>**Remark:** A low maximum grid import (or export) value can make the energy plan infeasible since a power balance must always be maintained.
-- **Max Grid Export:** Maximum Grid Export Power in kW
+  <br>**Warning:** A low maximum grid import (or export) value can make the energy plan infeasible since a power balance must always be maintained by the model.
+- **Max Grid Export:** Maximum Grid Export Power in kW (=kVA)
   <br>This is the Export limit for your **fuse box** (all phases together) and not directly related to the battery limits.
 - **House Daily Usage (Average):** Average Daily Energy Usage in the House (kWh)
   <br>In the future the House Energy Usage will be retrieved from history data but at the moment you need to make an estimate for the average energy usage in the house. 
@@ -415,7 +415,10 @@ Similarly, if the step size is incorrect (e.g., 60 minutes instead of 15 minutes
 ## Fuse Box Limits
 The maximum power capacity of your fuse box depends on your connection capacity (the number of phases and the amperage) 
 provided by your grid operator (such as Enexis, Liander, or Stedin).
-<br>You can roughly calculate the maximum capacity using the formula: Amperage × 230 Volts × number of phases.
+You can roughly calculate the maximum capacity (kW or kVA) using the formula: Amperage × 230 Volts × number of phases.
+The default value in Helios is 11.0 kW but you can change both the import and the output limit in the 
+[Optimization Parameters](#optimization-parameters).
+
 <br>Common connections and their power capacity:
 - 1-phase connection (230V):
   - 1 × 25A: ±6 kW (5,750 Watts)
