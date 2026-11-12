@@ -175,8 +175,9 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
   * Not supported yet (see Helios Calculator)
 
 ## Upgrade
-See the [Release notes](RELEASE_NOTES.md) for a list of the updated files per release.
-<br>Depending on the release you may have to perform the following steps for update files:
+See the [Helios Optimizer Release Notes](RELEASE_NOTES.md) for a list of the updated files per release.
+<br>Depending on the release(s) you may have to perform the following steps for update files
+(do not forget to check earlier releases when you skip a release or just update all files):
 
 - **Package** File (\*.yaml): Copy the updated file to /packages
 

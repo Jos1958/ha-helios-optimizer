@@ -40,7 +40,8 @@ For a **detailed** installation procedure see [Helios Optimizer Installation](IN
 
 ## Upgrade
 
-For **upgrade instructions** see [Helios Optimizer Installation](INSTALL.md#upgrade).
+For **updated files** per release see [Helios Optimizer Release Notes](RELEASE_NOTES.md).
+For **upgrade instructions** see [Helios Optimizer Installation - Upgrade](INSTALL.md#upgrade).
 
 ## Features 
 - **LP/MILP Optimization:** Uses SciPy **Linear Programming** to **maximize** profit and **minimize** energy costs.
