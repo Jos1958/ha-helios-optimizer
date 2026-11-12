@@ -9,7 +9,7 @@
 - Disabled the resolution="hourly" option of the get_forecast service of Forecast.solar since it is giving some weird results in the last hour of sun (combining two hours)
 - Support for 15-min and 60-min forecasts in Forecast.Solar, so disabling the "hourly" option should not be a problem
 - Improved error handling for Forecast.Solar (helios_forecast.py)
-- Simplied the Node-Red Helios Strategy Flow, Disabled Dynamic Price Sections, Relies now fully on the Dynamic Strategy Flow for dynamic price retrieval (Thanks Rubbere)
+- Simplified the Node-Red Helios Strategy Flow, Disabled Dynamic Price Sections, Relies now fully on the Dynamic Strategy Flow for dynamic price retrieval (Thanks Rubbere)
 - Alternative Banner with a height of 70% (now used on the Detailed Results Tab, Let me know which one you prefer)
 - Extra fields on the Dashboard for Helios Battery Strategy, HBC Sub Strategy, Price Profiles (3x) and Keys (3x)
 - Improved Documentation and a new Frequently Asked Questions (FAQ)
