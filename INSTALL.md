@@ -175,7 +175,7 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
   * Not supported yet (see Helios Calculator)
 
 ## Upgrade
-See the [Helios Optimizer Release Notes](RELEASE_NOTES.md) for a list of the updated files per release.
+See the [Helios Optimizer Release Notes](RELEASE_NOTES.md) for a list of the **updated files** per Helios release.
 <br>Depending on the release(s) you may have to perform the following steps for update files
 (do not forget to check earlier releases when you skip a release or just update all files):
 
@@ -194,7 +194,9 @@ Edit the Dashboard using the 'Raw Configuration Editor' and copy/paste the updat
   - Import the updated flow file again into Node-Red (see the instructions in the installation above)
   - Press [Deploy] after importing the flow!
   
-- **Add Helios to the HBC House Battery Strategies**:
-<br>This step is **NOT** needed for an update of the **Helios Optimizer** but is **needed** for an update of a **HBC** release with an updated **house_battery_control.yaml** file!  
 
 - **Restart** Home Assistant after the updates
+
+## Upgrade of HBC
+- **Add Helios to the HBC House Battery Strategies**:
+<br>This step is **NOT** needed for an update of the **Helios Optimizer** but is **needed** for an update of a **HBC** release with an updated **house_battery_control.yaml** file!  
