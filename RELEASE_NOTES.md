@@ -13,14 +13,14 @@
 - Alternative Banner with a height of 70% (now used on the Detailed Results Tab, Let me know which one you prefer).
 - Extra fields on the Dashboard for Helios Battery Strategy, HBC Sub Strategy, Price Profiles (3x) and Keys (3x).
 - Improved Documentation (Thanks Mike Da Spike), Readme, Installation Guide and a new Frequently Asked Questions (FAQ).
-- **Changed files (ALL Files are Updated!):** 
+- **Updated files (ALL Files are Updated!):** 
   - Package (yaml), 
   - All PyScript (*.py), 
   - Alternative Banner 70% (jpeg),
   - Dashboard (yaml), 
   - Node-Red Helios Strategy Flow (json), 
   - Documentation (available online).
-- **Not changed since 0.9.4:** Banner File (jpeg), Automation is Obsolete!
+- **Not updated since 0.9.4:** Banner File (jpeg), Automation is Obsolete!
 - See For **upgrade instructions** see [Helios Optimizer Installation - Upgrade](INSTALL.md#upgrade).
 
 ## 0.9.4 (2026-11-03) Improved Data and Energy Provider Handling 
@@ -30,8 +30,8 @@
 - Introduced a Horizon (in Days) parameter (replacing the Steps parameter on the Dashboard), Model will calculated with Steps value derived from Horizon and Step Size
 - Steps is 0 (specify via Horizon is 0) disables the Optimization Model, No Calculation will be done
 - Introduced an Advanced Parameters section (only in insight mode) with Horizon, House Daily Usage Distribution and Price parameters 
-- **Changed files:** All PyScript (*.py), Dashboard (yaml), Package (yaml), Documentation
-- **Not changed since 0.9.3:** Node-Red Helios Strategy Flow (json), Banner File (jpeg), Automation is Obsolete!
+- **Updated files:** All PyScript (*.py), Dashboard (yaml), Package (yaml), Documentation
+- **Not updated since 0.9.3:** Node-Red Helios Strategy Flow (json), Banner File (jpeg), Automation is Obsolete!
 
 ## 0.9.3b (2026-10-29) Minor Fixes
 - Initialized the step size for the House Daily Usage Distribution array (house_size), prevent an exception when distribution is empty, flat usage will be used, improved the error message for invalid sizes
@@ -41,7 +41,7 @@
 - Check that All Imports are allowed for PyScript and give an error message when the PyScript Configuration needs to be adapted
 - Check that Hass is accessable by PyScript as a global variable and give an error message when the PyScript Configuration needs to be adapted
 - Fixed issue with initial empty helios version number entity, is now handled as 0.0.0, all applicable entities will be initialized
-- **Changed files:** Only the PyScript files are updated (*.py)
+- **Updated files:** Only the PyScript files are updated (*.py)
 
 ## 0.9.3 (2026-10-28) HBC Output and Prices and Strategy Graph
 - Added Helios Forecast PyScript which calls the forecast_solar.get_forecast service to retrieve the forecast solar hours, the required config entry is retrieved from hass
