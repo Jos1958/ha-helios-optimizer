@@ -28,6 +28,8 @@
   - [Solar and Battery Information](#solar-and-battery-information)
   - [Optimization Run](#optimization-run)
   - [Energy Plan Totals](#energy-plan-totals)
+- [Price Calculations](#price-calculations)  
+- [Array Operations](#array-operations)  
 - [Solar Forecast Configuration](#solar-forecast-configuration)
 - [Fuse Box Limits](#fuse-box-limits)
 - [Installation](#installation)
@@ -399,6 +401,23 @@ Enable Helios Insights Mode to make the following outputs visible.
 
 ### Energy Plan Totals
 **TODO:**
+
+## Price Calculations
+**TODO:**
+
+## Array Operations
+Input Arrays with **Forecasts** for **House Usage** and **Solar Production** and Input **Price Arrays** can have a different horizon than the optimization period
+and can have a different step size (15 or 60 minutes) than the the optimization step size.
+<br>Helios will automatically extend the array with extra days and will repeat the last day one or more times.
+For example a price array with prices for today (but without prices for tomorrow) will be automatically adapted to an array with prices for 2 days for an optimization horizon of 48 hours.
+A price array with prices for today and tomorrow can also be used for an optimization period of 24 hours (the prices for tomorrow will be ignored).
+<br>Helios will automatically adapt the step size by resampling the values in the array.
+For example a price array with 15-min prices will be automatically adapted to hour prices for an optimization step size of 60-min (or the otherway around).
+<br>
+For validation purpose (to detect invalid or corrupted arrays) the input array size must contain one or more full days
+For example an array of 23 or 25 hour values will not be accepted.
+<br>
+An Empty array for prices or solar forecasts (with solar enabled) will also lead to error messages.
 
 ## Solar Forecast Configuration
 There are currently two options to configure the Solar Forecast information.

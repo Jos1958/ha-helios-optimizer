@@ -60,6 +60,7 @@ For **Upgrade Instructions** see [Helios Optimizer Installation - Upgrade](INSTA
 - **Solar Forecast:** Support for **Solcast** as an additional Solar Production prediction.
 - **Additional Models:** **Profit Optimization** is implemented, Additional models are **Cost Optimization** and **Self Consumption**.
 - **Energy Providers:** Add additional **Energy Providers** with their related Provider Markups (Opslag) - ongoing.
+- **Custom Provider Profile:** Allow the Custom Provider Profile settings to be defined by the user (e.g. Energy Tax, VAT, markups, Loss Factors)
 - **House Usage History:"** Determine House Usage **Forecast** from House Usage **History**.
 - **Limit Power in HBC:** Currently HBC will start charging/discharging at full power (independent of the Helios advice)
 - **Device Support:** **EV** (highest priority), **Heat Pump**, and **Boiler** support (as **Deferrable** Devices).
