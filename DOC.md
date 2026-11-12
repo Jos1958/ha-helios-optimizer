@@ -29,6 +29,7 @@
   - [Optimization Run](#optimization-run)
   - [Energy Plan Totals](#energy-plan-totals)
 - [Solar Forecast Configuration](#solar-forecast-configuration)
+- [Fuse Box Limits](#fuse-box-limits)
 - [Installation](#installation)
 - [Release Notes](#release-notes)
 - [License](#license)
@@ -152,7 +153,7 @@ and can be **manually** started with the green **Start Helios** button.<br>
 - **Step Size:** Size of Each Step in Minutes (Use 15 or 60 minutes)
 - **Max Grid Import:** Maximum Grid Import Power in kW 
   <br>This is the Import limit for your **fuse box** (all phases together) and not directly related to the battery limits.
-  <br>See [Fuse Box Limits](#fuse_box_limits) for common connections and their power capacity
+  <br>See [Fuse Box Limits](#fuse-box-limits) for common connections and their power capacity
   <br>**Remark:** A low maximum grid import (or export) value can make the energy plan infeasible since a power balance must always be maintained.
 - **Max Grid Export:** Maximum Grid Export Power in kW
   <br>This is the Export limit for your **fuse box** (all phases together) and not directly related to the battery limits.
@@ -206,7 +207,7 @@ you will have import and export prices without Energy Tax, VAT and Provider Mark
 Use your Country if your own provider is not available in the list.
 Use the Custom Provider if your own provider and country are not available or when the resulting prices are incorrect.
 In the near future the settings (energy tax, vat, markups and loss factors) of the Custom Provider will be customizable. 
-<br>See the [Frequenty Asked Questions](docs/FAQ.md) for a discussion about **Prices** in Helios Optimizer are **not correct**'.
+<br>See the [Frequenty Asked Questions](docs/FAQ.md) for a discussion about '**Prices** in Helios Optimizer are **not correct**'.
 
 - **Net Metering (Saldering 2026):** By Enabling Net Metering the Export Prices will include Energy Tax (this is only sensible as long as the Net Metering is applicable in the Netherlands, obsolete starting 2027)
   
