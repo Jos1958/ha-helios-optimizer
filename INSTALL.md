@@ -175,7 +175,7 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
   * Not supported yet (see Helios Calculator)
 
 ## Upgrade
-See the [Release notes](RELEASE.md) for a list of the updated files per release.
+See the [Release notes](RELEASE_NOTES.md) for a list of the updated files per release.
 <br>Depending on the release you may have to perform the following steps for update files:
 
 - **Package** File (\*.yaml): Copy the updated file to /packages
@@ -190,7 +190,7 @@ Edit the Dashboard using the 'Raw Configuration Editor' and copy/paste the updat
 
 - **Node-Red** Helios Strategy Flow File (02 strategy-helios-vx.xx.x-vy.y.y.json):
   - Delete the existing Strategy Helios vx.xx.x in Node-Red
-  - Import the updated flow file again into Node-Red (see the instructions in the installation)
+  - Import the updated flow file again into Node-Red (see the instructions in the installation above)
   - Press [Deploy] after importing the flow!
   
 - **Add Helios to the HBC House Battery Strategies**:

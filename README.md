@@ -38,6 +38,10 @@ This is especially applicable when you are using a generic data provider with ma
 
 For a **detailed** installation procedure see [Helios Optimizer Installation](INSTALL.md).
 
+## Upgrade
+
+For **upgrade instructions** see [Helios Optimizer Installation](INSTALL.md#upgrade).
+
 ## Features 
 - **LP/MILP Optimization:** Uses SciPy **Linear Programming** to **maximize** profit and **minimize** energy costs.
 - **HBC Output Integration:** Helios Strategy as a **native HBC strategy** using the Helios Optimizer Output (Sub Strategy and Power).
