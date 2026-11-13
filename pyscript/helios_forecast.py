@@ -147,10 +147,10 @@ def helios_optimizer_retrieve_forecast_solar_hours(
                         else: # Should not happen but assume default of 60 min as step size
                             step_size = 60
                         for ts_str in ts_keys: # For each timestamp_str of the forecast keys
-                            dt = datetime.fromisoformat(ts_str) # Get the datetime for the key (which is the datetime END of the period)
+                            dt = datetime.fromisoformat(ts_str) # Get the datetime for the key (which is the datetime START of the period), JR2026-11-13: END is now START
                             dt = dt.replace(tzinfo=None) # Remove the timezone
                             base_dt = dt.replace(hour=0, minute=0, second=0, microsecond=0) # Start of the day
-                            dt_index = int((dt - base_dt).total_seconds() / 60) // step_size - 1 # Determine the index of the period in the day (from the timestamp at the end of the period)
+                            dt_index = int((dt - base_dt).total_seconds() / 60) // step_size # Determine the index of the period in the day (from the timestamp at the START of the period), JR2026-11-13: Removed -1 (forecast now has timestamptbof start of the period)
                             dt_period = base_dt + timedelta(minutes=dt_index * step_size) # Determine the start of the period for the dt (dt - step_size, adapted for sunset and sunrise periods)
                             if (dt_period == dt_prev_period): # for sunset the period start is the same as the previous period
                                 dt_period = dt_period + timedelta(minutes=step_size) # Add an additional period for sunset (e.g. sunset at 18:29 and step size is 60min then next period start is 19:00)
