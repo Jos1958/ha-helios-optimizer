@@ -37,7 +37,7 @@ A dynamic rule planner asks: "Which are the 3 cheapest hours to charge today?"
 Helios LP asks: "Given the next 48 hours of prices, solar yield, house load, and battery efficiency, what exact power schedule results in the lowest total cost?
 
 # Waarom LP gebruiken (NL)?
-
+[README](README.md) - [Doc](../DOC.md) - [Why LP (en)](#why-use-lp-en) - [FAQ](FAQ.md) - [Install](../INSTALL.md) - [Release Notes](../RELEASE_NOTES.md) - [License](../LICENSE "GitHub Docs")
 ## Uitleg Lineair Programmeren (LP) 
 Het vinden van de goedkoopste manier om een batterij aan te sturen lijkt op het eerste gezicht eenvoudig. Maar met 24 tot 48 uur aan schommelende elektriciteitsprijzen, onvoorspelbare zonne-energie, batterijverliezen en een wisselend huisverbruik is het aantal mogelijke beslissingen reusachtig.
 Dit proberen op te lossen met simpele "als/dan"-regels of door elke mogelijke situatie uit te proberen kost enorm veel rekenkracht en mist vaak de meest optimale instelling.
