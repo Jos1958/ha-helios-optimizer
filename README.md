@@ -1,6 +1,6 @@
 # HA Helios Optimizer - Readme
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
-**README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md)
+**README** - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [FAQ](docs/FAQ.md)
 
 ## Intro 
 For an Introduction to the Helios Optimizer: see [Helios Optimizer - Documentation](DOC.md#intro).
@@ -42,6 +42,7 @@ For a **detailed** installation procedure see [Helios Optimizer Installation](IN
 
 For **Upgrade Instructions** see [Helios Optimizer Installation - Upgrade](INSTALL.md#upgrade).
 <br>For **updated files** per release see [Helios Optimizer Release Notes](RELEASE_NOTES.md).
+<br>**Important:** First **Remove** the existing Helios Strategy Flow (json) when the flow is updated!
 
 ## Features 
 - **LP/MILP Optimization:** Uses SciPy **Linear Programming** to **maximize** profit and **minimize** energy costs.

@@ -1,11 +1,23 @@
 # HA Helios Optimizer - Release Notes
 ![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
-[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
+[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs") - [FAQ](docs/FAQ.md)
+
+## 0.9.5b (2026-11-15) Quickfix
+- Adapted the Node-Red Helios Strategy Flow (sub-strategy not passed correctly from Helios to HBC, HBC to full-stop for specific sub-strategies)
+  Changed Node ‘Helios Sub Strategy and Power’ in the Flow
+- Forecast.Solar service now returns start time of the forecast step instead of the endtime, removed the -1 for the forecast index in helios_forecast.py
+  Quickfix for the Home Assistant 2026.11 release
+- **Updated files:**
+  - Node-Red Helios Strategy Flow (json) (v0.9.5b)
+  - PyScript: helios_forecast (py)
+- **Prerequisite:** Upgrade first to HA 2026.11 or higher
+- **Note:** The internal release number of Helios remains v0.9.5
 
 ## 0.9.5a (2026-11-12) Quickfix
 - Adapted the Node-Red Helios Strategy flow (wrong test on helios_sub_strat field in execute)
 - **Updated file:**
-  - Node-Red Helios Strategy Flow (json), 
+  - Node-Red Helios Strategy Flow (json)
+- **Note:** The internal release number of Helios remains v0.9.5
 
 ## 0.9.5 (2026-11-12) Installation Improvements and Net Metering Mode (Salderingsregeling)
 - Graphs did not always use full width (especially in Windows), added update_interval: 5s to the apexcharts-card (Thanks to Gerrit_18808).

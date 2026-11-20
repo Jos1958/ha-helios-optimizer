@@ -1,8 +1,11 @@
 # HA Helios Optimizer - Frequently Asked Questions
-Sometimes you will need to use the advanced sections to configure the Helios Optimizer.
-Advanced Input and Output Sections are only visible when 'Helios Insights Mode' is enabled.
-You can enable this mode with a button at the top of the Helios Dashboard Tabs.
-HBC also has an "Insights Mode" for the same purpose but these modes are independent.
+![Helios Optimizer](../images/HeliosOptimizerBanner.jpeg)
+[README](../README.md) - [Doc](../DOC.md) - [Why LP](../WHY.md) - [Install](../INSTALL.md) - [Release Notes](../RELEASE_NOTES.md) - **FAQ**
+
+For some of the answers below you will need to use the **advanced sections** to configure the Helios Optimizer.
+Advanced Input and Output Sections are only *visible* when the **'Helios Insights Mode'** is enabled.
+You can enable this mode with a *button* at the top of the Helios Dashboard Tabs.
+*HBC* also has an 'Insights Mode' for the same purpose but these modes are *independent*.
 
 ## Helios Installation Problems
 Always check the detailed [Installation Guide](../INSTALL.md) when you are having problems with the simple installation in the [README](../README.md) file.

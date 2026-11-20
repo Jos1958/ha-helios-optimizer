@@ -1,8 +1,11 @@
 # Helios Optimizer - Installation
 ![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
-[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - **Install** - [Release Notes](RELEASE_NOTES.md)
+[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - **Install** - [Release Notes](RELEASE_NOTES.md) - [FAQ](docs/FAQ.md)
 
-## Installation
+## Install Helios Optimizer
+Installing Helios from a laptop or desktop is recommended so you can easily 
+create folders, copy files, and edit the HBC configuration file. 
+A Samba share to your Home Assistant drive works best but using the File Editor is also an option.
 - **Prerequisites for Helios Optimizer** (Before the Helios Installation):
   - **HACS** installation on your Home Assistant System
   - **Home Battery Control (HBC)** installation with an 'active' dynamic price datasource
@@ -45,6 +48,7 @@
   !  [pyscript]
   V    helios_services.py              - Helios Services file which defines the Helios Optimizer Services 
   V    helios_forecast.py              - Helios Forecast file which retrieves the Helios Solar Forecast from the Forecast.Solar Integration
+  V    helios_history.py               - Helios History  file which collects history for the Helios House Usage Forecast
   !    [helios_python]
   V      helios_optimizer.py           - Optimizer with the Calculation of the Energy Plan (Pure Python functions)
   V      helios_common.py              - Common Python functions for Helios Optimizer
@@ -178,7 +182,7 @@ In previous versions (before v0.9.5) of the Helios Optimizer is was necessary to
 - **HACS:** 
   * Not supported yet (see Helios Calculator)
 
-## Upgrade
+## Upgrade Helios Optimizer
 <br>Depending on the release(s) you may have to perform the following steps for updated files
 <br>(do not forget to check earlier releases when you skip a release or just update all files):
 Tip: See the [Helios Optimizer Release Notes](RELEASE_NOTES.md) for a list of the **updated files** per Helios release.
@@ -194,11 +198,13 @@ Edit the Dashboard using the 'Raw Configuration Editor' and copy/paste the updat
 <br>See the instruction in the installation for what to do with the **views:** line (when adding to the HBC Dashboard).
 
 - **Node-Red** Helios Strategy Flow File (02 strategy-helios-vx.xx.x-vy.y.y.json):
-  - Delete the existing Strategy Helios vx.xx.x in Node-Red
+  - **Important:** First Delete the existing Strategy Helios vx.xx.x in Node-Red
   - Import the updated flow file again into Node-Red (see the instructions in the installation above)
   - Press [Deploy] after importing the flow!
 
 - **Restart** Home Assistant after the updates
+
+## Remove Helios Optimizer
 
 ## Upgrade of HBC
 - **Add Helios to the HBC House Battery Strategies**:
