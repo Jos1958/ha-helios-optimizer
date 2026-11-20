@@ -1,6 +1,6 @@
 # Helios Optimizer - Documentation
-![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
-[README](README.md) - **Doc** - [Why LP](WHY.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [FAQ](docs/FAQ.md)
+[Readme](README.md) - **Documentation** - [Why LP](WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+<br>![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
 
 ## Table of Content
 - [Intro](#intro)

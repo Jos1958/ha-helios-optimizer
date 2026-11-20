@@ -1,6 +1,6 @@
 # HA Helios Optimizer - Frequently Asked Questions
-[README](../README.md) - [Doc](../DOC.md) - [Why LP](../WHY.md) - [Install](../INSTALL.md) - [Release Notes](../RELEASE_NOTES.md) - **FAQ**
-![Helios Optimizer](../images/HeliosOptimizerBanner.jpeg)
+[Readme](../README.md) - [Documentation](../DOC.md) - [Why LP](../WHY.md) - **FAQ** - [Install](../INSTALL.md) - [Release Notes](../RELEASE_NOTES.md) - [License](../LICENSE "GitHub Docs")
+<br>![Helios Optimizer](../images/HeliosOptimizerBanner.jpeg)
 
 For some of the answers below you will need to use the **advanced sections** to configure the Helios Optimizer.
 Advanced Input and Output Sections are only *visible* when the **'Helios Insights Mode'** is enabled.

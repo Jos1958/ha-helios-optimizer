@@ -1,6 +1,6 @@
 # HA Helios Optimizer - Release Notes
-![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
-[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
+[Readme](README.md) - [Documentation](DOC.md) - [Why LP](WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
+<br>![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## 0.9.5b (2026-11-15) Quickfix
 - Adapted the Node-Red Helios Strategy Flow (sub-strategy not passed correctly from Helios to HBC, HBC to full-stop for specific sub-strategies)

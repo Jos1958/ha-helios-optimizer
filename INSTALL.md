@@ -1,6 +1,6 @@
 # Helios Optimizer - Installation
-![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
-[README](README.md) - [Doc](DOC.md) - [Why LP](WHY.md) - **Install** - [Release Notes](RELEASE_NOTES.md) - [FAQ](docs/FAQ.md)
+[Readme](README.md) - [Documentation](DOC.md) - [Why LP](WHY.md) - [FAQ](docs/FAQ.md) - **Install** - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+<br>![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
 
 ## Install Helios Optimizer
 Installing Helios from a laptop or desktop is recommended so you can easily 
