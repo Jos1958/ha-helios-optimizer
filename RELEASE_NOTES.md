@@ -1,5 +1,5 @@
 # HA Helios Optimizer - Release Notes
-[Readme](README.md) - [Documentation](DOC.md) - [Why LP](WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
+[Readme](README.md) - [Documentation](DOC.md) - [Why LP](docs/WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 <br>![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## 0.9.5b (2026-11-15) Quickfix

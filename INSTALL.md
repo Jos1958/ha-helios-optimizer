@@ -1,5 +1,5 @@
 # Helios Optimizer - Installation
-[Readme](README.md) - [Documentation](DOC.md) - [Why LP](WHY.md) - [FAQ](docs/FAQ.md) - **Install** - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+[Readme](README.md) - [Documentation](DOC.md) - [Why LP](docs/WHY.md) - [FAQ](docs/FAQ.md) - **Install** - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
 <br>![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
 
 ## Install Helios Optimizer

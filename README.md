@@ -1,5 +1,5 @@
 # HA Helios Optimizer - Readme
-**Helios Menu:** **Readme** - [Documentation](DOC.md) - [Why LP](docs/WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
+**Readme** - [Documentation](DOC.md) - [Why LP](docs/WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - [Release Notes](RELEASE_NOTES.md) - [License](LICENSE "GitHub Docs")
 <br>![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
 ## Intro 
