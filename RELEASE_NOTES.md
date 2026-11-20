@@ -2,11 +2,15 @@
 [Readme](README.md) - [Documentation](DOC.md) - [Why LP](docs/WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 <br>![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
+## 0.9.6 (2026-11-??) Belgium Price Support and ??
+- Updated documentation for Upgrade and Remove (see INSTALL.md)
+- Preparing for House History
+
 ## 0.9.5b (2026-11-15) Quickfix
 - Adapted the Node-Red Helios Strategy Flow (sub-strategy not passed correctly from Helios to HBC, HBC to full-stop for specific sub-strategies)
-  Changed Node ‘Helios Sub Strategy and Power’ in the Flow
+  Changed Node in the Flow: ‘Helios Sub Strategy and Power’ (Thanks Tees and Daydreamer)
 - Forecast.Solar service now returns start time of the forecast step instead of the endtime, removed the -1 for the forecast index in helios_forecast.py
-  Quickfix for the Home Assistant 2026.11 release
+  Quickfix for the Home Assistant 2026.11 release (Thanks Daydreamer)
 - **Updated files:**
   - Node-Red Helios Strategy Flow (json) (v0.9.5b)
   - PyScript: helios_forecast (py)
@@ -14,7 +18,7 @@
 - **Note:** The internal release number of Helios remains v0.9.5
 
 ## 0.9.5a (2026-11-12) Quickfix
-- Adapted the Node-Red Helios Strategy flow (wrong test on helios_sub_strat field in execute)
+- Adapted the Node-Red Helios Strategy flow (wrong test on helios_sub_strat field in execute) (Thanks Martijn)
 - **Updated file:**
   - Node-Red Helios Strategy Flow (json)
 - **Note:** The internal release number of Helios remains v0.9.5

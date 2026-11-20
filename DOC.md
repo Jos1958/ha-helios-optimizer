@@ -32,7 +32,9 @@
 - [Array Operations](#array-operations)  
 - [Solar Forecast Configuration](#solar-forecast-configuration)
 - [Fuse Box Limits](#fuse-box-limits)
-- [Installation](#installation)
+- [Install Helios Optimizer](#install-helios-optimizer)
+- [Upgrade Helios Optimizer](#upgrade-helios-optimizer)
+- [Remove Helios Optimizer](#remove-helios-optimizer)
 - [Release Notes](#release-notes)
 - [License](#license)
 
@@ -180,13 +182,22 @@ and can be **manually** started with the green **Start Helios** button.<br>
 
 ### Advanced Parameters
 Enable the **'Helios Insight Mode'** to make these **advanced** parameters visible.
-- **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow)
+- **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow, 3=3 Days, 4=4 Days)
   <br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** 
   (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
   <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
   Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
-- <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
-    **Start Step:** Start the Optimization in the specified step (0..Steps). 
+  <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
+  <br><br>A 3-7 day optimization horizon can be selected and will limit the effect of a SoC-Target value since this value is only applicable at the **end** of the horizon.
+  Use these higher optimization horizons mainly for simulation and evaluation of the Soc-Target.
+  For day-to-day operation the advised 2 days horizon should be used.  
+  Please note that solar forecast will usually only be available (and reliable) for a maximum of two days so a longer optimization period may not be very usefull.
+  The optimizer will automatically extend the available forecast with the forecast of the last available day.
+  **Warning:** The processing time of the model may increase exponential since the number of variables increases. 
+  Reduce the optimization period when the runtime or Home Assistant system performance becomes a problem.
+  In addition the apex-graphs on the Helios Dashboard will only show 2 days of results (you may change this yourself in the graph definition when desired).
+
+- **Start Step:** Start the Optimization in the specified step (0..Steps). 
   <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
   <br>All steps prior to the Start Step are **Skipped**. Therefore starting at the **current** time (by setting the start step to 0) is the logical choice to begin the optimization.
   <br>Other Start Step values are **only** to be used for (Regression) **Testing** or Simulation Runs of the Optimizer!
@@ -362,9 +373,6 @@ The Optimal Energy Plan Graph displays the most important Output of the Helios O
 **Negative Power** values (below the X-as) indicate that power is used (Used in the House, Battery Charged or Exported).
 <br>The **left** Y-as is for the Power values (kW) and the **right** Y-as is for the SOC Percentages (0-100%). 
 <br>
-**Warning:** Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
-Full Window width problems may also be resolved by resizing the Browser Window or going into Edit of the Dashboard and close without changes.
-Tips how to fix this issue are welcome.
 
 ### Optimal Energy Plan Table
 The Results Table lists all (power, energy, soc and cost) variables as calculated (or used) by the Optimization Model for every step of the optimization period (horizon):
@@ -386,6 +394,9 @@ The Results Table lists all (power, energy, soc and cost) variables as calculate
 - **Discharge (kW):** Battery Discharge Power in kilo Watt 
 - Battery Net Power: Battery Charge Power - Battery Discharge Power; Positive when charging and negative when discharging
 - Battery Power: Absolute value of Battery Net Power; Always positive
+
+**Warning:** A maximum of 193 steps (is 2 days with steps of 15 minutes and 7 days with steps of 60 minutes) is displayed in the table.
+Steps that are skipped by the optimizer are no longer displayed (see the helios_optimizer_table.csv for all steps). 
 
 ## Insight Details
 Enable Helios Insights Mode to make the following outputs visible.
@@ -448,8 +459,15 @@ The default value in Helios is 11.0 kW but you can change both the import and th
   - 3 × 25A: ±17 kW (17,250 Watts – the most common 3-phase household connection)
   - 3 × 35A: ±24 kW
   
-## Installation
+## Install Helios Optimizer
 [Helios Optimizer - Installation](INSTALL.md)
+
+## Upgrade Helios Optimizer
+[Helios Optimizer - Upgrade](INSTALL.md#upgrade-helios-optimizer)
+<br>**Warning:** [After an HBC Upgrade](INSTALL.md#after-an-upgrade-of-home-battery-control-hbc)
+
+## Remove Helios Optimizer
+[Helios Optimizer - Remove](INSTALL.md#remove-helios-optimizer)
 
 ## Release Notes
 [Helios Optimizer - Release Notes](RELEASE_NOTES.md)

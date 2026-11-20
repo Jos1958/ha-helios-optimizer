@@ -46,6 +46,16 @@ At the moment you need a working **Forecast.Solar** configuration but in the nea
 - Helios displays another **error/exception** in **Solved Status**
 <br>Try to fix the error but in case of an exception you can report an issue for helios.
 
+- Helios **Apex Graphs** are temporarily displayed **compressed** or need a refresh or are not visible
+<br>Occasionally the browser page content with the Helios Energy Plan Graph may need to be manually refreshed (Ctrl-F5) before the graph is updated or is even displayed or is using the full window width.
+Graph display or sizing/width problems may also be resolved by resizing the Browser Window or going into Edit of the Dashboard and close without making any changes.
+If the graph is initially displayed in a compressed form then **within 5 seconds** the full width will be applied automatically (using update_interval in the apex-graph).
+Tips how to fix this issue completely are welcome.
+<br>If the Helios Optimizer fails then **no graphs** will be available. 
+**Fix** the input parameters of the Helios Optimizer and press 'Start' to **recalculate** the optimal energy plan.
+After a succesfull optimization the graphs will be available again.
+
+
 ## Strange Behaviour of the Strategy in Helios Optimizer
 - **Unexpected Selling/Discharging** of Energy from the Battery to the Grid
 <br>The Model follows the rules you have set for the Maximum State of Charge of the Battery very strict.

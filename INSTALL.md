@@ -179,33 +179,41 @@ In previous versions (before v0.9.5) of the Helios Optimizer is was necessary to
 
 ![Helios Optimizer Dashboard](images/HeliosDashboard.jpeg)
   
-- **HACS:** 
+- **HACS/Marketplace:** 
   * Not supported yet (see Helios Calculator)
 
 ## Upgrade Helios Optimizer
 <br>Depending on the release(s) you may have to perform the following steps for updated files
 <br>(do not forget to check earlier releases when you skip a release or just update all files):
-Tip: See the [Helios Optimizer Release Notes](RELEASE_NOTES.md) for a list of the **updated files** per Helios release.
+**Tip:** See the [Helios Optimizer Release Notes](RELEASE_NOTES.md) for a list of the **updated files** per Helios release.
 
-- **Package** File (\*.yaml): Copy the updated file to /packages
+- **Package** File (\*.yaml): Copy the updated file to /packages .
 
-- **PyScript** File(s) (\*.py): Copy the updated file(s) to /pyscript and/or /pyscript/helios_python
+- **PyScript** File(s) (\*.py): Copy the updated file(s) to /pyscript and/or /pyscript/helios_python . 
 
-- **www (banner)** Files: Copy the update file(s) to /www
+- **www (banner)** Files: Copy the update file(s) to /www . 
 
 - **Dashboard** File (helios_dashboard.yaml): 
 Edit the Dashboard using the 'Raw Configuration Editor' and copy/paste the updated yaml file content over the existing helios content.
 <br>See the instruction in the installation for what to do with the **views:** line (when adding to the HBC Dashboard).
 
 - **Node-Red** Helios Strategy Flow File (02 strategy-helios-vx.xx.x-vy.y.y.json):
-  - **Important:** First Delete the existing Strategy Helios vx.xx.x in Node-Red
-  - Import the updated flow file again into Node-Red (see the instructions in the installation above)
+  - **Important:** First Delete the existing Strategy Helios vx.xx.x in Node-Red.
+  - Import the updated flow file again into Node-Red (see the instructions in the installation above).
   - Press [Deploy] after importing the flow!
 
-- **Restart** Home Assistant after the updates
+- **Restart** Home Assistant after the updates.
 
 ## Remove Helios Optimizer
+- **Backup**: Since you are going to remove items you may want to start with making a full backup of your Home Assistant configuration.
+- **Package** File (\*.yaml): Remove helios_optimizer.yaml from /packages .
+- **PyScript** Files: Remove helios*.py from /pyscript and /pysript/helios_python .
+- **www (banner)** Files: Remove HeliosOptimizer*.jpeg from /www .
+- **Dashboard**: Remove the Helios Dashboard or remove the Helios Tabs from the HBC Dashboard using the 'Raw Configuration Editor'.
+- **Node-Red**: Remove the Helios Startegy Flow in Node-Red and press [Deploy].
+- **PyScript**: Optionally remove the PyScript integration (only when Helios was the only reason for installing PyScript).
+- **Restart** Home Assistant after the updates.
 
-## Upgrade of HBC
+## After an Upgrade of Home Battery Control (HBC)
 - **Add Helios to the HBC House Battery Strategies**:
-<br>This step is **NOT** needed for an update of the **Helios Optimizer** but is **needed** for an update of a **HBC** release with an updated **house_battery_control.yaml** file!  
+<br>This step is **NOT** needed for an upgrade of the *Helios Optimizer* but is **needed** after an upgrade of *HBC* where the **house_battery_control.yaml** file is replaced!
