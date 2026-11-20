@@ -1,5 +1,5 @@
 # HA Helios Optimizer - Frequently Asked Questions
-[Readme](../README.md) - [Documentation](../DOC.md) - [Why LP](../WHY.md) - **FAQ** - [Install](../INSTALL.md) - [Release Notes](../RELEASE_NOTES.md) - [License](../LICENSE "GitHub Docs")
+[Readme](../README.md) - [Documentation](../DOC.md) - [Why LP](WHY.md) - **FAQ** - [Install](../INSTALL.md) - [Release Notes](../RELEASE_NOTES.md) - [License](../LICENSE "GitHub Docs")
 <br>![Helios Optimizer](../images/HeliosOptimizerBanner.jpeg)
 
 For some of the answers below you will need to use the **advanced sections** to configure the Helios Optimizer.
