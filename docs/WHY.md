@@ -1,6 +1,6 @@
 # Helios Optimizer - Why Linear Programming
 [README](README.md) - [Doc](../DOC.md) - [Waarom LP (nl)](#waarom-lp-gebruiken-nl) - [FAQ](FAQ.md) - [Install](../INSTALL.md) - [Release Notes](../RELEASE_NOTES.md) - [License](../LICENSE "GitHub Docs")
-![Helios Optimizer](images/HeliosOptimizerBanner.jpeg)
+![Helios Optimizer](../images/HeliosOptimizerBanner.jpeg)
 
 # Why use LP (EN)?
 ## Explanation of Linear Programming (LP) 
