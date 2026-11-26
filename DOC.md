@@ -175,7 +175,9 @@ and can be **manually** started with the green **Start Helios** button.<br>
   - Binary: Solar Production can be ON (=Solar Forecast Energy) or OFF (0kWh) for the step
   - Disabled: Solar Production Disabled (0kWh) in each step
 - **Solar Forecast Source:**
-  - **Forecast.Solar Integration** (**Preferred**): Use this option if you have the Forecast.Solar Integration installed and configured.
+  - **Solcast Integration**: Use this option if you have the Solcast Integration installed and configured.
+  <br>Helios will retrieve the Solar Forecast Array using a service (Query Forecast Data) provided by the Solcast Integration!
+  - **Forecast.Solar Integration** (**Default**): Use this option if you have the Forecast.Solar Integration installed and configured.
   <br>Helios will retrieve the Solar Forecast Array using a service provided by the Forecast.Solar Integration!
   - **Forecast.Solar REST api** (Alternative): Use this option if you want to retrieve the Solar Forecast Array directly from the internet using a REST api.
   <br>See [Solar Forecast Configuration](#solar-forecast-configuration) for more information.
@@ -243,7 +245,7 @@ In the near future the settings (energy tax, vat, markups and loss factors) of t
 - **Battery Discharge Efficiency:** Efficiency Factor for Discharging the Battery
   <br>This factor 0.70-1.00) determines how much energy is lost while discharging the battery.
   <br>For example: 4kWh is retrieved from the battery, discharge factor of 0.9, SOC is decreased with 4.44kWh (=4kWh / 0.9).
-  <br>Remark: Round Trip Efficiency (RTE) is Charge Efficiency * Discharge Efficiency (e.g. 0.81 = 0.9 x 0.9)
+  <br>**Remark:** Round Trip Efficiency (**RTE**) is Charge Efficiency * Discharge Efficiency (e.g. RTE of 0.81 = 0.9 x 0.9)
 
 ### Why a horizon of 48 hours and a SoC Target
 When running an Energy Optimization Model it is important to use a least a **48-hour horizon**
@@ -316,6 +318,11 @@ Instead the values calculated using Helios templates based on the Marstek entiti
 ### Results Summary
 - **Result:** Successful or Not (True or False), Total Cost, Grid Cost (Total Cost without Battery Cost)
 - **Calculation:** Calculation Result (e.g.: Optimized, Infeasible, Exception, Balance Error, ...), Solver Iterations
+- **Helios Strategy:** Helios Optimizer determines, based upon the calculated power variables in the Optimization Model, 
+which Battery Strategy is required. See [Helios Optimizer Strategy Selection](docs/STRATEGY_DOC.md) for details.
+- **HBC Sub Strategy:** The Helios (Battery) Strategy is mapped to the applicable HBC Sub-strategy.
+The Node-Red Strategy Helios Flow will pickup the Sub-strategy advised by Helios and apply it to the HBC Sub-strategy (the active strategy).
+This field shows the currently active HBC Sub-strategy.
 - **Last Optimization Run:** Date and Time of the Last Run, Excecution Time, Lineair Programming Time (SciPy LP) 
 - **Optimization Period Start:** Start Step, Date and Time for the Optimization Start 
 - **Optimization Period Active Step:** Active Step (for Current Time), Date and Time for the Current/Active Step

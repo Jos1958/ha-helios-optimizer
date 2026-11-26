@@ -33,7 +33,7 @@ A Samba share to your Home Assistant drive works best but using the File Editor 
   - Unpack the ha-helios-optimizer-x.x.x.zip file 
   - Use the File or Samba to create folders and copy files:
     - Create the folders (See Folder Overview: **!**) on your HA installation when they do not yet exist: 
-<br>  [packages], [pyscript], [helios_python] (sub-folder of [pyscript]), [www] and [export]
+<br>  [packages], [pyscript], [modules] & [helios_python] (sub-folders of [pyscript]), [www] and [export]
     - Copy the applicable files (see File Overview: **V**) to your HA installation.
   - **Remark:** Do not copy the Node-Red and Dashboard files (see below for instructions)
 
@@ -49,8 +49,10 @@ A Samba share to your Home Assistant drive works best but using the File Editor 
   V    helios_services.py              - Helios Services file which defines the Helios Optimizer Services 
   V    helios_forecast.py              - Helios Forecast file which retrieves the Helios Solar Forecast from the Forecast.Solar Integration
   V    helios_history.py               - Helios History  file which collects history for the Helios House Usage Forecast
+  !    [modules]         
+  V      helios_hass.py                - Helios PyScript Module (shared pyscript functions for services)
   !    [helios_python]
-  V      helios_optimizer.py           - Optimizer with the Calculation of the Energy Plan (Pure Python functions)
+  V      helios_optimizer.py           - Helios Optimizer with the Calculation of the Energy Plan (Pure Python functions)
   V      helios_common.py              - Common Python functions for Helios Optimizer
   V      helios_prices.py              - Energy Price Parser Class (for HBC Price and Provider Price Data)
   !  [www]
@@ -141,9 +143,10 @@ Now you can continue in the next step but HBC will still apply the dynamic sub-s
 - **Check the Helios Optimizer Dashboard** (within 8s after restart the automation should run):
 
 - **Adapt the Optimization Parameters and the Battery Parameters** (on the Helios Dashboard):
-  - Step Size (60 or 15 Minutes), Start with 60 minutes this will work also when you have 15 minutes dynamic prices
+  - Step Size (60, 30 or 15 Minutes), Start with 60 minutes this will work also when you have 15 minutes dynamic prices
   - House Daily Usage (e.g. 10.0 kWh) 
   - Max Grid Import and Export: 11.0 kWh (2x)
+  - Solar Forecast Source: Forecast.Solar or Solcast Integration
   - Battery Enabled: On (or Off when you do not have a battery)
   - Battery SOC Target: 40%-50% (to be left for the rest of the night at the end of the optimization period, usually end of the day tomorrow)
   - Battery SOC Min and Max (e.g. 10% and 90%, depending on your battery requirements)
@@ -189,7 +192,7 @@ In previous versions (before v0.9.5) of the Helios Optimizer is was necessary to
 
 - **Package** File (\*.yaml): Copy the updated file to /packages .
 
-- **PyScript** File(s) (\*.py): Copy the updated file(s) to /pyscript and/or /pyscript/helios_python . 
+- **PyScript** File(s) (\*.py): Copy the updated file(s) to /pyscript, /pyscipt/modules and/or /pyscript/helios_python . 
 
 - **www (banner)** Files: Copy the update file(s) to /www . 
 
@@ -197,8 +200,8 @@ In previous versions (before v0.9.5) of the Helios Optimizer is was necessary to
 Edit the Dashboard using the 'Raw Configuration Editor' and copy/paste the updated yaml file content over the existing helios content.
 <br>See the instruction in the installation for what to do with the **views:** line (when adding to the HBC Dashboard).
 
-- **Node-Red** Helios Strategy Flow File (02 strategy-helios-vx.xx.x-vy.y.y.json):
-  - **Important:** First Delete the existing Strategy Helios vx.xx.x in Node-Red.
+- **Node-RED** Helios Strategy Flow File (02 strategy-helios-vx.xx.x-vy.y.y.json):
+  - **Important:** First **Remove** the existing Strategy Helios vx.xx.x in Node-RED!
   - Import the updated flow file again into Node-Red (see the instructions in the installation above).
   - Press [Deploy] after importing the flow!
 

@@ -4,11 +4,36 @@
 
 ## 0.9.6 (2026-11-??) Belgium Price Support and ??
 - Updated documentation for Upgrade and Remove (see INSTALL.md)
-- Preparing for House History
+- Adapted the Price Parsing to separate target_needs_vat into import_needs_vat and export_needs_vat (both for target prices, Belgium has no VAT on import/injectie)
+- Adapted the Engie Provider Profile (Thanks Rubbere) and added the Frank Energie België Profile (Thanks Dreamer)
+- Fixed the missing calculation of Total Tomorrow kWh (from Total Tomorrow Wh) in helios_forecast.py (Thanks Rubbere)
+- Adapted the run times for the Helios Optimizer Task (Triggered every 15 min at HH:01,HH:16,HH:31,HH:46), leaves enough time for completion of helios_forecast (and possible other data prepare jobs) (Thanks Rubbere)
+- Removed the state trigger (HELIOS_SOLAR_FORECAST) which is triggered by the completion of helios_forecast.py running at the whole hour (HH:00), state trigger for REST API remains (HELIOS_SOLAR_FORECAST_ALT)
+- Added an additional check on the helios_optimizer_version and new helios entities (not ha_is_unavailable, next to ha_entity_exist) to prevent undesired reset of input values
+- Helios Optimizer Service now reports a count of initialized entities via a HA notification message (only for a helios version change or when the version entity is not available)
+- Replaced the Helios Dashboard field 'Helios HBC Sub Strategy' (Helios Output Field) by 'HBC Active Sub Strategy' (Actual HBC Field)
+  input_select.helios_optimizer_hbc_sub_strategy to input_text.house_battery_strategy_active_sub_strategy
+- Allow for 3-7 days of optimization horizon for simulation and evaluation purposes (advised horizon remains 2 days)
+- Added the weekday to the Optimal Energy Plan Table and Surpressed the skipped steps and steps above step 192 in the Table
+- Improved the Helios Hello World Service (testing of entities, attributes and pyscript configuration (import and hass)
+- Split of 'PyScript' functions that are used in multiple PyScript Services (introduced helios_hass.py in /pyscript/modules)
+- Support for Solar Forecast by the Solcast (next to the existing Forecast.Solar) Integration, Uses a Service provided by the integration
+- **New file and folder:** 
+  - /pyscript/modules and /pyscript/modules/helios_hass.py
+- **Updated files (ALL important Files are Updated!):** 
+  - Package (yaml), 
+  - All PyScript (*.py), 
+  - Dashboard (yaml), 
+  - Node-Red Helios Strategy Flow (json), 
+  - Documentation (available online).
+- **Not updated since 0.9.5:** Banner Files (jpeg), Automation is Obsolete!
+- See For **upgrade instructions** see [Helios Optimizer Installation - Upgrade](INSTALL.md#upgrade).
+- **Prerequisite:** Upgrade first to HA 2026.11 or higher for the latest Forecast.Solar Service
+- **Tip:** Adapt the 'Solar Forecast Source' input parameter if you want to use Solcast instead of Forecast.Solar
 
 ## 0.9.5b (2026-11-15) Quickfix
 - Adapted the Node-Red Helios Strategy Flow (sub-strategy not passed correctly from Helios to HBC, HBC to full-stop for specific sub-strategies)
-  Changed Node in the Flow: ‘Helios Sub Strategy and Power’ (Thanks Tees and Daydreamer)
+  Changed Node in the Flow: ‘Helios Sub Strategy and Power’ (Thanks Tees, Daydreamer and Rubbere)
 - Forecast.Solar service now returns start time of the forecast step instead of the endtime, removed the -1 for the forecast index in helios_forecast.py
   Quickfix for the Home Assistant 2026.11 release (Thanks Daydreamer)
 - **Updated files:**
@@ -34,12 +59,8 @@
 - Alternative Banner with a height of 70% (now used on the Detailed Results Tab, Let me know which one you prefer).
 - Extra fields on the Dashboard for Helios Battery Strategy, HBC Sub Strategy, Price Profiles (3x) and Keys (3x).
 - Improved Documentation (Thanks Mike Da Spike), Readme, Installation Guide and a new Frequently Asked Questions (FAQ).
-- **Updated files (ALL Files are Updated!):** 
-  - Package (yaml), 
-  - All PyScript (*.py), 
-  - Alternative Banner 70% (jpeg),
-  - Dashboard (yaml), 
-  - Node-Red Helios Strategy Flow (json), 
+- **Updated files (ALL important Files are Updated!):** 
+  - Package (yaml), All PyScript (*.py), Alternative Banner 70% (jpeg), Dashboard (yaml), Node-Red Helios Strategy Flow (json) 
   - Documentation (available online).
 - **Not updated since 0.9.4:** Banner File (jpeg), Automation is Obsolete!
 - See For **upgrade instructions** see [Helios Optimizer Installation - Upgrade](INSTALL.md#upgrade).

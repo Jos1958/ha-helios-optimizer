@@ -24,9 +24,11 @@ See [Helios Optimizer Why LP](WHY.md)
 - **Create** a new Home Assistant **Dashboard** for Helios (from helios_dashboard.yaml including the **views:** line at the top).
 - Or **Add** the Helios Tabs to the HBC Dashboard yaml (from helios_dashboard.yaml but excluding the **views:** line).
 - Import the **Helios Strategy Flow** (02 strategy-helios-vx.xx.x-vy.y.y.json) in Node-RED and [Deploy].
+  <br>**Important:** First **Remove** the existing Helios Strategy Flow (json) in Node-RED when the flow is updated!
 - **Add** the **"Helios"** strategy to the options of input_select.house_battery_strategy in the HBC configuration file (house_battery_control.yaml).
 - **Restart** Home Assistant.
 - Adapt the **parameters** on the Helios Dashboard (Controls Tab) but try using the defaults at first.
+- Select your preferred **Solar Forecast Source** parameter: Forecast.Solar or Solcast
 - For a **Dry Run:** Select the **"Dynamic"** Strategy in **HBC**.
   <br>HBC will follow the **Dynamic Strategy**, dynamic price info is refreshed and the Helios Optimizer produces an **Energy Plan**.
 - For an **Update Run:** Select the **"Helios"** Strategy in **HBC** and HBC will follow the **Helios Strategy** according to the **Energy Plan**.
@@ -42,7 +44,6 @@ For a **detailed** installation procedure see [Helios Optimizer Installation](IN
 
 For **Upgrade Instructions** see [Helios Optimizer Installation - Upgrade](INSTALL.md#upgrade).
 <br>For **updated files** per release see [Helios Optimizer Release Notes](RELEASE_NOTES.md).
-<br>**Important:** First **Remove** the existing Helios Strategy Flow (json) when the flow is updated!
 
 ## Features 
 - **LP/MILP Optimization:** Uses SciPy **Linear Programming** to **maximize** profit and **minimize** energy costs.
