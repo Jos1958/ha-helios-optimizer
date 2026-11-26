@@ -1,4 +1,6 @@
-# Helios Optimizer: Battery Strategy Determination
+# Helios Optimizer - Battery Strategy Selection
+[Readme](../README.md) - [Documentation](../DOC.md) - [Why LP](WHY.md) - **STRATEGY** - [Install](../INSTALL.md) - [Release Notes](../RELEASE_NOTES.md) - [License](../LICENSE "GitHub Docs")
+<br>![Helios Optimizer](../images/HeliosOptimizerBanner.jpeg)
 
 This document describes how the **Helios Optimizer** determines the active Helios Battery Strategy and the corresponding Home Battery Control Sub-strategy  for each time step (`t`) based on calculated power flows and battery State of Charge (SoC).
 
