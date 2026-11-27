@@ -56,15 +56,16 @@ For **Upgrade Instructions** see [Helios Optimizer Installation - Upgrade](INSTA
 - **Asynchronous:** Actual calculation is executed directly into the HA core **asynchronous** loop.
 - **Zero-Config Setup:** Out-of-the-box **defaults** let you run a test optimization immediately without configuration.
 - **Independent:** Open design compatible with any dynamic pricing, solar forecast and house usage forecast.
-- **Flexible Horizon & Intervals:** Calculates the Optimal Energy Plan for one or two day(s) with 15-minute or 60-minute intervals (step sizes).
+- **Flexible Horizon & Intervals:** Calculates the Optimal Energy Plan for 1..7 day(s) with 15-minute, 30-minutes or 60-minute intervals (step sizes).
 - **Dynamic Recalculation:** Runs automatically from the current timestamp (based on current state) or from a user-defined step (for testing).
 - **Clean Data Structure:** Simple full-day input and output arrays (00:00-24:00/48:00).
+- **Solar Forecast:** Support for **Forecast.Solar** and **Solcast** as Solar Production forecasts
+- **Price Provider Profile:** User definition of the Custom and Generic Provider Profile (e.g. Energy Tax, VAT, markups, Loss Factors)
+- **Configuration:** Advanced User Configuration via json file (now has Price Provider Profile and Strategy Mapping) - ongoing 
+- **Energy Providers:** Add additional **Energy Providers** with their related Provider Markups (Opslag) - ongoing.
 
 ## Roadmap (2026-2027)
-- **Solar Forecast:** Support for **Solcast** as an additional Solar Production prediction.
 - **Additional Models:** **Profit Optimization** is implemented, Additional models are **Cost Optimization** and **Self Consumption**.
-- **Energy Providers:** Add additional **Energy Providers** with their related Provider Markups (Opslag) - ongoing.
-- **Custom Provider Profile:** Allow the Custom Provider Profile settings to be defined by the user (e.g. Energy Tax, VAT, markups, Loss Factors)
 - **House Usage History:"** Determine House Usage **Forecast** from House Usage **History**.
 - **Limit Power in HBC:** Currently HBC will start charging/discharging at full power (independent of the Helios advice)
 - **Device Support:** **EV** (highest priority), **Heat Pump**, and **Boiler** support (as **Deferrable** Devices).
