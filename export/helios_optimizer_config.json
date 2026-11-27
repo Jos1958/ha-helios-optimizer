@@ -1,0 +1,30 @@
+{
+    "price_config": {
+        "vat_rate": 0.21,
+        "energy_tax": 0.09161,
+    },
+    "price_providers": {
+        "custom": {
+            "name": "Custom Provider Profile2",
+            "source_has_vat": true,
+            "import_needs_vat": true,
+            "export_needs_vat": true,
+            "markup_import": 0.0,
+            "markup_export": 0.0,
+            "factor_import": 1.0,
+            "factor_export": 1.0,
+            "vat_rate": 0.0,
+            "energy_tax": 0.0
+        },
+        "generic": {
+            "name": "Generic Provider Profile (Market Price2)",
+            "price_type": "market",
+            "price_factor": 1.0,
+            "source_has_vat": false,
+            "markup_import": 0.0,
+            "markup_export": 0.0,
+            "vat_rate": 0.0,
+            "energy_tax": 0.0
+        }
+    }
+}

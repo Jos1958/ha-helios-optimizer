@@ -16,8 +16,8 @@ This document describes how the **Helios Optimizer** determines the active Helio
 | (`bat_charge_kw ≥ 100W`) | `charge > solar surplus + 100W` **and** battery **is** empty | `Charge` | `Charge` | Forced charging to get above the minimum SoC limit. | 
 |  | `charge < solar surplus - 100W` | `Charge Solar` | `Charge PV` | Charging partially or exclusively with excess solar energy. | 
 |  | `charge ≈ solar surplus` (within 100W) | `NOM` | `Self-consumption` | Charging to prevent unwanted grid export. | 
-| **Battery not active ,  grid active**  | Battery is empty (`battery_low`) + grid import | `NOM-C` | `Charge PV` | Only charge (discharging is not allowed due to low battery) | 
-| (\`net_grid_kw≥ 100W\`) | Battery is full (`battery_high`) + grid export | `NOM-D` | `Zero import` | Only discharge (charging is now allowed due to high battery). | 
+| **Battery not active ,  grid active**  | Battery is empty (`battery_low`) + grid import | `NOM-C` | `Charge PV` | Only charge (discharging is not allowed due to empty battery) | 
+| (\`net_grid_kw≥ 100W\`) | Battery is full (`battery_high`) + grid export | `NOM-D` | `Zero import` | Only discharge (charging is not allowed due to full battery). | 
 |  | Otherwise (disabled by optimizer) | `Standby` | `Standby / peak shave` | Battery intentionally in standby; grid power is cheaper or more efficient. | 
 | **No activity** (Idle state) | Battery is empty (`battery_low`) | `NOM-C` | `Charge PV` | Keep in standby focusing on zero-export when battery is empty. | 
 |  | Battery is full (`battery_high`) | `NOM-D` | `Zero import` | Keep in standby focusing on zero-import when battery is full. | 

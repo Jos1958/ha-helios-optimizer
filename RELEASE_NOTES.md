@@ -2,7 +2,7 @@
 [Readme](README.md) - [Documentation](DOC.md) - [Why LP](docs/WHY.md) - [FAQ](docs/FAQ.md) - [Install](INSTALL.md) - **Release Notes** - [License](LICENSE "GitHub Docs")
 <br>![Helios Calculator](images/HeliosOptimizerBanner.jpeg)
 
-## 0.9.6 (2026-11-??) Belgium Price Support and ??
+## 0.9.6 (2026-11-28) Belgium Price Support, Solcast Support, Configuration File, 7 days and 30 min, New Module
 - Updated documentation for Upgrade and Remove (see INSTALL.md)
 - Adapted the Price Parsing to separate target_needs_vat into import_needs_vat and export_needs_vat (both for target prices, Belgium has no VAT on import/injectie)
 - Adapted the Engie Provider Profile (Thanks Rubbere) and added the Frank Energie België Profile (Thanks Dreamer)
@@ -18,12 +18,15 @@
 - Improved the Helios Hello World Service (testing of entities, attributes and pyscript configuration (import and hass)
 - Split of 'PyScript' functions that are used in multiple PyScript Services (introduced helios_hass.py in /pyscript/modules)
 - Support for Solar Forecast by the Solcast (next to the existing Forecast.Solar) Integration, Uses a Service provided by the integration
+- (Optional) Configuration File with Price Providers and Defaults and Strategy Mapping (advanced users only, an example is provided)
+- Improved pyscript.helios_hello_world service to check successfull installation of helios and retrieve the Energy Plan (now includes check on Allow Imports and Hass Access)
 - **New file and folder:** 
   - /pyscript/modules and /pyscript/modules/helios_hass.py
 - **Updated files (ALL important Files are Updated!):** 
   - Package (yaml), 
-  - All PyScript (*.py), 
+  - All PyScript (*.py), New Modules folder with helios_hass.py !
   - Dashboard (yaml), 
+  - Example Configuration (helios_optimizer_config.json),
   - Node-Red Helios Strategy Flow (json), 
   - Documentation (available online).
 - **Not updated since 0.9.5:** Banner Files (jpeg), Automation is Obsolete!

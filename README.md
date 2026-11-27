@@ -32,6 +32,8 @@ See [Helios Optimizer Why LP](WHY.md)
 - For a **Dry Run:** Select the **"Dynamic"** Strategy in **HBC**.
   <br>HBC will follow the **Dynamic Strategy**, dynamic price info is refreshed and the Helios Optimizer produces an **Energy Plan**.
 - For an **Update Run:** Select the **"Helios"** Strategy in **HBC** and HBC will follow the **Helios Strategy** according to the **Energy Plan**.
+<br>On the HBC **'Charge/Sell'** Tab under 'Charge and Sell Strategies' select **'state of charge'** for 'Charge until' and 'Sell until'.
+<br>Use similar values for the **Battery SOC Min and Max** in the Helios input parameters.
 - Check the **Output** of the Helios Optimizer on the **Helios Dashboard** ('Controls' Tab and 'Detailed Results' Tab).
 - For **advanced** configuration use the **'Helios Insights Mode'** button to make additional input parameters and output results visible (or to hide).
 - Check your **Prices** in the Optimal Energy Plan Table.

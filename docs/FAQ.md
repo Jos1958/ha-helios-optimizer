@@ -106,6 +106,25 @@ This value is calculated using a Helios Template but based upon the HBC/Marstek 
 ![Provider Selection](ProviderSelection.jpeg)
 
 ## Strange Behaviour of the Helios Strategy (Flow) in HBC 
+- **HBC Sub-strategy 'Stop' instead of 'Charge' or 'Sell'** is selected despite an active strategy in Helios
+<br>HBC always follows the limitations you have set in HBC despite what the Helios Optimizer has decided.
+HBC remains **fully responsible** for the battery management at **all** times.
+<br>Helios sends the sub-strategy to HBC but 
+HBC can decide that the battery is **too low** for **'Sell'** or **too high** for **'Charge'**. 
+Check the HBC **Charge/Sell** tab which **Charge until** and **sell until** settings are selected.
+Make sure that these settings are simular to the **SoC maximum** and **SoC minimum** parameters of Helios.
+<br>Selecting a charge until **solar forecast** may lead to unexpected **stop** behaviour since HBC will determine for itself
+if charging is smart (based on solar forecast) and the conclusion may be **different** from the Helios advise.
+<br>Be aware that the HBC **Advanced settings** tab contains **Cutoff capacity** fields that define the SoC minimum and maximum
+for each of the individual batteries. They may also cause a stop of (all or part of the) battery activity.
+Helios calculates with **one big** battery when you have multiple batteries.
+Use the sum of the Capacity of all batteries and the SoC Minimum and SoC Maximum values per battery
+to calculate an **overall** SoC Minimum and Maximum for Helios. 
+Use these overall SoC values also in the HBC Charge/Sell until settings.
+<br>
+See the Derived Parameters section (Helios Insights Mode) for the (overall) Maximum Capacity, Remaining Energy and current SoC as calculated by Helios.
+HBC calculates an 'Available Energy' field but this value has already been compensated for the minimum and maximum SoC and is not used in Helios.
+ 
 - **HBC Sub-strategy 'Charge PV' is** is selected during the night (no solar).
 <br>'Zero export' would be a better name for this strategy but this is how it is called in HBC.
 The 'Charge PV' strategy has been selected by the Helios Optimizer since it prefers to use Grid Power instead of Battery Power.
@@ -114,14 +133,6 @@ will charge when there is surplus energy available.
 Of course this will not happen during the night but as soon as the sun start shining it may become applicable.
 Effectively during the night (without solar power) it will be the same as 'Standby'. 
  
-- **HBC stops Charging or Discharging** despite the strategy in Helios
-<br>HBC always follows the limitations you have set in HBC despite what the Helios Optimizer has decided.
-Make sure that your State of Charge (SoC) Minimum and Maximum for your Batteries and the 'Charge until SoC' and 'Sell until SoC'.
-Be aware that Helios calculates with one big battery when you have multiple batteries.
-Use the sum of the Capacity of all batteries and the sum of the SoC Minimum and SoC Maximum values to calculate an overall SoC Minimum and Maximum.
-See the Derived Parameters section (Helios Insights Mode) for the (overall) Maximum Capacity, Remaining Energy and current SoC as calculated by Helios.
-HBC uses a 'Available Energy' field but this value has already been compensated for the minimum and maximum SoC and is not used in Helios.
-
 - **HBC Sub-strategy 'Full stop'** for the Helios Strategy:
 <br>HBC goes to Sub-strategy **Full stop**. 
 This means that the Node-Red Helios Flow received no value from the Helios Optimizer (value: "unknown" or "undefined").
