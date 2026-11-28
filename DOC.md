@@ -184,17 +184,19 @@ and can be **manually** started with the green **Start Helios** button.<br>
 
 ### Advanced Parameters
 Enable the **'Helios Insight Mode'** to make these **advanced** parameters visible.
-- **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow, 3=3 Days, 4=4 Days)
-  <br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** 
+- **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow, 3..7 Days)
+  
+  <br><br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** 
   (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
   <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
   Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
   <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
+  
   <br><br>A 3-7 day optimization horizon can be selected and will limit the effect of a SoC-Target value since this value is only applicable at the **end** of the horizon.
   Use these higher optimization horizons mainly for simulation and evaluation of the Soc-Target.
   For day-to-day operation the advised 2 days horizon should be used.  
   Please note that solar forecast will usually only be available (and reliable) for a maximum of two days so a longer optimization period may not be very usefull.
-  The optimizer will automatically extend the available forecast with the forecast of the last available day.
+  The optimizer will automatically extend the available forecast with the data of the last available day in the forecast.
   **Warning:** The processing time of the model may increase exponential since the number of variables increases. 
   Reduce the optimization period when the runtime or Home Assistant system performance becomes a problem.
   In addition the apex-graphs on the Helios Dashboard will only show 2 days of results (you may change this yourself in the graph definition when desired).
@@ -214,7 +216,7 @@ Enable the **'Helios Insight Mode'** to make these **advanced** parameters visib
   <br>Helios will derive the other prices from the **HBC Dynamic Price Data** and needs to now which Price Type is used in HBC.
   - **Import** Prices (**Default**): Price applicable for importing energy from the grid (ct/kWh) 
   - **Export** Prices: Price applicable for exporting energy from the grid (ct/kWh) 
-  - **Market** Prices: Import and Export Prices are based on the Market Price which does not contain taxes, provider markup etc..
+  - **Market** Prices: Import and Export Prices are based on (calculated from) the Market Price which is a basic price without taxes, provider markup etc..
 - **Price Data Provider:** Specify which Source Provider has been used to retrieve the HBC Price Data.
 The default value will be the **'HBC Data Source'** as selected in HBC for the **Tarif Data Source** but you may want to manually overwrite the Source (Data) Provider.
 - **Energy Provider (Contract):** Specify which Target Provider you want to use to calculated the prices for the Optimizer.
