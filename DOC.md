@@ -183,9 +183,10 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>See [Solar Forecast Configuration](#solar-forecast-configuration) for more information.
 
 ### Advanced Parameters
-The **advanced parameters** of the Helios Optimizer are only needed in special situations 
+The **advanced parameters** of the Helios Optimizer are only needed in **specific** situations 
 (e.g. Regression Testing, Specific House Demand, Different Price Data and Energy Provider or Net Metering/Salderingsregeling 2026).
 <br>Enable the **'Helios Insight Mode'** to make the advanced parameters visible using the **Helios Insight Mode** button at the top of the page.
+The insight mode will also make some additional (debug and trace) information available that is only needed in case you want to report a problem with the Helios Optimizer.
 
 - **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow, 3..7 Days)
   

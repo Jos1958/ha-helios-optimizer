@@ -1,5 +1,6 @@
-# Module: HELIOS Optimizer - Python Function to Calculate an Optimized Energy Plan                            
-# Home Energy Linear Integrated Optimization Service (HELIOS Calculator)
+# Module: Helios Optimizer - Pure Python Functions to Calculate an Optimal Energy Plan                            
+# HELIOS is the Home Energy Linear Integrated Optimization Service which publishes the pure python Helios Optimizer as a service to Home Assistant
+#
 # The Optimizer uses SciPy Linear/MILP Programming to calculated the Optimal Energy Plan 
 # for Solar Production, Battery Charging/Discharging and expected House Energy Usage for Dynamic Prices during the period.
 # A Solar Forecast can be specified with the expected Solar Production.
@@ -48,6 +49,7 @@
 #   2026-11-07: JR  v0.94c Improved error handling for installation (pyscript import and hass)
 #   2026-11-08: JR  v0.94c Added a Net Metering Option in the advanced parameters (only for dutch Salderingregeling in 2026) 
 #   2026-11-12: JR  v0.95  Adapted the release number to v0.9.5
+#   2026-11-20: JR  v0.96  Support for longer optimization periods (horizon of 3-7 days is allowed with a maximum of 644 steps (7 days x 24 hours x 4 steps of 15-min)
 #
 #   Remark: For the full helios history see helios_main.py
 #   
@@ -79,7 +81,7 @@ except ImportError: # Mock Logger not found (hopefully we are running in Home As
 from helios_python.helios_common import * # Import the Pure Python Helios Common Functions    (used also by the Helios Main)
 from helios_python.helios_prices import * # Import the Pure Python Helios Energy Price Parser (used also by the Helios Main)
 
-HELIOS_VERSION      = "0.9.5"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
+HELIOS_VERSION      = "0.9.6"   # Current Helios Version (HBC Read-Only Version with Input Initialization based on helios version)
 HELIOS_CALC_NAME    = "Helios Optimizer Calc Plan"
 MINUTES_PER_HOUR    = 60.0      # Conversion factor (float) from hours to minutes
 SECONDS_PER_MIN     = 60.0      # Conversion factor (float) from minutes to seconds
@@ -158,6 +160,8 @@ HELIOS_STR_NOMD = 'NOM-D'        # Zero Import, No Charge of Battery    (Battery
 HELIOS_STR_OFF  = 'Standby'      # No Activity (Standby, peak shaving may be applicable)
 HELIOS_STR_STOP = 'Stop'         # Stop the Battery (No Charge, Discharge or Peak Shave) - Currently not used by Helios
 
+STRATEGY_MAPPINGS_ATTR = 'strategy_mappings' # Attribute name of the Strategy Mappings from Helios Strategy to HBC Sub-strategy
+
 HBC_SS_UNK  = 'Unknown'          # For Helios Unknown
 HBC_SS_SKIP = 'Skipped'          # For Helios Skipped (should not occur in the current step) 
 HBC_SS_SELL = 'Sell'             # For Helios Sell and Discharge
@@ -168,7 +172,7 @@ HBC_SS_NOMD = 'Zero import'      # For Helios NOM-D
 HBC_SS_SBY  = 'Standby / peak shave' # For Helios Standby 
 HBC_SS_FS   = 'Full stop'        # For Helios Stop                                
 
-CONVERT_STRATEGY = {
+strategy_mapping_table = {
     HELIOS_STR_UNK : HBC_SS_UNK , 
     HELIOS_STR_SKIP: HBC_SS_SKIP,
     HELIOS_STR_SELL: HBC_SS_SELL,
@@ -214,7 +218,7 @@ def helios_optimizer_calc_plan(
     max_iterations=None,         # Maximum iterations      for the HiGHS Solver
     insight=None,                # Insight Level (0=No Calculation, 1=Minimum, 9=Maximum, see helios_common.py for details, Standard level is Max)
     write_files=False,           # Write Files (True=Write JSON and CSV files) - Used by the Helios Optimizer Service but not in Calculate Plan Function (Not Applicable to writing files in the VS Main)
-    output_folder=None,          # Output Folder (Info Only, since the output files are written already in the service) - Used by the Helios Service but not in Calculate Plan Function
+    export_folder=None,          # Input/Output Folder (Info Only, since the output files are written already in the service) - Used by the Helios Service but not in Calculate Plan Function
 
     # Current (Now) Timestamp/Datetime, Timezone and Timezone Offset for the Optimizer (determined by Helios Services using the Home Assistant Datetime Utility)
     # Use for (Regression) Testing ONLY the optimize_ts_str and optimize_off_min to Calculate (Optimize) at a specific (not current) date and time 
@@ -240,6 +244,8 @@ def helios_optimizer_calc_plan(
     import_price_fixed=None,     # Fixed Import Price (valid for all steps), only used when no import price array is provided
     export_price_fixed=None,     # Fixed Export Price (valid for all steps), only used when no export price array is provided
     house_power_fixed=None,      # House Fixed Usage  (valid for all steps), only used when no house usage  array is provided (Alternative for house_daily_usage_kwh, only used when house_daily_usage and house_energy_forecast_kwh are not provided)
+
+    helios_config=None,          # Helios Configuration (allows certain parameters to be user specific, e.g. Price Provider Profiles and Defaults but also Home Assistant Entities which are not applicable in the Optimizer (see the Helios Services))
 
 #   return_response=None         # Return a result (argument only required for the Helios Optimizer Service, Calculate Plan DOES return the payload)
 ):
@@ -318,12 +324,16 @@ def helios_optimizer_calc_plan(
         # 0b. ARGUMENT VALIDATION, TIME LOGIC & AUTOMATIC START INDEX Calc  #    
         # ------------------------------------------------------------------#      
 #       test = 0 / 0 # Test an error in phase 0
-        # Convert the input parameters to the correct type and validate the values (raises an exception when invalid):)
-        T                 = convert_int(steps     , "steps"     , min=24, max=192)         # Number of Steps (integer)
-        step_size         = convert_int(step_size , "step_size" , allowed_values=[15,60])  # Step Size in Minutes (integer)
-        price_size        = convert_int(price_size, "price_size", allowed_values=[15,60], allow_none=True)    # Step Size of Price          Input Arrays in Minutes (integer, default is equal to step_size) 
-        house_size        = convert_int(house_size, "house_size", allowed_values=[15,60], allow_none=True)    # Step Size of House Forecast Input Arrays in Minutes (integer, default is equal to step_size) 
-        solar_size        = convert_int(solar_size, "solar_size", allowed_values=[15,60], allow_none=True)    # Step Size of Solar Forecast Input Arrays in Minutes (integer, default is equal to step_size) 
+        # Process the Helios Configuration:
+        if helios_config:
+            update_strategy_mappings(helios_config)
+
+        # Convert the Input Parameters to the correct type and validate the values (raises an exception when invalid):)
+        T                 = convert_int(steps     , "steps"     , min=24, max=672)            # Number of Steps (integer), JR2026-11-20 Changed from 192 (2 days of 15-min) to 672 (7 days of 15-min)
+        step_size         = convert_int(step_size , "step_size" , allowed_values=[15,30,60])  # Step Size in Minutes (integer)
+        price_size        = convert_int(price_size, "price_size", allowed_values=[15,30,60], allow_none=True)  # Step Size of Price          Input Arrays in Minutes (integer, default is equal to step_size) 
+        house_size        = convert_int(house_size, "house_size", allowed_values=[15,30,60], allow_none=True)  # Step Size of House Forecast Input Arrays in Minutes (integer, default is equal to step_size) 
+        solar_size        = convert_int(solar_size, "solar_size", allowed_values=[15,30,60], allow_none=True)  # Step Size of Solar Forecast Input Arrays in Minutes (integer, default is equal to step_size) 
         price_factor      = convert_float(price_factor, "price_factor", allow_none=True, min=0.001, max=1000) # Price Factor (float) 1.0=Price in euro per kWh, 0.001=Price in euro per Wh, 0.01=Price in cent per kWh
         delta_time        = float(step_size / MINUTES_PER_HOUR)                            # Hours per Step (e.g. 15 min is 0.25 hours per step)
         steps_per_hour    = float(MINUTES_PER_HOUR / step_size)                            # Steps per Hour (e.g. 15 min is 4.00 steps per hour)
@@ -380,10 +390,12 @@ def helios_optimizer_calc_plan(
         # Or (when price parsing failed) generate an array with fixed values (import_price_fixed and export_price_fixed) for all of the steps in the optimization period
         if source_price_data is not None and (import_prices is None or export_prices is None or market_prices is None): # Source Prices are provided and Import, Export and/or Market Prices are not?
             # For now when source prices are provided then assume they are from HBC and the source provider is Frank Energie (set in automation):
-            config_override = {}
-            if source_provider: config_override["source_provider"] = source_provider # Override the source provider key but only when specified (source_provider can also be specified in the profile)
-            if target_provider: config_override["target_provider"] = target_provider # Override the target provider key but only when specified (target_provider can also be specified in the profile)
-            energy_price_parser = HeliosEnergyPriceParser(main_provider=main_provider, config_override=config_override, target_tz=optimize_off_min, target_export_tax=net_metering_enabled) # Default Max Fallback Days is 1, Target timezone from now (+60 or 120min in NL) 
+            profile_override = {}
+            if source_provider: profile_override["source_provider"] = source_provider # Override the source provider key but only when specified (source_provider can also be specified in the profile)
+            if target_provider: profile_override["target_provider"] = target_provider # Override the target provider key but only when specified (target_provider can also be specified in the profile)
+            
+#           helios_config = raw_load_config('helios_optimizer_config.json', folder) # Load the Helios Configuration which overrides some of the Price Providers and Price Defaults (Now loaded async in helios_optimizer_hbc_task)
+            energy_price_parser = HeliosEnergyPriceParser(main_provider=main_provider, helios_config=helios_config, profile_override=profile_override, target_tz=optimize_off_min, export_tax_enabled=net_metering_enabled) # Default Max Fallback Days is 1, Target timezone from now (+60 or 120min in NL), net metering for 2026 only 
             main_key, source_key, target_key = energy_price_parser.base_key, energy_price_parser.source_key, energy_price_parser.target_key, 
             processed_price_data = energy_price_parser.get_day_prices(price_data=source_price_data, price_type=price_type, target_step_size=step_size, lookup_ts=optimize_ts) # Get Energy Prices (Market, Import and Export) for the Optimize Day(s)
 
@@ -931,33 +943,6 @@ def helios_optimizer_calc_plan(
                     battery_too_low  = previous_soc_pct <  soc_min_pct - PCT_0_1 # Model starts charging
                     battery_too_high = previous_soc_pct >  soc_max_pct + PCT_0_1 # Model starts discharging
 
-#                   if bat_charge_kw > (net_solar_surplus_kw + 0.1): # Battery charges more than Sun Surplus?
-#                       if import_price < 0 or sol_prod_kw < 0.05: # Negative prices or No Sun?
-#                           strat = 'Buy' # Buying (for Selling later) with Negative Prices or No Sun
-#                           hbc_sub_strat = 'Charge'
-#                       elif sol_prod_kw >= bat_charge_kw: # Charging only with Sun Production 
-#                           strat = 'Charge Solar' # Charging Only With Solar
-#                           hbc_sub_strat = 'Charge PV'
-#                       else: # Charging more than Sun Production / Surplus?
-#                           strat = 'Charge' # Additional Charging on top of Solar Production
-#                           hbc_sub_strat = 'Charge'
-#                   elif bat_disch_kw > (net_house_demand_kw + 0.1): # Battery discharges more than House Demand?
-##                      if grid_exp_kw_arr[t] > 0.05: # Profit on Discharge
-#                       if export_price > 0.05: # Significant Profit (Not Little) on Discharge
-#                           strat = 'Sell'
-#                           hbc_sub_strat = 'Sell'
-#                       else: # Discharge without or with little Profit
-#                           strat = 'Discharge'
-#                           hbc_sub_strat = 'Sell'
-#                   elif bat_charge_kw > 0.05 or bat_disch_kw > 0.05: # Significant Charge or Discharge (but not larger than Sun Surplus or House Demand, these are already handled above) 
-#                       strat = 'NOM' # Self Consumption
-#                       hbc_sub_strat = 'Self-consumption'
-#                   else: # No Significant Battery Activity (both Charge and Discharge are small), Battery can be empty or full but could also be cheaper to do nothing
-#                       strat = 'Standby' ser may decide: Self Consumption, Zero Import, Standby
-##                      hbc_sub_strat = 'Self-consumption'
-#                       hbc_sub_strat = 'Standby / peak shave'
-##                      hbc_sub_strat = 'Zero import'
-
                     # Discharging the Battery:
                     if bat_disch_kw >= POWER_100W: # Battery charges significant
                         if bat_disch_kw > net_house_demand_kw + POWER_100W:
@@ -992,8 +977,8 @@ def helios_optimizer_calc_plan(
                         else: # Grid Import or Export due to decision by the Optimizer to disable the battery for cost reasons (not for full or empty battery)!
                             strat = HELIOS_STR_OFF # Standby Battery, Assume cost are lower when Grid is used instead of Battery (hbc: 'Standby / peak shave')
 
-                    # No Battery and Grid Activity:
-                    else: # No Significant Activity at All (both Net Grid and Net Battery are (almost) zero), Assume NOM is the strategy
+                    # No Battery Activity and No Grid Activity:
+                    else: # No Significant Activity at All (both Net Grid and Net Battery are (almost) zero), Assume NOM(X) is the strategy
                         if battery_low: # Battery (almost) empty?
                             strat = HELIOS_STR_NOMC # Only Charge for Zero Export (Discharge is not possible for empty batttery) (hbc: 'Charge PV' HBC has no Zero Export)
                         elif battery_high: # Battery (almost) full?
@@ -1001,7 +986,7 @@ def helios_optimizer_calc_plan(
                         else : # Battery is not Low or Full
                             strat = HELIOS_STR_NOM # Assume Null on the Meter (Battery becomes active when power balance changes) (hbc: 'Self-consumption')
                 
-                hbc_sub_strat = CONVERT_STRATEGY.get(strat, None) # Convert the Helios (Battery) Strategy in a HBC Battery Sub-Strategy (None is the default but should not occur)
+                hbc_sub_strat = strategy_mapping_table.get(strat, None) # Convert the Helios (Battery) Strategy in a HBC Battery Sub-Strategy (None is the default but should not occur)
                 strategy_plan.append(strat)
                 hbc_sub_strat_plan.append(hbc_sub_strat)
 
@@ -1178,7 +1163,7 @@ def helios_optimizer_calc_plan(
         "success"         : res.success if (res != None) else False,
         "calc_code"       : calc_code,    # 0=Success (see above for other values)
         "calc_result"     : calc_result,  # Result of optimizer (solver), processing, exceptions and validation
-        "optimize_ts_str" : datetime_string(optimize_ts) if (optimize_ts != None) else None, # Optimize Time (YYYY-MM-DD HH:MM) - Usually (HA) Current Timestamp but can be different for (Regression) Testing/Debugging
+        "optimize_ts_str" : datetime_short(optimize_ts) if (optimize_ts != None) else None, # Optimize Time (YYYY-MM-DD HH:MM) - Usually (HA) Current Timestamp but can be different for (Regression) Testing/Debugging
         "optimize_off_min": optimize_off_min,  # Timezone offset in minutes compared to UTC applicable for optimize_time
 
         "total_fun_cost"  : round(total_fun_cost , ROUND_TOTAL_COST) if total_fun_cost  else None, 
@@ -1194,9 +1179,9 @@ def helios_optimizer_calc_plan(
         "active_step"     : active_index + 1, # Based on the start step unless start step not in 1..T
         "end_step"        : end_index    + 1, # Last interval: Should be T
 
-        "base_time"       : datetime_string(base_ts    ) if (base_ts     != None) else None, # Start of First Interval  (YYYY-MM-DD HH:MM)
-        "active_time"     : datetime_string(active_ts  ) if (active_ts   != None) else None, # Start of Active Interval (Current period  )
-        "end_time"        : datetime_string(end_ts     ) if (end_ts      != None) else None, # Start of Last Interval   (YYYY-MM-DD HH:MM)
+        "base_time"       : datetime_short(base_ts    ) if (base_ts     != None) else None, # Start of First Interval  (YYYY-MM-DD HH:MM)
+        "active_time"     : datetime_short(active_ts  ) if (active_ts   != None) else None, # Start of Active Interval (Current period  )
+        "end_time"        : datetime_short(end_ts     ) if (end_ts      != None) else None, # Start of Last Interval   (YYYY-MM-DD HH:MM)
 
         "solar_mode"      : solar_mode, # Values: "all", "modulating", "binary", "disabled" (solar not enabled)
         "solar_forecast_source": solar_forecast_source, # Info only (Description of the Source of the Solar Forecast array)
@@ -1275,7 +1260,7 @@ def helios_optimizer_calc_plan(
 
         "insight"                 : insight,       # debug level
         "write_files"             : write_files,   # writing files (params (JSON), payload (JSON) and table(CSV) to output folder
-        "output_folder"           : output_folder, # output folder for writing files 
+        "export_folder"           : export_folder, # folder for writing files 
         "error_trace"             : error_stack,   # exception stack, for debugging only
         "totals"                  : None,          # sum of arrays  , for debugging and validation only 
         "performance_ms"          : None,          # for debugging only
@@ -1364,3 +1349,16 @@ def helios_optimizer_calc_plan(
     # Remark: The HA Helios Optimizer Energy Plan Entity and its Attributes are now set in the Helios Optimizer Service (See helios_services.py) using the returned payload.
     return full_payload
 
+# Import Strategy Mappings (from Helios to HBC) from the Helios Configuration:
+def update_strategy_mappings(helios_config: dict = None):
+    mapping_count = 0
+    if helios_config:
+        adapted_strategies, mapping_count = helios_config.get(STRATEGY_MAPPINGS_ATTR, {}), 0 # Get the Providers from the json profile
+        for helios_strategy, hbc_sub_strategy in adapted_strategies.items():
+            strategy_mapping_table[helios_strategy] = hbc_sub_strategy # Assign the adapted HBC Sub Strategy to the Helios Strategy (key)
+            _LOGGER.debug(f"[{PRICE_PARSER_NAME}-Update-Strategy-Mappings]: Map Strategy '{helios_strategy}' to '{hbc_sub_strategy}'")
+            mapping_count += 1
+        
+        if (mapping_count > 0):
+            _LOGGER.info(f"[{PRICE_PARSER_NAME}-Update-Strategy-Mappings]: Loaded {mapping_count} mappings from Helios Config")
+    return mapping_count

@@ -27,7 +27,7 @@
   - All PyScript (*.py), New Modules folder with helios_hass.py !
   - Dashboard (yaml), 
   - Example Configuration (helios_optimizer_config.json),
-  - Node-Red Helios Strategy Flow (json), 
+  - Node-Red Helios Strategy Flow (json): v0.9.6 is equal to v0.9.5b, 
   - Documentation (available online).
 - **Not updated since 0.9.5:** Banner Files (jpeg), Automation is Obsolete!
 - See For **upgrade instructions** see [Helios Optimizer Installation - Upgrade](INSTALL.md#upgrade).

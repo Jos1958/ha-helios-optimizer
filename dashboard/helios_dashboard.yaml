@@ -9,7 +9,7 @@ views:
       card:
         type: markdown
         content: |
-          ### Helios Controls Dashboard v0.9.5 for {{ user }} 
+          ### Helios Controls Dashboard v0.9.6 for {{ user }} 
            
         visibility:
           - condition: state
@@ -39,7 +39,7 @@ views:
         cards:
           - type: picture
             image:
-              media_content_id: /local/HeliosOptimizerBanner.jpeg
+              media_content_id: /local/HeliosOptimizerBanner70.jpeg
               media_content_type: ''
               metadata:
                 navigateIds:
@@ -86,7 +86,7 @@ views:
           - type: tile
             entity: input_number.helios_optimizer_energy_plan
             name: Calculation
-            icon: mdi:home-battery
+            icon: mdi:state-machine
             show_entity_picture: true
             hide_state: false
             state_content:
@@ -106,7 +106,7 @@ views:
             vertical: false
             features_position: bottom
           - type: tile
-            entity: input_select.helios_optimizer_hbc_sub_strategy
+            entity: input_text.house_battery_strategy_active_sub_strategy
             name: HBC Sub-Strat
             vertical: false
             features_position: bottom
@@ -237,9 +237,7 @@ views:
               run every <b>15 minutes</b> and can be <b>manually</b> started
               with the <b>Start</b> button below. <b>TIP:</b> Use the
               <b>links</b> above the <u>sections</u> for the <b>parameters</b>
-              description 
-
-              or use the [General
+              description or use the [General
               Documentation](https://jos1958.github.io/ha-helios-optimizer/) and
               [FAQ](https://jos1958.github.io/ha-helios-optimizer/docs/FAQ.html).</i></font> 
             grid_options:
@@ -292,8 +290,9 @@ views:
               url_path: https://jos1958.github.io/ha-helios-optimizer/DOC#optimization-parameters
           - type: markdown
             content: >-
-              <font color="grey"><i>The <b>settings</b> below tune the Helios
-              Optimizer.</i></font>
+              <font color="grey"><i>The
+              <b>[settings](https://jos1958.github.io/ha-helios-optimizer/DOC#optimization-parameters)</b>
+              below tune the Helios Optimizer.</i></font>
           - type: entities
             entities:
               - entity: input_select.helios_optimizer_step_size
@@ -326,8 +325,9 @@ views:
               url_path: https://jos1958.github.io/ha-helios-optimizer/DOC#battery-parameters
           - type: markdown
             content: >-
-              <font color="grey"><i>The <b>settings</b> below tune how the
-              Helios Optimizer uses the battery. 
+              <font color="grey"><i>The
+              <b>[settings](https://jos1958.github.io/ha-helios-optimizer/DOC#battery-parameters)</b>
+              below tune how the Helios Optimizer uses the battery. 
 
               </i></font>
           - type: entities
@@ -381,10 +381,12 @@ views:
                 name: Horizon in Days
           - type: markdown
             content: >-
-              <font color="grey"><i> The advanced <b>settings</b> of the Helios
-              Optimizer are only needed in special situations (e.g. Regression
-              Testing, Specific House Demand, Different Price Data and Energy
-              Provider or Net Metering/Salderingsregeling 2026).</i></font>
+              <font color="grey"><i> The **[advanced
+              settings](https://jos1958.github.io/ha-helios-optimizer/DOC#advanced-parameters)**
+              of the Helios Optimizer are only needed in **specific** situations
+              (see the
+              **[documentation](https://jos1958.github.io/ha-helios-optimizer/DOC#advanced-parameters)
+              for details)**.</i></font>
           - type: entities
             entities:
               - entity: input_number.helios_optimizer_start_step
@@ -429,6 +431,10 @@ views:
               state_attr('input_number.helios_optimizer_energy_plan', 'current')
               -%}
 
+              {%- set hbc_sub_strat =
+              states('input_text.house_battery_strategy_active_sub_strategy')
+              -%}
+
               {%- if c is defined and c is not none -%}
                 {%- set base  = state_attr('input_number.helios_optimizer_energy_plan', 'base_step') | default(None) -%}
                 {%- set step  = state_attr('input_number.helios_optimizer_energy_plan', 'active_step') | default(None) -%}
@@ -445,8 +451,8 @@ views:
                 🕰️ **Step Start Time:** {{ start }}
                 |Component | State | Power |
                 |:--- | :---: | :---: |
-                |💎 **Helios Strategy**   | **{{ c.battery_strategy }}**                                       | |
-                |♟️ **HBC Sub Strat**     | **{{ c.hbc_sub_strategy }}**                                       | | 
+                |💎 **Helios Strategy**   | {{ c.battery_strategy }} | {{"%5.0f"| format(c.battery_net_power_w)}} W |
+                |♟️ **HBC Sub Strat**     | {{ c.hbc_sub_strategy }} | {{ hbc_sub_strat }}                          | 
                 |🔋 **Net Battery**       | {{ '🔻 Discharge' if c.battery_net_power_w  < 0 else ('🔺 Charge' if c.battery_net_power_w > 0 else '⚪ Standby') }} | {{"%5.0f"| format(c.battery_net_power_w)}} W |
                 |🔌 **Grid Power**        | {{ '🟠 Export'    if c.grid_power_w         < 0 else ('🟢 Import' if c.grid_power_w        > 0 else '⚪ NOM'    ) }} | {{"%5.0f"| format(c.grid_power_w       )}} W |
                 |☀️ **Solar Production**  | {{ '🟡 Active'    if c.solar_production_w   > 0 else '⚪ Standby' }} | {{"%5.0f"| format(c.solar_production_w )}} W |
@@ -623,7 +629,7 @@ views:
       card:
         type: markdown
         content: |
-          ### Helios Detailed Results Dashboard v0.9.5 for {{ user }}
+          ### Helios Detailed Results Dashboard v0.9.6 for {{ user }}
         visibility:
           - condition: state
             entity_id: input_boolean.helios_optimizer_debug_mode
@@ -1472,14 +1478,22 @@ views:
                 | **Solver Time** (ms)  | {{ a.get('solver_exec_time_ms') }} |
                 | **Solver Iterations** | {{ a.get('solver_iterations')   }} |
                 | **Solver Message**    | {{ a.get('solver_message'   )   }} |
-
-              {% if a.get('error_trace') or a.get('performance_ms') %}
+              {% if a.get('performance_ms') %}
                 **Debug Information:**
                 | Error & Performance   | Details                       |
                 | :---                  | :---                          |
                 | **Insight Level**     | {{ a.get('insight')        }} |
-                | **Error Trace**       | {{ a.get('error_trace')    }} |
                 | **Phase Performance** | {{ a.get('performance_ms') }} |
+              {% endif %}  
+
+              {% if a.get('error_trace') %}
+
+              **Error Trace:** 
+
+              ```text
+
+              {{ a.get('error_trace') | default('') }} 
+
               {% endif %}  
 
               {% else %}
@@ -1540,15 +1554,17 @@ views:
           - type: markdown
             title: Optimal Energy Plan Table
             content: >
-              {%- set hdr1 = "| Start Time | Import (€) | Export (€) | Market
-              (€) | FunCost (€) | House-For (kW) | House-Usg (kW) | Sun-For (kW)
-              | Sun-Prod (kW) | Strategy | HBC Sub Strat | SoC (%) | SoC (kWh) |
-              Grid-Net (kW) | Discharge (kW) | Charge (kW) |" -%}
+              {%- set hdr1 = "| Day | Start Time | Import (€) | Export (€) |
+              Market (€) | FunCost (€) | House-For (kW) | House-Usg (kW) |
+              Sun-For (kW) | Sun-Prod (kW) | Strategy | HBC Sub Strat | SoC (%)
+              | SoC (kWh) | Grid-Net (kW) | Discharge (kW) | Charge (kW) |" -%}
 
-              {%- set hdr2 = "| :--- |       ---: |       ---: |       ---:
-              |        ---: |      :---:     |    :---:       |    :---:    
-              |     :---:     |   :---:  |      :---:    |  :---:  |   :---:  
-              |     :---:     |     :---:      |     :---:   |" -%}
+              {%- set hdr2 = "|:---:|    :---:   |       ---: |       ---:
+              |       ---: |        ---: |      :---:     |    :---:       |   
+              :---:     |     :---:     |   :---:  |      :---:    |  :---:  |  
+              :---:   |     :---:     |     :---:      |     :---:   |" -%}
+
+              {%- set days = ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'] -%}
 
               {%- set p =
               state_attr('input_number.helios_optimizer_energy_plan', 'plan')
@@ -1563,42 +1579,47 @@ views:
                 {{ hdr1 }} 
                 {{ hdr2 }}
                 {%- for i in range(p.timestamp | length) -%}
-                  {%- set t = p.timestamp[i].split(' ')[1][:5] -%}
-                  {%- set imp_pr       = "%5.3f"| format(p.import_prices[i]) -%}
-                  {%- set exp_pr       = "%5.3f"| format(p.export_prices[i]) -%}
-                  {%- set mar_pr       = "%5.3f"| format(p.market_prices[i]) if (p.market_prices != None) else 'n/a' -%}
-                  {%- set step_cost    = "%5.3f"| format(p.step_costs[i]) -%}
-                  {%- set house_for_kw = "%6.3f"| format(p.house_forecast_kw[i]) -%}
-                  {%- set house_usg_kw = "%6.3f"| format(p.house_usage_kw[i]) -%}
-                  {%- set sol_for_kw   = "%6.3f"| format(p.solar_forecast_kw[i]) -%}     
-                  {%- set sol_prod_kw  = "%6.3f"| format(p.solar_production_kw[i]) -%}     
-                  {%- set soc_pct      = "%4.1f"| format(p.soc_pct[i]) -%}
-                  {%- set soc_kwh      = "%5.2f"| format(p.soc_kwh[i]) -%}
-                  {%- set grid_net_kw  = "%5.2f"| format(p.grid_import_kw[i] - p.grid_export_kw[i]) -%}
+                  
                   {%- set helios_strat = p.strategy[i] -%}
                   {%- set hbc_sub_strat= p.hbc_sub_strat[i] -%}
-
-                  {%- set discharge_kw = "%6.3f"| format(p.battery_discharge_kw[i] if p.battery_discharge_kw != None else 0) -%}
-                  {%- set charge_kw    = "%6.3f"| format(p.battery_charge_kw[i] if p.battery_charge_kw != None else 0) -%}
-                  
-                  {%- set ev_kw        = "%6.3f"| format(p.ev_charge_kw[i] if p.ev_charge_kw != None else 0) -%}
-                  {%- set hp_kw        = "%6.3f"| format(p.heat_pump_kw[i] if p.heat_pump_kw != None else 0) -%}
-                  {%- set boiler_kw    = "%6.3f"| format(p.boiler_kw[i] if p.boiler_kw != None else 0) -%}
-                  
-                  {%- set row = "\n|" ~ t -%}
-                  {%- set row = row ~ "|" ~ imp_pr ~ "|" ~ exp_pr ~ "|" ~ mar_pr -%} 
-                  {%- set row = row ~ "|" ~ step_cost -%} 
-                  {%- set row = row ~ "|" ~ house_for_kw -%} 
-                  {%- set row = row ~ "|" ~ house_usg_kw -%} 
-                  {%- set row = row ~ "|" ~ sol_for_kw -%}
-                  {%- set row = row ~ "|" ~ sol_prod_kw -%}
-                  {%- set row = row ~ "|" ~ helios_strat -%}
-                  {%- set row = row ~ "|" ~ hbc_sub_strat -%}
-                  {%- set row = row ~ "|" ~ soc_pct  ~ "|" ~  soc_kwh ~ "|" ~ grid_net_kw -%}
-                  {%  set row = row ~ "|" ~ discharge_kw ~ "|" ~ charge_kw -%}
-                  {%- set row = row ~ "|" ~ (ev_kw if p.ev_charge_kw != None else "n/a") -%}
-                  {%- set row = row ~ "|" -%}
-                  {{- row -}}  
+                
+                  {%- if (helios_strat != 'Skipped') and (i <= 192) -%}    
+                    {%- set wk_day = days[(p.timestamp[i] | as_datetime).weekday()] -%}
+                    {%- set hhmm = p.timestamp[i].split(' ')[1][:8] -%}
+                    {%- set imp_pr       = "%5.3f"| format(p.import_prices[i]) -%}
+                    {%- set exp_pr       = "%5.3f"| format(p.export_prices[i]) -%}
+                    {%- set mar_pr       = "%5.3f"| format(p.market_prices[i]) if (p.market_prices != None) else 'n/a' -%}
+                    {%- set step_cost    = "%5.3f"| format(p.step_costs[i]) -%}
+                    {%- set house_for_kw = "%6.3f"| format(p.house_forecast_kw[i]) -%}
+                    {%- set house_usg_kw = "%6.3f"| format(p.house_usage_kw[i]) -%}
+                    {%- set sol_for_kw   = "%6.3f"| format(p.solar_forecast_kw[i]) -%}     
+                    {%- set sol_prod_kw  = "%6.3f"| format(p.solar_production_kw[i]) -%}     
+                    {%- set soc_pct      = "%4.1f"| format(p.soc_pct[i]) -%}
+                    {%- set soc_kwh      = "%5.2f"| format(p.soc_kwh[i]) -%}
+                    {%- set grid_net_kw  = "%5.2f"| format(p.grid_import_kw[i] - p.grid_export_kw[i]) -%}
+                
+                    {%- set discharge_kw = "%6.3f"| format(p.battery_discharge_kw[i] if p.battery_discharge_kw != None else 0) -%}
+                    {%- set charge_kw    = "%6.3f"| format(p.battery_charge_kw[i] if p.battery_charge_kw != None else 0) -%}
+                    
+                    {%- set ev_kw        = "%6.3f"| format(p.ev_charge_kw[i] if p.ev_charge_kw != None else 0) -%}
+                    {%- set hp_kw        = "%6.3f"| format(p.heat_pump_kw[i] if p.heat_pump_kw != None else 0) -%}
+                    {%- set boiler_kw    = "%6.3f"| format(p.boiler_kw[i] if p.boiler_kw != None else 0) -%}
+                    
+                    {%- set row = "\n|" ~ wk_day ~ "|" ~ hhmm -%}
+                    {%- set row = row ~ "|" ~ imp_pr ~ "|" ~ exp_pr ~ "|" ~ mar_pr -%} 
+                    {%- set row = row ~ "|" ~ step_cost -%} 
+                    {%- set row = row ~ "|" ~ house_for_kw -%} 
+                    {%- set row = row ~ "|" ~ house_usg_kw -%} 
+                    {%- set row = row ~ "|" ~ sol_for_kw -%}
+                    {%- set row = row ~ "|" ~ sol_prod_kw -%}
+                    {%- set row = row ~ "|" ~ helios_strat -%}
+                    {%- set row = row ~ "|" ~ hbc_sub_strat -%}
+                    {%- set row = row ~ "|" ~ soc_pct  ~ "|" ~  soc_kwh ~ "|" ~ grid_net_kw -%}
+                    {%  set row = row ~ "|" ~ discharge_kw ~ "|" ~ charge_kw -%}
+                    {%- set row = row ~ "|" ~ (ev_kw if p.ev_charge_kw != None else "n/a") -%}
+                    {%- set row = row ~ "|" -%}
+                    {{- row -}}  
+                  {%- endif -%}  
                 {%- endfor -%}
               {%- else -%}
                 {{ "\n\n**No Optimal Energy Plan Data Available.**" }}

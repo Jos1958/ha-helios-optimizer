@@ -1,10 +1,10 @@
-# Module: HELIOS Optimizer - Python Function to Calculate an Optimized Energy Plan                            
-# Home Energy Linear Integrated Optimization Service (HELIOS Calculator)
-# The Optimizer uses SciPy Linear/MILP Programming to calculated the Optimal Energy Plan 
-# for Solar Production, Battery Charging/Discharging and expected House Energy Usage for Dynamic Prices during the period.
-# A Solar Forecast can be specified with the expected Solar Production.
-# A House Forecast can bes specified with the expected (undeferrable) Energy Usage in the House.
-# In the future support for Deferrable Devices (like EV, HP and Boiler) will be added. 
+# Module: HELIOS Common - Pure Python Common Functions used by the Helios Services and Helios Optimizer.
+# HELIOS is the Home Energy Linear Integrated Optimization Service which uses common function as defined in the Helios Common Module. 
+#
+# High Level Description of the Common Functions:
+# - File Handling Functions: Provide utilities for reading and writing files in different formats.
+# - Data Validation Functions: Ensure data integrity and handle edge cases for various inputs.
+# - Utility Functions: Support functions for common operations used across the Helios ecosystem.
 #
 # Created by: Jos Raaijmakers
 # Log: 
@@ -17,6 +17,7 @@
 #   2026-10-01: JR  v0.79s Moved Input Chars and Press Any Key (although CLI) functions from helios_main.py to this module (helios_common.py) so they can be used by other Visual Studio test modules (like EnergyPriceConversion.py) 
 #   2026-10-28: JR  v0.93  First public release with HBC Output (works together with Helios Strategy in HBC)
 #   2026-10-29: JR  v0.93a Fixed issue with initial empty helios version number entity (parse_version), empty version is now handled as 0.0.0, all applicable entities will be initialized in helios_services.py
+#   2026-11-27: JR  v0.96  Improved IO-handling (raw_*) and error handling, including raise_error option and combine folder with path, create folder when needed
 #
 #   Remark: For the full helios history see helios_main.py
 #   
@@ -77,7 +78,7 @@ PRESS_ANY_KEY              = "Press ANY key to continue ..."
 PRESS_ESC_OR_KEY           = "Press <ESC> to EXIT or ANY other Key to continue ..." 
 
 RC_UNKNOWN                 = -1 # Nothing has happened yet, so no errors occured (initial value of the calculation code)   
-RC_SUCCESS                 = 0  # The HiGHS solver found a feasible solution
+RC_SUCCESS                 = 0  # The HiGHS solver found a feasible solution (must be zero, optimizer result can be overwritten by service result only when calc_code is 0)
 RC_INFEASIBLE              = 1  # The HiGHS solver could not find a feasible solution within the specified boundaries and rules
 RC_INVALID_COST            = 2  # Cost validation failed (fun cost output is checked and not valid, e.g. total cost != sum of step cost)
 RC_INVALID_BALANCE         = 3  # Balance validation failed (overall sum of the energy balance is checked and not valid, e.g. overall balance != 0)
@@ -86,7 +87,7 @@ RC_OPTIMIZER_EXCEPTION     = 6  # helios_optimizer_calc_plan() Exception
 RC_SERVICE_EXCEPTION       = 7  # helios_optimizer_service() Exception in the call to helios_optimizer_calc_plan()
 RC_SETSTATE_EXCEPTION      = 8  # helios_optimizer_service() Exception in the call to HA state.set() 
 RC_TASK_EXCEPTION          = 9  # helios_optimizer_hbc_task() Exception in retrieving of input parameters from HA
-RC_IMPORTS_FAILED          =10  # helios_optimizer_hbc_task() and/or helios_optimizer_service() failed since Imports are not enabled for PyScript
+RC_PYSCRIPT_FAILED         =10  # helios_optimizer_hbc_task() and/or helios_optimizer_service() failed since Imports are not enabled or Hass is not accessible for PyScript
 
 INSIGHT_STD         = 9         # Default Insight Level (0=No Calculation, 1=Optimize, 5=Create Plan Arrays, 9=Maximum Info)
 INSIGHT_OFF         = 0         # No Calculation
@@ -99,6 +100,10 @@ INSIGHT_OPTIONS     =[INSIGHT_OFF, INSIGHT_MIN, INSIGHT_LOW, INSIGHT_SUM, INSIGH
 
 HA_TS_FORMAT = "%Y-%m-%d %H:%M:%S" # Format for timestamp attributes in Home Assistant
 HA_TS_SHORT  = "%Y-%m-%d %H:%M"    # Default Format for timestamp attributes 
+HA_TS_DATE   = "%Y-%m-%d"          # Default Format for date
+HA_TS_TIME   = "%H:%M"             # Default Format for time
+HA_TS_TIME6  = "%H:%M:%S"          # Alternative Format for time
+
 PERMISSION_WARNING = "WARNING: The file may be IN USE by another application! Close this OTHER Application and Restart this process!"
 
 # -------------------------------------------------------------------
@@ -280,8 +285,10 @@ def is_float(value):
         return False # Not a float
 
 # Format the datetime using a format string:
-def datetime_string(dt: datetime = datetime.now(), dt_format: str = HA_TS_SHORT):
-    return dt.strftime(dt_format)
+def datetime_string(dt: datetime = datetime.now(), dt_format: str = HA_TS_FORMAT): return dt.strftime(dt_format)
+def datetime_short (dt: datetime = datetime.now(), dt_format: str = HA_TS_SHORT ): return datetime_string(dt, dt_format)
+def date_string    (dt: datetime = datetime.now(), dt_format: str = HA_TS_DATE  ): return datetime_string(dt, dt_format)
+def time_string    (dt: datetime = datetime.now(), dt_format: str = HA_TS_TIME  ): return datetime_string(dt, dt_format)
 
 # Format the datetime using iso format with the specified timespec (minutes, seconds, )
 def datetime_isoformat(dt: datetime = datetime.now(), timespec: str = "minutes", separator: str = ' '):
@@ -606,10 +613,6 @@ def len_diff_levels(differences: list = None) -> int:
         
     return count # return length of the dict1 (including sub-levels)
 
-# Check if the file with the specified file name already exists
-def exist_file(file_name: str) -> bool:
-    return os.path.isfile(file_name)            
-
 # Format a log message with an optional timestamp and an optional new line
 def format_log_message(message: str, add_ts: bool = True, add_nl: bool = True) -> str:
     timestamp = '' if not add_ts else datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S") + ' '
@@ -635,13 +638,19 @@ def format_dict_as_json(dict_data: dict, indent: int = 4, default_type = str) ->
 
 # Convert a JSON string back to a dictionary and 
 # Datetime objects are represented as string in the file (and will be converted to datatime objects when recognized as iso formatted string)
-def convert_json_to_dict(json_str: str) -> dict:
+# Return Dictionary or None (in case of parsing errors)
+# An Exception is raised when raise_error is True and a parsing error occurs
+def convert_json_to_dict(json_str: str, raise_error: bool = False) -> dict:
     """Convert a JSON string string back to a dictionary."""
+    dict_data = None
     try:
         dict_data = json.loads(json_str, object_hook=datetime_parser) if json_str else None
+    
     except Exception as e:
-        _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Convert-JSON] Exception: {repr(e)}")
-        dict_data = None
+        if (raise_error):
+            raise ValueError(str(e))
+        else:
+            _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Convert-JSON] Exception: {repr(e)}")
 
     return dict_data
 
@@ -670,6 +679,11 @@ def convert_dictoflists_to_listofdicts(data_dict: dict[list], column_delimiter =
 ####          The Async version will call the related raw versions as defined below          ####
 #################################################################################################
 
+# Check if the file with the specified file name already exists
+def exist_file(path: str, folder: str = None) -> bool:
+    path = path if folder is None else os.path.join(folder, path) # Add the folder to the path when specified 
+    return os.path.isfile(path)            
+
 # These sub-functions do the heavy (blocking) work for handling files. 
 # During the read or write other threads trying to access the same file will block.
 # By calling these functions using an executor the function will run on a separate thread so that the HA loop does not block.
@@ -677,12 +691,12 @@ def convert_dictoflists_to_listofdicts(data_dict: dict[list], column_delimiter =
 # The pyscript compile decorator forces pyscript to compile the function as standard python (instead of HomeAssistant python with access to HA states) since this is mandatory in an executor.
 # Raw file writer appends a text to a file. 
 # @pyscript_compile # Not needed anymore since the helios_common.py is now in /pyscript/helios_python/ (pure python) folder and not in the /pyscript/ or /pyscript/modules/ (pyscript) folders, it is compiled and imported  
-def raw_text_writer(path: str, text: str, newline = "", encoding = "utf-8") -> int:
+def raw_text_writer(path: str, text: str, folder: str = None, newline = "", encoding = "utf-8") -> int:
     char_count = 0
     try:
         # 'a' is for append, existing file are opened for writing at the end of the file. If the file does not exist, it will be created.
 #       with open(path, "a", newline="", encoding="utf-8") as f: # Open for append ("a")
-        with raw_open_file_for_append(path, newline=newline, encoding=encoding) as f: # Open for append ("a")
+        with raw_open_file_for_append(path, folder=folder, newline=newline, encoding=encoding) as f: # Open for append ("a")
             char_count = f.write(text) # append the text to the file but do not yet close
     except Exception as e:
         # log.error is not allowed within an executor, warning: this log message does not have the ERROR level (enable logging with info level) 
@@ -694,13 +708,13 @@ def raw_text_writer(path: str, text: str, newline = "", encoding = "utf-8") -> i
 
 # Raw file writer replaces the content of a file with the new text. 
 # @pyscript_compile # Not needed anymore (see above)
-def raw_file_writer(path: str, text: str, newline = "", encoding = "utf-8") -> int:
+def raw_file_writer(path: str, content: str, folder: str = None, newline = "", encoding = "utf-8") -> int:
     char_count = 0
     try:
         # 'w' is for write/replace, existing file are opened for writing at the start of the file. 
 #       with open(path, "w", newline="", encoding="utf-8") as f: # Open for replace ("w")
-        with raw_open_file_for_replace(path, newline=newline, encoding=encoding) as f: # Open for replace ("w")
-            char_count = f.write(text) # replace the content of the file with the new text
+        with raw_open_file_for_replace(path, folder=folder, newline=newline, encoding=encoding) as f: # Open for replace ("w")
+            char_count = f.write(content) # replace the content of the file with the new text
             f.close() # close the file to ensure the content is written to disk
     except PermissionError as e:
         error_message = repr(e)
@@ -717,7 +731,7 @@ def raw_file_writer(path: str, text: str, newline = "", encoding = "utf-8") -> i
 # With extrasaction is 'raise' the writer will throw an error when the headers list does not contain all fields that occur
 # The Dictonary to be written for a row, can be one level down if you specify a row key
 # @pyscript_compile # Not needed anymore (see above)
-def raw_csv_writer(path: str, row_list: list[dict], headers: list = None, row_key: str = None, newline = "", encoding = "utf-8", column_delimiter: str = ';', extrasaction = 'ignore') -> int:
+def raw_csv_writer(path: str, row_list: list[dict], headers: list = None, row_key: str = None, folder: str = None, newline = "", encoding = "utf-8", column_delimiter: str = ';', extrasaction = 'ignore') -> int:
     row_count = 0
     try:
         if isinstance(row_list, list) and (headers is None or type(headers) is list):
@@ -728,7 +742,7 @@ def raw_csv_writer(path: str, row_list: list[dict], headers: list = None, row_ke
             if (headers != None):
                 # 'w' is for write/replace, existing file are opened for writing at the start of the file. 
 #               with open(path, "w", newline=newline, encoding=encoding) as f: # Open for replace ("w")
-                with raw_open_file_for_replace(path, newline=newline, encoding=encoding) as f: # Open for replace ("w")
+                with raw_open_file_for_replace(path, folder=folder, newline=newline, encoding=encoding) as f: # Open for replace ("w")
                     writer = csv.DictWriter(f, fieldnames=headers, delimiter=column_delimiter, extrasaction=extrasaction) # Create the Dictionary Writer for the file with the field names
     
                     if (headers != None) and (len(headers) > 0):
@@ -760,58 +774,98 @@ def raw_csv_writer(path: str, row_list: list[dict], headers: list = None, row_ke
     return row_count
 
 # Raw JSON file writer replaces the content of a file with the json data from the dictionary. 
-def raw_json_writer(path: str, dict_data: dict, indent: int = 4, default_type = str):
+def raw_json_writer(path: str, dict_data: dict, folder: str = None, indent: int = 4, default_type = str):
     char_count = 0, 
     try: # Try running the Raw File Writer:
         json_str = format_dict_as_json(dict_data, indent = indent, default_type = default_type)
-        char_count = raw_file_writer(path, json_str) # Write the json using the Raw File Writer 
+        char_count = raw_file_writer(path, content=json_str, folder=folder) # Write the json using the Raw File Writer 
     except Exception as e: # Could not write the json string
-        _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-JSON-Write] Exception: {repr(e)}")
+        _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-JSON-Write] Exception for '{path}': {repr(e)}")
     return char_count
 
 # Read a JSON file into a dictionary
-# Returns a dictionary or None (file not found or contains invalid JSON)
-def raw_json_reader(path: str) -> dict:
+def raw_json_reader(path: str, folder: str = None, raise_error: bool = False) -> dict:
     """
-    Read a JSON file into a dictionary.
-    Executor handles this off-thread (so the file reading does not hold up the main loop of HA).
+    Read a JSON File into a Dictionary.
+    Returns a dictionary or None (file not found or contains invalid JSON)
+    An exception will be raised for invalid json or missing json (when raise error enabled and otherwise return None).
+    Make sure to use an executor to handles this off-thread (so the file reading does not hold up the main loop of HA).
     """       
-    json_dict = None
+    json_dict, error_msg = None, None
     try: # Try running the Raw File Readr and JSON to Dict Conversion
-        json_str = raw_file_reader(path) # Read the json string using the Raw File Reader 
-        json_dict = convert_json_to_dict(json_str) # Convert the JSON string to a dictionary and return it (returns None when JSON string is None)
+        json_str = raw_file_reader(path, folder=folder) # Read the json string using the Raw File Reader 
+        json_dict = convert_json_to_dict(json_str, raise_error=raise_error) # Convert the JSON string to a dictionary and return it (returns None when JSON string is None)
         if json_dict is None: # Conversion from JSON to Dictionary failed?
-            _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-JSON-Reader] Error: JSON Conversion Failed, returning {json_dict}")
-    except Exception as e: # Could not read the json string
-        _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-JSON-Reader] Exception: {repr(e)}")
+            error_msg = f"Error: JSON is Missing" # Returning None
+    
+    except OSError as e: # Could not read the file
+        error_msg = str(e) # Read Failed
+    except Exception as e: # Could not parse the json string (invalid format)
+        error_msg = f"JSON Read Failed for {path}: {str(e)}" # Parsing Failed
+
+    if error_msg is not None:
+        if raise_error: 
+            raise ValueError(error_msg)
+        else:
+            _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-JSON-Reader] Error for '{path}': {error_msg}")
+
     return json_dict # Return the dictionary or None when file not found or invalid
+
+# Read a JSON Configuration into a dictionary
+# Returns a dictionary with the configuration (contains price_config, price_providers and other configurations in the future) or None
+# An exception will be raise by raw_json_reader for invalid json which will be passed on to the caller
+def raw_load_config(path: str, folder: str = None, raise_error: bool = False) -> dict:
+    """
+    Read a JSON Configuration File into a Dictionary.
+    Returns a dictionary or None (file not found or contains invalid JSON)
+    An exception will be raised for invalid json or missing json (when raise error enabled and otherwise return None).
+    Make sure to use an executor to handles this off-thread (so the file reading does not hold up the main loop of HA).
+    """       
+    config_from_json = None
+    if exist_file(path, folder=folder):
+        config_from_json = raw_json_reader(path, folder, raise_error) # Retrieve the json 
+    else:
+        _LOGGER.info(f"[{HELIOS_COMMON_NAME}-Raw-Load-Profile]: Profile not found {(folder if folder else '') + path}")
+    return config_from_json
 
 # Raw file reader reads the content of a file and returns the content as a text. 
 # @pyscript_compile # Not needed anymore (see above)
-def raw_file_reader(path: str, newline = "", encoding = "utf-8") -> str:
-    text = None
+def raw_file_reader(path: str, folder: str = None, newline = "", encoding = "utf-8", raise_error: bool = False) -> str:
+    text, error_msg = None, None
     try:
         # 'r' is for read, existing file are opened for reading at the start of the file. 
 #       with open(path, "r", newline = "", encoding="utf-8") as f: # Open for read ("r")
-        with raw_open_file_for_read(path, newline=newline, encoding=encoding) as f: # Open for read ("r")
+        with raw_open_file_for_read(path, folder=folder, newline=newline, encoding=encoding) as f: # Open for read ("r")
             text = f.read()
             f.close()
     except Exception as e:
-        _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-File-Reader] Exception for '{path}': {repr(e)}!") 
+        error_msg = f"File Read Failed: {str(e)}" # Read Failed
+
+    if error_msg:
+        if raise_error:
+            raise OSError(error_msg)
+        else:
+            _LOGGER.error(f"[{HELIOS_COMMON_NAME}-Raw-File-Reader] Exception for '{path}': {repr(e)}!") 
+
     return text # Return text or None if the file could not be read
 
 # Open a file in Replace ("w") Mode at the start of the file with the specified newline and encoding 
 # @pyscript_compile # Not needed anymore (see above)
-def raw_open_file_for_replace(path: str, newline: str = "", encoding = "utf-8") -> TextIOWrapper:
+def raw_open_file_for_replace(path: str, folder: str = None, newline: str = "", encoding = "utf-8", create_folder: bool = True) -> TextIOWrapper:
+    if not os.path.isdir(folder) and create_folder: os.makedirs(folder, exist_ok=True)
+    path = path if folder is None else os.path.join(folder, path) # Add the folder to the path when specified 
     return open(path, "w", newline=newline, encoding=encoding) # "w"=Write/Replace (overwrite the file for each run)
 
 # Open a file in Append ("a") Mode at the end of the file with the specified newline and encoding
 # If the file does not exist, it will be created.
 # @pyscript_compile # Not needed anymore (see above)
-def raw_open_file_for_append(path: str, newline: str  = "", encoding = "utf-8") -> TextIOWrapper:
+def raw_open_file_for_append(path: str, folder: str = None, newline: str  = "", encoding = "utf-8", create_folder: bool = True) -> TextIOWrapper:
+    if not os.path.isdir(folder) and create_folder: os.makedirs(folder, exist_ok=True)
+    path = path if folder is None else os.path.join(folder, path) # Add the folder to the path when specified 
     return open(path, "a", newline=newline, encoding=encoding) # "a"=Append (multiple runs in the same file)
 
 # Open a file in Read ("r") Mode at the start of the file with the specified new line and encoding 
 # @pyscript_compile # Not needed anymore (see above)
-def raw_open_file_for_read(path: str, newline = "", encoding = "utf-8") -> TextIOWrapper:
+def raw_open_file_for_read(path: str, folder: str = None, newline = "", encoding = "utf-8") -> TextIOWrapper:
+    path = path if folder is None else os.path.join(folder, path) # Add the folder to the path when specified 
     return open(path, "r", newline=newline, encoding=encoding) # "r"=Read Only
