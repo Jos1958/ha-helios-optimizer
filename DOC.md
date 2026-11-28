@@ -195,7 +195,7 @@ The **advanced parameters** of the Helios Optimizer are only needed in special s
   Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
   <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
   
-  **Long Horizons:**A 3-7 day optimization horizon can be selected and will limit the effect of a SoC-Target value since this value is only applicable at the **end** of the horizon.
+  **Long Horizons:** A 3-7 day optimization horizon can be selected and will limit the effect of a SoC-Target value since this value is only applicable at the **end** of the horizon.
   Use these higher optimization horizons mainly for simulation and evaluation of the Soc-Target.
   For day-to-day operation the advised 2 days horizon should be used.  
   Please note that solar forecast will usually only be available (and reliable) for a maximum of two days so a longer optimization period may not be very usefull.
@@ -207,7 +207,7 @@ The **advanced parameters** of the Helios Optimizer are only needed in special s
 - **Start Step:** Start the Optimization in the specified step (0..Steps). 
 
   **Advised Start Step:** Typically use a value of **Zero** (0) since this will allow the Optimization to determine the start step **automatically** based on the current time!
-  <br>All steps prior to the Start Step are **Skipped**. Therefore starting at the **current** time (by setting the start step to 0) is the logical choice to begin the optimization.
+  All steps prior to the Start Step are **Skipped**. Therefore starting at the **current** time (by setting the start step to 0) is the logical choice to begin the optimization.
   <br>Other Start Step values are **only** to be used for (Regression) **Testing** or Simulation Runs of the Optimizer!
 
 - **House Daily Usage Distribution (24 Hours):** 
