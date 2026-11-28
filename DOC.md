@@ -189,8 +189,8 @@ The **advanced parameters** of the Helios Optimizer are only needed in special s
 
 - **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow, 3..7 Days)
   
-  **Advised Horizon:** Use an Optimization Period/Horizon of **2 Days** unless you have very specific reasons for a different value
-  (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
+  **Advised Horizon:** Use an Optimization Period/Horizon of **2 Days** unless you have very specific reasons for a different value.
+  <br>For example 2 Days with a step size of *60 minutes* for 48 steps or 2 Days with a step size of *15 minutes* for 192 steps.
   <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
   Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
   <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
