@@ -183,16 +183,19 @@ and can be **manually** started with the green **Start Helios** button.<br>
   <br>See [Solar Forecast Configuration](#solar-forecast-configuration) for more information.
 
 ### Advanced Parameters
-Enable the **'Helios Insight Mode'** to make these **advanced** parameters visible.
+The **advanced parameters** of the Helios Optimizer are only needed in special situations 
+(e.g. Regression Testing, Specific House Demand, Different Price Data and Energy Provider or Net Metering/Salderingsregeling 2026).
+<br>Enable the **'Helios Insight Mode'** to make the advanced parameters visible using the **Helios Insight Mode** button at the top of the page.
+
 - **Days:** Optimization Horizon (0=Disabled, 1=Today, 2=Today and Tomorrow, 3..7 Days)
   
-  <br><br>**Important Remark:** The Advised Optimization Period/Horizon is **2 Days** 
+  **Advised Horizon:** Use an Optimization Period/Horizon of **2 Days** unless you have very specific reasons for a different value
   (e.g. *48 steps of 60 minutes* or *192 steps of 15 minutes*)!
   <br>The optimization model performs best with a 2-day horizon because it begins modeling from the current time of day. 
   Since optimization starts immediately, a 1-day horizon initiated at 22:00 would only cover a 2-hour window, which is rarely useful.
   <br>See for details [Why a 48 hours horizon and a SoC Target](#why-a-horizon-of-48-hours-and-a-soc-target).
   
-  <br><br>A 3-7 day optimization horizon can be selected and will limit the effect of a SoC-Target value since this value is only applicable at the **end** of the horizon.
+  **Long Horizons:**A 3-7 day optimization horizon can be selected and will limit the effect of a SoC-Target value since this value is only applicable at the **end** of the horizon.
   Use these higher optimization horizons mainly for simulation and evaluation of the Soc-Target.
   For day-to-day operation the advised 2 days horizon should be used.  
   Please note that solar forecast will usually only be available (and reliable) for a maximum of two days so a longer optimization period may not be very usefull.
@@ -202,7 +205,8 @@ Enable the **'Helios Insight Mode'** to make these **advanced** parameters visib
   In addition the apex-graphs on the Helios Dashboard will only show 2 days of results (you may change this yourself in the graph definition when desired).
 
 - **Start Step:** Start the Optimization in the specified step (0..Steps). 
-  <br>**Important:** Typically use a value of **Zero** (0) since the Optimization will determine the start step **automatically** based on the current time!
+
+  **Advised Start Step:** Typically use a value of **Zero** (0) since this will allow the Optimization to determine the start step **automatically** based on the current time!
   <br>All steps prior to the Start Step are **Skipped**. Therefore starting at the **current** time (by setting the start step to 0) is the logical choice to begin the optimization.
   <br>Other Start Step values are **only** to be used for (Regression) **Testing** or Simulation Runs of the Optimizer!
 

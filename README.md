@@ -35,7 +35,7 @@ See [Helios Optimizer Why LP](WHY.md)
 <br>On the HBC **'Charge/Sell'** Tab under 'Charge and Sell Strategies' select **'state of charge'** for 'Charge until' and 'Sell until'.
 <br>Use similar values for the **Battery SOC Min and Max** in the Helios input parameters.
 - Check the **Output** of the Helios Optimizer on the **Helios Dashboard** ('Controls' Tab and 'Detailed Results' Tab).
-- For **advanced** configuration use the **'Helios Insights Mode'** button to make additional input parameters and output results visible (or to hide).
+- For **advanced** configuration options press the **'Helios Insights Mode'** button to make additional input parameters and output results visible or invisible.
 - Check your **Prices** in the Optimal Energy Plan Table.
 If the price are not as expected then you may need to adapt price type, data provider and/or energy provider in the advanced parameters.
 This is especially applicable when you are using a generic data provider with market prices.
