@@ -148,7 +148,7 @@ which receives the total target power from Helios and distributes it across the 
 ![Helios Calculator](images/HeliosDashboard.jpeg)
 At the top of the dashboard a short **Overview** of the Optimizer Results is displayed. 
 Below that are the **Input Parameters** and more **Detailed Results** of the calculated Optimized Energy Plan (e.g. Status Blocks, Graph and Table).
-<i>The **Helios Optimizer Service** will typically run every **quarter** of an hour 
+The **Helios Optimizer Service** will typically run every **quarter** of an hour 
 and can be **manually** started with the green **Start Helios** button.<br>
 
 ## Input Parameters
