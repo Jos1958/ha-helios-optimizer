@@ -14,17 +14,16 @@
 - Replaced the Helios Dashboard field 'Helios HBC Sub Strategy' (Helios Output Field) by 'HBC Active Sub Strategy' (Actual HBC Field)
   input_select.helios_optimizer_hbc_sub_strategy to input_text.house_battery_strategy_active_sub_strategy
 - Allow for 3-7 days of optimization horizon for simulation and evaluation purposes (advised horizon remains 2 days)
-- Added the weekday to the Optimal Energy Plan Table and Surpressed the skipped steps and steps above step 192 in the Table
-- Improved the Helios Hello World Service (testing of entities, attributes and pyscript configuration (import and hass)
+- Added the weekday to the Optimal Energy Plan Table and Surppressed the skipped steps and steps above step 192 in the Table
+- Improved the Helios Hello World Service (testing of entities, attributes and pyscript configuration (import and hass))
 - Split of 'PyScript' functions that are used in multiple PyScript Services (introduced helios_hass.py in /pyscript/modules)
 - Support for Solar Forecast by the Solcast (next to the existing Forecast.Solar) Integration, Uses a Service provided by the integration
 - (Optional) Configuration File with Price Providers and Defaults and Strategy Mapping (advanced users only, an example is provided)
-- Improved pyscript.helios_hello_world service to check successfull installation of helios and retrieve the Energy Plan (now includes check on Allow Imports and Hass Access)
 - **New file and folder:** 
   - /pyscript/modules and /pyscript/modules/helios_hass.py
 - **Updated files (ALL important Files are Updated!):** 
   - Package (yaml), 
-  - All PyScript (*.py), New Modules folder with helios_hass.py !
+  - All PyScript (*.py), **New Modules** folder!
   - Dashboard (yaml), 
   - Example Configuration (helios_optimizer_config.json),
   - Node-Red Helios Strategy Flow (json): v0.9.6 is equal to v0.9.5b, 

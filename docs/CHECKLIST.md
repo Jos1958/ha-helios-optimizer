@@ -71,12 +71,13 @@
 - _ **Push** the new/changed/delete files to **GitHub **
   - _ c:\> cd \$code\GitHeliosOptimizer
   - _ git add .     
-  - _ git commit -m "vy.y.y Helios Optimizer Release (First Public Release, Solcast, ...)"
+  - _ git commit -m "vy.y.y Helios Optimizer Release (First Public Release, Solcast and Fixes, ...)"
   - _ git push 
 
 - _ **GitHub Release** (https://github.com/Jos1958/ha-helios-optimizer)
   - _ [Releases] - [Draft a new release]
-  - _ [Select tag] - [Create new tag] - y.y.y (without the version v)
+  - _ [Select tag] - [Create new tag] - y.y.y (without the version v) 
+  - _ [Create]
   - _ Specify Release Title: Helios Optimizer Release vy.y.y (First Public Release)
   - _ Release Notes: Copy/Paste the (simplified) release description from RELEASE_NOTES.md
   - _ Release label: * Latest
@@ -84,3 +85,6 @@
   
 - _ **Announce** the new Release
   - _ HBC Discord (strategies)
+  - _ HBC Discord (Tutorials-and-more -> Helios Optimizer Strategy)
+  - _ HBC Discord (Personal)
+  
